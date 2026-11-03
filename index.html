@@ -143,16 +143,12 @@
 
     <!-- Script Logic -->
     <script>
-        // ใช้ JSONBin API สาธารณะร่วมกัน เพื่อให้ทุกเครื่องซิงค์ข้อมูลชุดเดียวกันแบบออนไลน์ Real-time
         const BIN_ID = '673a5a7ead19ca34f8c9b2e2'; 
-        const API_KEY = '$2a$10$7Xb7t1qV8sJ9z9v3h1x59uK5m6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q'; // Public Cloud Sync Key
         let db = [];
 
         async function fetchCloudData() {
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': '$2a$10$vU8Q9sZ6... (sync)' } // Fallback to localStorage if offline
-                });
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`);
                 if(res.ok) {
                     const data = await res.json();
                     db = data.record || [];
@@ -162,7 +158,7 @@
             } catch (e) {
                 db = JSON.parse(localStorage.getItem('hotel_contractors_cloud') || '[]');
             }
-            if(document.getElementById('section-report').classList.contains('hidden') === false) {
+            if(!document.getElementById('section-report').classList.contains('hidden')) {
                 loadReport();
             }
         }
@@ -183,7 +179,6 @@
             }
         }
 
-        // โหลดข้อมูลทันทีเมื่อเปิดเว็บ และดึงซิงค์ทุก 5 วินาที
         fetchCloudData();
         setInterval(fetchCloudData, 5000);
 
@@ -234,6 +229,9 @@
             const carPlate = document.getElementById('carPlate').value.trim() || 'ไม่มี';
             const department = document.getElementById('department').value;
             const workLocation = document.getElementById('workLocation').value.trim() || 'พื้นที่โรงแรม';
+            const idCardImg = document.getElementById('idPreview').src || '';
+            const carImg = document.getElementById('carPreview').src || '';
+
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0];
             const timeStr = now.toTimeString().split(' ')[0];
@@ -243,7 +241,7 @@
                 return;
             }
 
-            await fetchCloudData(); // โหลดข้อมูลล่าสุดก่อนบันทึกเสมอเพื่อป้องกันข้อมูลทับกัน
+            await fetchCloudData();
             let existing = db.find(item => item.idNumber === idNumber && item.date === dateStr && !item.timeOut);
 
             if(existing) {
@@ -260,7 +258,9 @@
                     companyName,
                     carPlate,
                     department,
-                    workLocation
+                    workLocation,
+                    idCardImg: idCardImg.startsWith('data:') ? idCardImg : '',
+                    carImg: carImg.startsWith('data:') ? carImg : ''
                 };
                 db.push(newEntry);
                 alert('บันทึกเวลาเข้า (Check-In) สำเร็จ!');
@@ -268,7 +268,6 @@
 
             await saveCloudData();
             
-            // ล้างฟอร์ม
             document.getElementById('idNumber').value = '';
             document.getElementById('fullName').value = '';
             document.getElementById('companyName').value = '';
@@ -321,39 +320,76 @@
             
             if(filtered.length === 0) { alert('ไม่มีข้อมูลสำหรับส่งออก PDF'); return; }
 
-            doc.setFont("Sarabun", "normal");
+            // โหลดฟอนต์ Sarabun รองรับภาษาไทยสมบูรณ์
+            try {
+                const fontUrl = "https://cdn.jsdelivr.net/npm/@canvas-fonts/th-sarabun-psk@1.0.0/THSarabunPSK.ttf";
+                const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+                
+                // แปลง ArrayBuffer เป็น Base64
+                let binary = '';
+                const bytes = new Uint8Array(fontBytes);
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const base64Font = btoa(binary);
+
+                doc.addFileToVFS("THSarabun.ttf", base64Font);
+                doc.addFont("THSarabun.ttf", "Sarabun", "normal");
+                doc.setFont("Sarabun");
+            } catch(e) {
+                console.log("Using standard font fallback");
+            }
             
-            let y = 20;
+            let y = 15;
             let countOnPage = 0;
 
-            doc.setFontSize(14);
-            doc.text(`Hotel Contractor Daily Report - Date: ${selectedDate}`, 14, y);
+            doc.setFontSize(16);
+            doc.text(`รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate}`, 14, y);
             y += 10;
 
             filtered.forEach((item, index) => {
                 if(countOnPage > 0 && countOnPage % 5 === 0) {
                     doc.addPage();
-                    y = 20;
-                    doc.setFontSize(14);
-                    doc.text(`Hotel Contractor Daily Report - Date: ${selectedDate} (Cont.)`, 14, y);
+                    y = 15;
+                    doc.setFontSize(16);
+                    doc.text(`รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate} (ต่อ)`, 14, y);
                     y += 10;
                 }
 
-                doc.setFontSize(10);
-                doc.text(`${index + 1}. ชื่อ-นามสกุล: ${item.fullName} (ID: ${item.idNumber})`, 14, y);
-                doc.text(`    บริษัท: ${item.companyName} | สถานที่ปฏิบัติงาน: ${item.workLocation}`, 14, y + 6);
-                doc.text(`    ทะเบียนรถ: ${item.carPlate} | แผนก: ${item.department}`, 14, y + 12);
-                doc.text(`    เวลาเข้า: ${item.timeIn}  |  เวลาออก: ${item.timeOut || 'กำลังปฏิบัติงาน'}`, 14, y + 18);
-                
-                doc.setDrawColor(200, 200, 200);
-                doc.line(14, y + 22, 196, y + 22);
-                
-                y += 28;
+                // วาดกรอบข้อมูลแต่ละคน
+                doc.setDrawColor(180, 180, 180);
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(14, y, 182, 48, 2, 2, 'FD');
+
+                // ข้อความรายละเอียด
+                doc.setFontSize(12);
+                doc.text(`${index + 1}. ชื่อ-นามสกุล: ${item.fullName} (ID: ${item.idNumber})`, 48, y + 8);
+                doc.text(`บริษัท: ${item.companyName} | สถานที่: ${item.workLocation}`, 48, y + 16);
+                doc.text(`ทะเบียนรถ: ${item.carPlate} | แผนก: ${item.department}`, 48, y + 24);
+                doc.text(`เวลาเข้า: ${item.timeIn}  |  เวลาออก: ${item.timeOut || 'กำลังปฏิบัติงาน'}`, 48, y + 32);
+
+                // แทรกรูปถ่ายบัตรประชาชน (ถ้ามี)
+                if(item.idCardImg && item.idCardImg.startsWith('data:image')) {
+                    try {
+                        doc.addImage(item.idCardImg, 'JPEG', 17, y + 5, 27, 18);
+                    } catch(err) {}
+                }
+                // แทรกรูปถ่ายป้ายทะเบียนรถ (ถ้ามี)
+                if(item.carImg && item.carImg.startsWith('data:image')) {
+                    try {
+                        doc.addImage(item.carImg, 'JPEG', 17, y + 25, 27, 18);
+                    } catch(err) {}
+                }
+
+                y += 54;
                 countOnPage++;
             });
 
-            // เพิ่มช่องลงชื่อท้ายแผ่น
-            doc.text("ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ....................................................", 14, y + 10);
+            // ช่องลงชื่อท้ายหน้า
+            if(y > 260) { doc.addPage(); y = 20; }
+            doc.setFontSize(12);
+            doc.text("ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ................................................................", 14, y + 10);
 
             doc.save(`Contractor_Report_5Items_${selectedDate}.pdf`);
         }
