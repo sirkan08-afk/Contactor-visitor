@@ -115,7 +115,7 @@
                 <h2 class="text-md font-bold text-slate-700">📊 รายงานผู้รับเหมาประจำวัน</h2>
                 <div>
                     <label class="block text-xs font-medium text-slate-600">เลือกวันที่</label>
-                    <input type="date" id="reportDate" class="w-full mt-1 p-2 border rounded-lg text-sm" onchange="loadReport()">
+                    <input type="date" id="reportDate" class="w-full mt-1 p-2 border rounded-lg text-sm" onchange="fetchCloudData()">
                 </div>
                 <div class="grid grid-cols-2 gap-3 text-center">
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
@@ -263,7 +263,7 @@
         const matching=(active||[]).filter(x=>x.full_name.trim().toLowerCase()===fullName.toLowerCase());
         if(matching.length>1){alert('พบรายการที่ตรงกันหลายรายการ กรุณาติดต่อผู้ดูแลระบบ');return;}
         if(matching.length===1){
-          const {error}=await sb.rpc('checkout_contractor',{p_id_last4:last4});
+          const {error}=await sb.from('contractor_entries').update({time_out:new Date().toISOString()}).eq('id',matching[0].id);
           if(error){alert('บันทึกเวลาออกไม่สำเร็จ: '+error.message);return;}
           alert('บันทึกเวลาออกเรียบร้อย');
         } else {
