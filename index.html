@@ -10,8 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <!-- SheetJS Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2pdf.js สำหรับสร้าง PDF ภาษาไทยและรูปภาพสมบูรณ์ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
@@ -313,85 +313,76 @@
         }
 
         async function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
             const selectedDate = document.getElementById('reportDate').value;
             const filtered = db.filter(item => item.date === selectedDate);
             
             if(filtered.length === 0) { alert('ไม่มีข้อมูลสำหรับส่งออก PDF'); return; }
 
-            // โหลดฟอนต์ Sarabun รองรับภาษาไทยสมบูรณ์
-            try {
-                const fontUrl = "https://cdn.jsdelivr.net/npm/@canvas-fonts/th-sarabun-psk@1.0.0/THSarabunPSK.ttf";
-                const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
-                
-                // แปลง ArrayBuffer เป็น Base64
-                let binary = '';
-                const bytes = new Uint8Array(fontBytes);
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                const base64Font = btoa(binary);
-
-                doc.addFileToVFS("THSarabun.ttf", base64Font);
-                doc.addFont("THSarabun.ttf", "Sarabun", "normal");
-                doc.setFont("Sarabun");
-            } catch(e) {
-                console.log("Using standard font fallback");
+            // แบ่งข้อมูลออกเป็นกลุ่มละ 5 รายการ ต่อ 1 แผ่น
+            let chunks = [];
+            for (let i = 0; i < filtered.length; i += 5) {
+                chunks.push(filtered.slice(i, i + 5));
             }
+
+            let htmlContent = `<div style="font-family: 'Sarabun', sans-serif; padding: 15px; color: #1e293b; background: white; width: 750px;">`;
             
-            let y = 15;
-            let countOnPage = 0;
+            chunks.forEach((chunk, pageIndex) => {
+                htmlContent += `
+                    <div style="${pageIndex > 0 ? 'page-break-before: always;' : ''} margin-bottom: 20px;">
+                        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #1e293b; padding-bottom: 5px;">
+                            รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate} (หน้า ${pageIndex + 1}/${chunks.length})
+                        </h2>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                `;
 
-            doc.setFontSize(16);
-            doc.text(`รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate}`, 14, y);
-            y += 10;
+                chunk.forEach((item, idx) => {
+                    const globalIdx = (pageIndex * 5) + idx + 1;
+                    htmlContent += `
+                        <tr style="border-bottom: 1px solid #cbd5e1;">
+                            <td style="padding: 8px; width: 18%; vertical-align: middle; text-align: center;">
+                                ${item.idCardImg ? `<img src="${item.idCardImg}" style="width: 60px; height: 40px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px; display: block; margin: 0 auto 2px auto;" />` : '<div style="font-size: 9px; color: #94a3b8;">ไม่มีรูปบัตร</div>'}
+                                ${item.carImg ? `<img src="${item.carImg}" style="width: 60px; height: 40px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px; display: block; margin: 0 auto;" />` : '<div style="font-size: 9px; color: #94a3b8;">ไม่มีรูปรถ</div>'}
+                            </td>
+                            <td style="padding: 8px; width: 82%; vertical-align: top; font-size: 13px; line-height: 1.4;">
+                                <strong>${globalIdx}. ${item.fullName}</strong> &nbsp; <span style="color: #64748b; font-size: 11px;">(ID: ${item.idNumber})</span><br>
+                                <strong>บริษัท:</strong> ${item.companyName} &nbsp;|&nbsp; <strong>สถานที่:</strong> ${item.workLocation}<br>
+                                <strong>ทะเบียนรถ:</strong> ${item.carPlate} &nbsp;|&nbsp; <strong>แผนก:</strong> ${item.department}<br>
+                                <strong>เวลาเข้า:</strong> <span style="color: #047857;">${item.timeIn}</span> &nbsp;|&nbsp; <strong>เวลาออก:</strong> <span style="color: #b91c1c;">${item.timeOut || 'กำลังปฏิบัติงาน'}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
 
-            filtered.forEach((item, index) => {
-                if(countOnPage > 0 && countOnPage % 5 === 0) {
-                    doc.addPage();
-                    y = 15;
-                    doc.setFontSize(16);
-                    doc.text(`รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate} (ต่อ)`, 14, y);
-                    y += 10;
-                }
-
-                // วาดกรอบข้อมูลแต่ละคน
-                doc.setDrawColor(180, 180, 180);
-                doc.setFillColor(255, 255, 255);
-                doc.roundedRect(14, y, 182, 48, 2, 2, 'FD');
-
-                // ข้อความรายละเอียด
-                doc.setFontSize(12);
-                doc.text(`${index + 1}. ชื่อ-นามสกุล: ${item.fullName} (ID: ${item.idNumber})`, 48, y + 8);
-                doc.text(`บริษัท: ${item.companyName} | สถานที่: ${item.workLocation}`, 48, y + 16);
-                doc.text(`ทะเบียนรถ: ${item.carPlate} | แผนก: ${item.department}`, 48, y + 24);
-                doc.text(`เวลาเข้า: ${item.timeIn}  |  เวลาออก: ${item.timeOut || 'กำลังปฏิบัติงาน'}`, 48, y + 32);
-
-                // แทรกรูปถ่ายบัตรประชาชน (ถ้ามี)
-                if(item.idCardImg && item.idCardImg.startsWith('data:image')) {
-                    try {
-                        doc.addImage(item.idCardImg, 'JPEG', 17, y + 5, 27, 18);
-                    } catch(err) {}
-                }
-                // แทรกรูปถ่ายป้ายทะเบียนรถ (ถ้ามี)
-                if(item.carImg && item.carImg.startsWith('data:image')) {
-                    try {
-                        doc.addImage(item.carImg, 'JPEG', 17, y + 25, 27, 18);
-                    } catch(err) {}
-                }
-
-                y += 54;
-                countOnPage++;
+                htmlContent += `
+                        </table>
+                        <div style="margin-top: 30px; font-size: 12px; border-top: 1px dashed #cbd5e1; pt-2;">
+                            <br>ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ................................................................
+                        </div>
+                    </div>
+                `;
             });
 
-            // ช่องลงชื่อท้ายหน้า
-            if(y > 260) { doc.addPage(); y = 20; }
-            doc.setFontSize(12);
-            doc.text("ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ................................................................", 14, y + 10);
+            htmlContent += `</div>`;
 
-            doc.save(`Contractor_Report_5Items_${selectedDate}.pdf`);
+            const element = document.createElement('div');
+            element.innerHTML = htmlContent;
+            document.body.appendChild(element);
+
+            const opt = {
+                margin:       10,
+                filename:     `Contractor_Report_${selectedDate}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            try {
+                await html2pdf().from(element).set(opt).save();
+            } catch(err) {
+                alert('เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง');
+            } finally {
+                document.body.removeChild(element);
+            }
         }
     </script>
 </body>
