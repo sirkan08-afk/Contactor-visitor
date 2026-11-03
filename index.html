@@ -16,12 +16,23 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+    <section id="loginScreen" class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
+        <h1 class="text-xl font-bold text-center">CONTRACTOR REGISTRATION V8</h1>
+        <p class="text-sm text-center text-slate-500">เข้าสู่ระบบด้วย User ID</p>
+        <div><label class="text-sm font-semibold">User ID</label><input id="loginUserId" class="w-full mt-1 p-3 border rounded-lg" placeholder="เช่น ADMIN001" autocomplete="username"></div>
+        <div><label class="text-sm font-semibold">Password</label><input id="loginPassword" type="password" class="w-full mt-1 p-3 border rounded-lg" placeholder="รหัสผ่าน" autocomplete="current-password"></div>
+        <button onclick="login()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg">เข้าสู่ระบบ</button>
+        <p id="loginMessage" class="text-sm text-center text-rose-600"></p>
+      </div>
+    </section>
     <!-- Header -->
     <header class="bg-slate-800 text-white shadow-md p-4 text-center">
         <h1 class="text-xl font-bold">HOTEL CONTRACTOR REGISTRATION</h1>
-        <p class="text-xs text-slate-300">Hotel Security Department - Online Cloud Sync</p>
+        <p class="text-xs text-slate-300">Hotel Security Department - Supabase Cloud</p><div class="text-xs mt-1">ผู้ใช้งาน: <span id="currentUserLabel">-</span> <button onclick="logout()" class="underline ml-2">ออกจากระบบ</button></div>
     </header>
 
     <!-- Navigation Tabs -->
@@ -43,7 +54,7 @@
                         <input type="file" accept="image/*" capture="environment" id="idCardImage" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="compressImage(event, 'idPreview', 'idPreviewContainer')">
                         <div id="idPreviewContainer" class="mt-2 hidden text-center">
                             <img id="idPreview" class="h-32 object-contain mx-auto rounded border" alt="Preview ID">
-                            <button onclick="runOCR()" id="ocrBtn" class="mt-2 w-full bg-blue-600 text-white py-1.5 px-3 rounded text-xs font-medium hover:bg-blue-700">🔍 อ่านเลขบัตรและชื่อจากภาพ (OCR)</button>
+                            <button onclick="runOCR()" id="ocrBtn" class="mt-2 w-full bg-blue-600 text-white py-1.5 px-3 rounded text-xs font-medium hover:bg-blue-700">🔍 อ่านชื่อจากภาพ (OCR)</button>
                             <p id="ocrStatus" class="text-center text-xs text-slate-500 mt-1"></p>
                         </div>
                     </div>
@@ -61,8 +72,8 @@
             <div class="bg-white p-4 rounded-xl shadow space-y-3">
                 <h2 class="text-md font-bold text-slate-700 mb-2">📝 ข้อมูลผู้รับเหมา</h2>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600">เลขประจำตัวประชาชน (13 หลัก)</label>
-                    <input type="text" id="idNumber" maxlength="13" placeholder="กรอกเลขบัตร 13 หลัก หรือสแกน" class="w-full mt-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-medium text-slate-600">เลขบัตรประชาชน 4 ตัวท้าย</label>
+                    <input type="text" id="idNumber" maxlength="4" inputmode="numeric" placeholder="กรอกเลข 4 ตัวท้าย" class="w-full mt-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600">ชื่อ - นามสกุล</label>
@@ -87,6 +98,10 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-600">จำนวนทีมงานทั้งหมด (รวมผู้ลงทะเบียน)</label>
+                    <input type="number" id="teamSize" min="1" max="500" value="1" class="w-full mt-1 p-2 border rounded-lg text-sm">
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-600">สถานที่ปฏิบัติงาน (จุดภายในโรงแรม)</label>
                     <input type="text" id="workLocation" placeholder="เช่น อาคาร A ชั้น 2, สระว่ายน้ำ, ห้องอาหาร" class="w-full mt-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
@@ -105,7 +120,7 @@
                 <div class="grid grid-cols-2 gap-3 text-center">
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
                         <span id="statTotal" class="text-xl font-bold text-blue-700">0</span>
-                        <p class="text-xs text-slate-600">ผู้รับเหมาที่ลงทะเบียน</p>
+                        <p class="text-xs text-slate-600">จำนวนผู้รับเหมารวมทีมงาน</p>
                     </div>
                     <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
                         <span id="statCompany" class="text-xl font-bold text-emerald-700">0</span>
@@ -114,7 +129,7 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button onclick="exportExcel()" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-green-700">📥 Export Excel</button>
-                    <button onclick="exportPDF()" class="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-rose-700">📄 Export PDF (5 รายการ/แผ่น)</button>
+                    <button onclick="exportPDF()" class="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-rose-700">📄 Export PDF (4 รายการ/แผ่น)</button>
                 </div>
             </div>
 
@@ -143,269 +158,166 @@
 
     <!-- Script Logic -->
     <script>
-        const BIN_ID = '673a5a7ead19ca34f8c9b2e2'; 
-        let db = [];
+      const SUPABASE_URL = 'https://aclsqitjruccxkzjtxbl.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_46ffZxy1L4lJQv_Kgzmuzg_V97pFTuN';
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const USER_EMAILS = { ADMIN001:'admin001@contractor.local', SEC001:'sec001@contractor.local', SEC002:'sec002@contractor.local', SEC003:'sec003@contractor.local' };
+      let db = [], currentUser = null, imageFiles = { id:null, car:null };
 
-        async function fetchCloudData() {
-            try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`);
-                if(res.ok) {
-                    const data = await res.json();
-                    db = data.record || [];
-                } else {
-                    db = JSON.parse(localStorage.getItem('hotel_contractors_cloud') || '[]');
-                }
-            } catch (e) {
-                db = JSON.parse(localStorage.getItem('hotel_contractors_cloud') || '[]');
-            }
-            if(!document.getElementById('section-report').classList.contains('hidden')) {
-                loadReport();
-            }
+      function bangkokDate(d=new Date()) { return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); }
+      function bangkokTime(d=new Date()) { return new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d); }
+      function escapeHtml(v='') { return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      async function login() {
+        const userId = document.getElementById('loginUserId').value.trim().toUpperCase();
+        const password = document.getElementById('loginPassword').value;
+        const email = USER_EMAILS[userId];
+        const msg = document.getElementById('loginMessage');
+        if (!email || !password) { msg.textContent = 'กรุณาตรวจสอบ User ID และ Password'; return; }
+        msg.textContent = 'กำลังเข้าสู่ระบบ...';
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: กรุณาตรวจสอบ User ID หรือ Password'; return; }
+        currentUser = userId;
+        document.getElementById('currentUserLabel').textContent = userId;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('loginPassword').value = '';
+        await fetchCloudData();
+      }
+      async function logout() {
+        await sb.auth.signOut(); currentUser = null; db = [];
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('loginUserId').value = '';
+        document.getElementById('loginMessage').textContent = '';
+      }
+      sb.auth.getSession().then(({data}) => {
+        if (data.session) { sb.auth.signOut(); }
+      });
+
+      async function fetchCloudData() {
+        if (!currentUser) return;
+        const selectedDate = document.getElementById('reportDate').value || bangkokDate();
+        const { data, error } = await sb.from('contractor_entries').select('*').eq('work_date', selectedDate).order('time_in',{ascending:false});
+        if (error) { alert('โหลดข้อมูลไม่สำเร็จ: '+error.message); return; }
+        db = await Promise.all((data||[]).map(async row => {
+          const item = {...row, date:row.work_date, timeIn:bangkokTime(new Date(row.time_in)), timeOut:row.time_out?bangkokTime(new Date(row.time_out)):'', idNumber:row.id_last4, fullName:row.full_name, companyName:row.company_name, carPlate:row.car_plate, department:row.department, workLocation:row.work_location, teamSize:row.team_size};
+          if (row.id_card_path) { const {data:s}=await sb.storage.from('contractor-private').createSignedUrl(row.id_card_path,3600); item.idCardImg=s?.signedUrl||''; }
+          if (row.car_image_path) { const {data:s}=await sb.storage.from('contractor-private').createSignedUrl(row.car_image_path,3600); item.carImg=s?.signedUrl||''; }
+          return item;
+        }));
+        if (!document.getElementById('section-report').classList.contains('hidden')) loadReport();
+      }
+      async function uploadImage(file, kind) {
+        if (!file) return null;
+        const ext = file.type==='image/png'?'png':'jpg';
+        const path = currentUser+'/'+Date.now()+'-'+kind+'.'+ext;
+        const {error}=await sb.storage.from('contractor-private').upload(path,file,{contentType:file.type||'image/jpeg',upsert:false});
+        if(error) throw error;
+        return path;
+      }
+      function switchTab(tab) {
+        document.getElementById('section-register').classList.toggle('hidden',tab!=='register');
+        document.getElementById('section-report').classList.toggle('hidden',tab!=='report');
+        document.getElementById('tab-register').className=tab==='register'?'flex-1 py-2 text-center font-bold text-blue-600 border-b-2 border-blue-600':'flex-1 py-2 text-center font-semibold text-slate-500';
+        document.getElementById('tab-report').className=tab==='report'?'flex-1 py-2 text-center font-bold text-blue-600 border-b-2 border-blue-600':'flex-1 py-2 text-center font-semibold text-slate-500';
+        if(tab==='report'){document.getElementById('reportDate').value=bangkokDate();loadReport();}
+      }
+      function compressImage(event,previewId,containerId) {
+        const file=event.target.files[0]; if(!file)return;
+        const reader=new FileReader();
+        reader.onload=e=>{
+          const img=new Image();
+          img.onload=()=>{
+            const max=1800, scale=Math.min(1,max/img.width);
+            const canvas=document.createElement('canvas'); canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
+            canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+            canvas.toBlob(blob=>{
+              const optimized=new File([blob],(file.name||'image').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+              imageFiles[previewId==='idPreview'?'id':'car']=optimized;
+              document.getElementById(previewId).src=URL.createObjectURL(optimized);
+              document.getElementById(containerId).classList.remove('hidden');
+            },'image/jpeg',0.88);
+          };
+          img.src=e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      async function runOCR() {
+        const status=document.getElementById('ocrStatus'); status.textContent='กำลังอ่านชื่อจากภาพ...';
+        try { const result=await Tesseract.recognize(document.getElementById('idPreview').src,'tha+eng'); status.textContent='อ่านภาพแล้ว กรุณาตรวจสอบและกรอกชื่อด้วยตนเอง'; }
+        catch(e){status.textContent='อ่านภาพไม่สำเร็จ กรุณากรอกข้อมูลด้วยตนเอง';}
+      }
+      async function saveContractor() {
+        if(!currentUser){alert('กรุณาเข้าสู่ระบบ');return;}
+        const last4=document.getElementById('idNumber').value.trim();
+        const fullName=document.getElementById('fullName').value.trim();
+        const company=document.getElementById('companyName').value.trim()||'ไม่มี';
+        const plate=document.getElementById('carPlate').value.trim()||'ไม่มี';
+        const dept=document.getElementById('department').value;
+        const location=document.getElementById('workLocation').value.trim()||'พื้นที่โรงแรม';
+        const teamSize=parseInt(document.getElementById('teamSize').value||'1',10);
+        if(!/^\d{4}$/.test(last4)||!fullName){alert('กรุณากรอกเลขบัตร 4 ตัวท้ายและชื่อ-นามสกุล');return;}
+        if(!Number.isInteger(teamSize)||teamSize<1||teamSize>500){alert('จำนวนทีมงานต้องอยู่ระหว่าง 1-500 คน');return;}
+        const today=bangkokDate();
+        const {data:active,error:qerr}=await sb.from('contractor_entries').select('id,full_name').eq('work_date',today).eq('id_last4',last4).is('time_out',null);
+        if(qerr){alert('ตรวจสอบรายการไม่สำเร็จ: '+qerr.message);return;}
+        const matching=(active||[]).filter(x=>x.full_name.trim().toLowerCase()===fullName.toLowerCase());
+        if(matching.length>1){alert('พบรายการที่ตรงกันหลายรายการ กรุณาติดต่อผู้ดูแลระบบ');return;}
+        if(matching.length===1){
+          const {error}=await sb.rpc('checkout_contractor',{p_id_last4:last4});
+          if(error){alert('บันทึกเวลาออกไม่สำเร็จ: '+error.message);return;}
+          alert('บันทึกเวลาออกเรียบร้อย');
+        } else {
+          try {
+            const idPath=await uploadImage(imageFiles.id,'id-card');
+            const carPath=await uploadImage(imageFiles.car,'vehicle');
+            const {error}=await sb.from('contractor_entries').insert({work_date:today,id_last4:last4,full_name:fullName,company_name:company,car_plate:plate,department:dept,work_location:location,team_size:teamSize,id_card_path:idPath,car_image_path:carPath});
+            if(error) throw error;
+            alert('บันทึกเวลาเข้าเรียบร้อย');
+          } catch(e){alert('บันทึกข้อมูลไม่สำเร็จ: '+e.message);return;}
         }
-
-        async function saveCloudData() {
-            localStorage.setItem('hotel_contractors_cloud', JSON.stringify(db));
-            try {
-                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Access-Key': '$2a$10$7Xb7t1qV8sJ9z9v3h1x59uK5m6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q'
-                    },
-                    body: JSON.stringify(db)
-                });
-            } catch(e) {
-                console.log("Offline mode - Saved locally");
-            }
+        await fetchCloudData(); clearForm();
+      }
+      function clearForm(){
+        ['idNumber','fullName','companyName','carPlate','workLocation'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('teamSize').value='1';
+        ['idCardImage','carImage'].forEach(id=>document.getElementById(id).value='');
+        ['idPreviewContainer','carPreviewContainer'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+        imageFiles={id:null,car:null};
+      }
+      function loadReport(){
+        const selected=document.getElementById('reportDate').value||bangkokDate();
+        const rows=db.filter(x=>x.date===selected);
+        const total=rows.reduce((n,x)=>n+(Number(x.teamSize)||1),0);
+        document.getElementById('statTotal').textContent=total;
+        document.getElementById('statCompany').textContent=new Set(rows.map(x=>x.companyName)).size;
+        const tbody=document.getElementById('reportTableBody');
+        if(!rows.length){tbody.innerHTML='<tr><td colspan="4" class="text-center p-4 text-slate-400">ไม่พบข้อมูลในวันที่เลือก</td></tr>';return;}
+        tbody.innerHTML=rows.map(x=>'<tr class="border-b"><td class="p-2">เข้า: '+escapeHtml(x.timeIn)+'<br>ออก: '+(x.timeOut?escapeHtml(x.timeOut):'<span class="text-amber-600">กำลังปฏิบัติงาน</span>')+'</td><td class="p-2">'+escapeHtml(x.fullName)+'<br><span class="text-slate-400">เลขท้าย: '+escapeHtml(x.idNumber)+'</span></td><td class="p-2">'+escapeHtml(x.companyName)+'<br>สถานที่: '+escapeHtml(x.workLocation)+'<br>ทีมงาน: '+escapeHtml(x.teamSize)+' คน</td><td class="p-2">'+escapeHtml(x.carPlate)+'<br>'+escapeHtml(x.department)+'</td></tr>').join('');
+      }
+      async function exportExcel(){
+        const selected=document.getElementById('reportDate').value;
+        const rows=db.filter(x=>x.date===selected);
+        if(!rows.length){alert('ไม่มีข้อมูลสำหรับส่งออก');return;}
+        const exportRows=rows.map(x=>({วันที่:x.date,เวลาเข้า:x.timeIn,เวลาออก:x.timeOut,เลขบัตร4ตัวท้าย:x.idNumber,ชื่อ:x.fullName,บริษัท:x.companyName,ทะเบียนรถ:x.carPlate,แผนก:x.department,สถานที่:x.workLocation,จำนวนทีมงาน:x.teamSize}));
+        const ws=XLSX.utils.json_to_sheet(exportRows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contractors');XLSX.writeFile(wb,'Contractor_Report_'+selected+'.xlsx');
+      }
+      async function exportPDF(){
+        const selected=document.getElementById('reportDate').value,rows=db.filter(x=>x.date===selected);
+        if(!rows.length){alert('ไม่มีข้อมูลสำหรับส่งออก PDF');return;}
+        let content='<div style="font-family:Sarabun,sans-serif;padding:10px;color:#1e293b;background:white;width:750px">';
+        for(let i=0;i<rows.length;i+=4){
+          content+='<section style="'+(i?'page-break-before:always;':'')+'"><h2 style="font-size:17px;font-weight:bold;border-bottom:2px solid #334155;padding-bottom:8px">รายงานผู้รับเหมาประจำวัน '+selected+' (หน้า '+(Math.floor(i/4)+1)+'/'+Math.ceil(rows.length/4)+')</h2><table style="width:100%;border-collapse:collapse">';
+          for(const [j,x] of rows.slice(i,i+4).entries()){
+            content+='<tr style="height:150px;border-bottom:1px solid #cbd5e1"><td style="width:25%;padding:7px;text-align:center">'+(x.idCardImg?'<img src="'+x.idCardImg+'" style="width:125px;height:65px;object-fit:contain;margin-bottom:4px">':'')+(x.carImg?'<img src="'+x.carImg+'" style="width:125px;height:65px;object-fit:contain">':'')+'</td><td style="padding:8px;font-size:13px;line-height:1.6"><b>'+(i+j+1)+'. '+escapeHtml(x.fullName)+'</b> (เลขท้าย '+escapeHtml(x.idNumber)+')<br>บริษัท: '+escapeHtml(x.companyName)+' | ทีมงานรวม: '+escapeHtml(x.teamSize)+' คน<br>ทะเบียนรถ: '+escapeHtml(x.carPlate)+' | แผนก: '+escapeHtml(x.department)+'<br>สถานที่: '+escapeHtml(x.workLocation)+'<br>เข้า: '+escapeHtml(x.timeIn)+' | ออก: '+escapeHtml(x.timeOut||'กำลังปฏิบัติงาน')+'</td></tr>';
+          }
+          content+='</table><p style="font-size:11px;margin-top:16px">ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ............................................................</p></section>';
         }
-
-        fetchCloudData();
-        setInterval(fetchCloudData, 5000);
-
-        function switchTab(tab) {
-            document.getElementById('section-register').classList.toggle('hidden', tab !== 'register');
-            document.getElementById('section-report').classList.toggle('hidden', tab !== 'report');
-            document.getElementById('tab-register').className = tab === 'register' ? 'flex-1 py-2 text-center font-bold text-blue-600 border-b-2 border-blue-600' : 'flex-1 py-2 text-center font-semibold text-slate-500';
-            document.getElementById('tab-report').className = tab === 'report' ? 'flex-1 py-2 text-center font-bold text-blue-600 border-b-2 border-blue-600' : 'flex-1 py-2 text-center font-semibold text-slate-500';
-            if(tab === 'report') {
-                document.getElementById('reportDate').valueAsDate = new Date();
-                loadReport();
-            }
-        }
-
-        // ฟังก์ชันบีบอัดรูปภาพอัตโนมัติ เพื่อป้องกันหน่วยความจำเต็มและทำให้เซฟข้ามเครื่องได้ลื่นไหล
-        function compressImage(event, previewId, containerId) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // กำหนดขนาดความกว้างสูงสุดไม่เกิน 400px เพื่อลดขนาดไฟล์
-                    const MAX_WIDTH = 400;
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // บีบอัดเป็น JPEG คุณภาพ 0.6
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                    
-                    document.getElementById(previewId).src = compressedDataUrl;
-                    document.getElementById(containerId).classList.remove('hidden');
-                }
-                img.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-
-        async function runOCR() {
-            const img = document.getElementById('idPreview').src;
-            const status = document.getElementById('ocrStatus');
-            status.innerText = "กำลังอ่านข้อมูลจากบัตรด้วย OCR...";
-            try {
-                const result = await Tesseract.recognize(img, 'tha+eng');
-                const text = result.data.text;
-                status.innerText = "อ่านข้อมูลสำเร็จ!";
-                const idMatch = text.match(/\d{1} \d{4} \d{5} \d{2} \d{1}|\d{13}/);
-                if(idMatch) {
-                    document.getElementById('idNumber').value = idMatch[0].replace(/\s/g, '');
-                }
-            } catch (err) {
-                status.innerText = "เกิดข้อผิดพลาด กรุณากรอกด้วยตนเอง";
-            }
-        }
-
-        async function saveContractor() {
-            const idNumber = document.getElementById('idNumber').value.trim();
-            const fullName = document.getElementById('fullName').value.trim();
-            const companyName = document.getElementById('companyName').value.trim() || 'ไม่มี';
-            const carPlate = document.getElementById('carPlate').value.trim() || 'ไม่มี';
-            const department = document.getElementById('department').value;
-            const workLocation = document.getElementById('workLocation').value.trim() || 'พื้นที่โรงแรม';
-            
-            const idCardImg = document.getElementById('idPreview').src || '';
-            const carImg = document.getElementById('carPreview').src || '';
-
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = now.toTimeString().split(' ')[0];
-
-            if(!idNumber || !fullName) {
-                alert('กรุณากรอกเลขบัตรประชาชนและชื่อ-นามสกุลให้ครบถ้วน');
-                return;
-            }
-
-            await fetchCloudData();
-            let existing = db.find(item => item.idNumber === idNumber && item.date === dateStr && !item.timeOut);
-
-            if(existing) {
-                existing.timeOut = timeStr;
-                alert('บันทึกเวลาออก (Check-Out) เรียบร้อยครับ!');
-            } else {
-                const newEntry = {
-                    id: Date.now(),
-                    date: dateStr,
-                    timeIn: timeStr,
-                    timeOut: '',
-                    idNumber,
-                    fullName,
-                    companyName,
-                    carPlate,
-                    department,
-                    workLocation,
-                    idCardImg: idCardImg.startsWith('data:') ? idCardImg : '',
-                    carImg: carImg.startsWith('data:') ? carImg : ''
-                };
-                db.push(newEntry);
-                alert('บันทึกเวลาเข้า (Check-In) สำเร็จ!');
-            }
-
-            await saveCloudData();
-            
-            // ล้างฟอร์ม
-            document.getElementById('idNumber').value = '';
-            document.getElementById('fullName').value = '';
-            document.getElementById('companyName').value = '';
-            document.getElementById('carPlate').value = '';
-            document.getElementById('workLocation').value = '';
-            document.getElementById('idCardImage').value = '';
-            document.getElementById('carImage').value = '';
-            document.getElementById('idPreviewContainer').classList.add('hidden');
-            document.getElementById('carPreviewContainer').classList.add('hidden');
-        }
-
-        function loadReport() {
-            const selectedDate = document.getElementById('reportDate').value;
-            const filtered = db.filter(item => item.date === selectedDate);
-            
-            document.getElementById('statTotal').innerText = filtered.length;
-            const uniqueCompanies = [...new Set(filtered.map(i => i.companyName))].length;
-            document.getElementById('statCompany').innerText = uniqueCompanies;
-
-            const tbody = document.getElementById('reportTableBody');
-            if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-slate-400">ไม่พบข้อมูลในวันที่เลือก</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(item => `
-                <tr class="border-b hover:bg-slate-50">
-                    <td class="p-2 font-mono">เข้า: ${item.timeIn}<br>${item.timeOut ? 'ออก: '+item.timeOut : '<span class="text-amber-600 font-semibold">กำลังปฏิบัติงาน</span>'}</td>
-                    <td class="p-2 font-medium">${item.fullName}<br><span class="text-[10px] text-slate-400">ID: ${item.idNumber}</span></td>
-                    <td class="p-2">${item.companyName}<br><span class="text-[10px] text-slate-500">สถานที่: ${item.workLocation}</span></td>
-                    <td class="p-2">${item.carPlate}<br><span class="text-[10px] text-slate-400">${item.department}</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function exportExcel() {
-            const selectedDate = document.getElementById('reportDate').value;
-            const filtered = db.filter(item => item.date === selectedDate);
-            if(filtered.length === 0) { alert('ไม่มีข้อมูลสำหรับส่งออก'); return; }
-
-            const ws = XLSX.utils.json_to_sheet(filtered);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Contractors");
-            XLSX.writeFile(wb, `Contractor_Report_${selectedDate}.xlsx`);
-        }
-
-        async function exportPDF() {
-            const selectedDate = document.getElementById('reportDate').value;
-            const filtered = db.filter(item => item.date === selectedDate);
-            
-            if(filtered.length === 0) { alert('ไม่มีข้อมูลสำหรับส่งออก PDF'); return; }
-
-            let chunks = [];
-            for (let i = 0; i < filtered.length; i += 5) {
-                chunks.push(filtered.slice(i, i + 5));
-            }
-
-            let htmlContent = `<div style="font-family: 'Sarabun', sans-serif; padding: 15px; color: #1e293b; background: white; width: 750px;">`;
-            
-            chunks.forEach((chunk, pageIndex) => {
-                htmlContent += `
-                    <div style="${pageIndex > 0 ? 'page-break-before: always;' : ''} margin-bottom: 20px;">
-                        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #1e293b; padding-bottom: 5px;">
-                            รายงานผู้รับเหมาประจำวัน - วันที่: ${selectedDate} (หน้า ${pageIndex + 1}/${chunks.length})
-                        </h2>
-                        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
-                `;
-
-                chunk.forEach((item, idx) => {
-                    const globalIdx = (pageIndex * 5) + idx + 1;
-                    htmlContent += `
-                        <tr style="border-bottom: 1px solid #cbd5e1;">
-                            <td style="padding: 8px; width: 22%; vertical-align: middle; text-align: center;">
-                                ${item.idCardImg ? `<img src="${item.idCardImg}" style="width: 70px; height: 45px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px; display: block; margin: 0 auto 2px auto;" />` : '<div style="font-size: 9px; color: #94a3b8;">ไม่มีรูปบัตร</div>'}
-                                ${item.carImg ? `<img src="${item.carImg}" style="width: 70px; height: 45px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px; display: block; margin: 0 auto;" />` : '<div style="font-size: 9px; color: #94a3b8;">ไม่มีรูปรถ</div>'}
-                            </td>
-                            <td style="padding: 8px; width: 78%; vertical-align: top; font-size: 13px; line-height: 1.4;">
-                                <strong>${globalIdx}. ${item.fullName}</strong> &nbsp; <span style="color: #64748b; font-size: 11px;">(ID: ${item.idNumber})</span><br>
-                                <strong>บริษัท:</strong> ${item.companyName} &nbsp;|&nbsp; <strong>สถานที่:</strong> ${item.workLocation}<br>
-                                <strong>ทะเบียนรถ:</strong> ${item.carPlate} &nbsp;|&nbsp; <strong>แผนก:</strong> ${item.department}<br>
-                                <strong>เวลาเข้า:</strong> <span style="color: #047857;">${item.timeIn}</span> &nbsp;|&nbsp; <strong>เวลาออก:</strong> <span style="color: #b91c1c;">${item.timeOut || 'กำลังปฏิบัติงาน'}</span>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                htmlContent += `
-                        </table>
-                        <div style="margin-top: 30px; font-size: 12px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                            ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ................................................................
-                        </div>
-                    </div>
-                `;
-            });
-
-            htmlContent += `</div>`;
-
-            const element = document.createElement('div');
-            element.innerHTML = htmlContent;
-            document.body.appendChild(element);
-
-            const opt = {
-                margin:       10,
-                filename:     `Contractor_Report_${selectedDate}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            try {
-                await html2pdf().from(element).set(opt).save();
-            } catch(err) {
-                alert('เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง');
-            } finally {
-                document.body.removeChild(element);
-            }
-        }
+        content+='</div>';
+        const el=document.createElement('div');el.innerHTML=content;document.body.appendChild(el);
+        try{await html2pdf().from(el).set({margin:8,filename:'Contractor_Report_'+selected+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:3,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save();}
+        catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message);}finally{el.remove();}
+      }
+      document.getElementById('reportDate').value=bangkokDate();
     </script>
 </body>
 </html>
