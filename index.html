@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Contractor Registration</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Sarabun & Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- External Libraries: SheetJS (Excel), jsPDF, Tesseract.js (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#1e406b',
+                            900: '#163255',
+                            950: '#0f233d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Kanit', 'Sarabun', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Kanit', 'Sarabun', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 flex flex-col items-center pb-12">
+
+    <!-- Container wrapper -->
+    <div class="w-full max-w-lg md:max-w-3xl bg-white shadow-xl min-h-screen flex flex-col">
+
+        <!-- HEADER SECTION (Matching requested theme) -->
+        <header class="bg-navy-900 text-white pt-6 pb-5 px-4 text-center rounded-b-xl shadow-md">
+            <h1 class="text-xl md:text-2xl font-bold tracking-wider uppercase">CONTRACTOR REGISTRATION</h1>
+            <p class="text-xs md:text-sm font-light opacity-90 tracking-wide mt-1">HOTEL SECURITY DEPARTMENT</p>
+            <p class="text-[11px] opacity-75 mt-0.5">Daily Contractor Management System</p>
+
+            <!-- PWA Install App Button -->
+            <div id="pwa-install-container" class="hidden mt-3">
+                <button id="pwa-install-btn" onclick="installPWA()" class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-2 transition animate-bounce">
+                    <i class="fa-solid fa-download text-sm"></i>
+                    <span>ติดตั้งแอปบนอุปกรณ์นี้ (Add to Home Screen)</span>
+                </button>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="grid grid-cols-2 gap-2 mt-4 px-2">
+                <button id="tab-reg-btn" onclick="switchTab('register')" 
+                    class="py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-white/20 text-white shadow-inner">
+                    <i class="fa-solid fa-user-plus mr-1.5"></i>ลงทะเบียน
+                </button>
+                <button id="tab-report-btn" onclick="switchTab('report')" 
+                    class="py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-gray-400/30 text-white hover:bg-white/20">
+                    <i class="fa-solid fa-clipboard-list mr-1.5"></i>รายงานประจำวัน
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 p-4 md:p-6">
+
+            <!-- TAB 1: REGISTRATION FORM -->
+            <section id="tab-register" class="space-y-5">
+                
+                <!-- Quick Search Bar for returning contractors -->
+                <div class="bg-blue-50/60 border border-blue-100 rounded-xl p-3.5 shadow-sm">
+                    <label class="block text-xs font-semibold text-navy-900 mb-1">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i>ค้นหาผู้รับเหมาเดิมเพื่อลงเวลา (เช็คอิน / เช็คเอาท์ด่วน)
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="text" id="quick-search-id" placeholder="พิมพ์เลขบัตรประชาชน 13 หลัก หรือ ชื่อ..." 
+                            class="flex-1 px-3 py-2 rounded-lg border border-gray-300 text-xs md:text-sm outline-none focus:ring-2 focus:ring-navy-800 bg-white">
+                        <button type="button" onclick="quickFindContractor()" 
+                            class="px-4 py-2 bg-navy-800 text-white text-xs font-medium rounded-lg hover:bg-navy-900 transition flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-search"></i> ค้นหา
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CAMERA & OCR CAPTURE SECTION -->
+                <div class="bg-white rounded-xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <h2 class="text-base md:text-lg font-bold text-navy-900 flex items-center">
+                            <i class="fa-solid fa-camera mr-2 text-navy-800"></i>ถ่ายภาพบัตรประชาชน & ป้ายทะเบียนรถ
+                        </h2>
+                        <!-- Online Cloud Sync Badge -->
+                        <div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium border border-emerald-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Online Cloud Sync</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- ID Card Photo Box -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-gray-700"><i class="fa-solid fa-id-card text-navy-800 mr-1"></i>ภาพถ่ายบัตรประชาชน <span class="text-red-500">*</span></label>
+                            <div class="relative border-2 border-dashed border-gray-300 hover:border-navy-800 rounded-xl p-3 text-center bg-gray-50 flex flex-col items-center justify-center min-h-[160px] overflow-hidden group">
+                                <img id="id-card-preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg z-10" alt="ID Card Preview">
+                                <div id="id-card-placeholder" class="space-y-1">
+                                    <i class="fa-solid fa-id-card text-3xl text-navy-800/60"></i>
+                                    <p class="text-xs text-gray-500">ถ่ายรูป หรือเลือกไฟล์รูปบัตร</p>
+                                </div>
+                                <input type="file" id="id-card-input" accept="image/*" capture="environment" onchange="previewImage(this, 'id-card-preview', 'id-card-placeholder')" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button type="button" onclick="openCameraModal('idCard')" class="flex-1 py-2 bg-slate-700 hover:bg-slate-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center space-x-1 shadow">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span>เปิดกล้องถ่าย</span>
+                                </button>
+                                <button type="button" onclick="runOCR()" id="ocr-btn" class="flex-1 py-2 bg-navy-800 hover:bg-navy-900 text-white font-medium text-xs rounded-lg transition flex items-center justify-center space-x-1 shadow">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>อ่าน OCR</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- License Plate Photo Box -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-gray-700"><i class="fa-solid fa-car text-navy-800 mr-1"></i>ภาพถ่ายป้ายทะเบียนรถ</label>
+                            <div class="relative border-2 border-dashed border-gray-300 hover:border-navy-800 rounded-xl p-3 text-center bg-gray-50 flex flex-col items-center justify-center min-h-[160px] overflow-hidden">
+                                <img id="plate-preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg z-10" alt="License Plate Preview">
+                                <div id="plate-placeholder" class="space-y-1">
+                                    <i class="fa-solid fa-car-side text-3xl text-navy-800/60"></i>
+                                    <p class="text-xs text-gray-500">ถ่ายรูป หรือเลือกไฟล์รูปทะเบียน</p>
+                                </div>
+                                <input type="file" id="plate-input" accept="image/*" capture="environment" onchange="previewImage(this, 'plate-preview', 'plate-placeholder')" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+                            </div>
+
+                            <button type="button" onclick="openCameraModal('plate')" class="w-full py-2 bg-slate-700 hover:bg-slate-800 text-white font-medium text-xs rounded-lg transition flex items-center justify-center space-x-1 shadow">
+                                <i class="fa-solid fa-video"></i>
+                                <span>เปิดกล้องถ่ายทะเบียนรถ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4">
+                    <h2 class="text-base md:text-lg font-bold text-navy-900 flex items-center border-b border-gray-100 pb-2">
+                        <i class="fa-solid fa-pen-to-square mr-2 text-navy-800"></i>บันทึกข้อมูลผู้รับเหมาและรถยนต์
+                    </h2>
+
+                    <!-- Data Entry Form -->
+                    <form id="contractor-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                        
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                            <input type="text" id="fullname" required placeholder="กรอกชื่อ-นามสกุล"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm transition">
+                        </div>
+
+                        <!-- Company -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">บริษัทผู้รับเหมา <span class="text-red-500">*</span></label>
+                            <input type="text" id="company" required placeholder="กรอกชื่อบริษัท (หากไม่มีใส่ -)"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm transition">
+                        </div>
+
+                        <!-- Thai ID Number -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">เลขบัตรประชาชน (13 หลัก) <span class="text-red-500">*</span></label>
+                            <input type="text" id="id-number" maxlength="13" required placeholder="เลข 13 หลัก"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm font-mono tracking-wider transition">
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">เบอร์โทรศัพท์ติดต่อ <span class="text-red-500">*</span></label>
+                            <input type="tel" id="phone" required placeholder="เช่น 0812345678"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm transition">
+                        </div>
+
+                        <!-- Vehicle License Plate -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">ทะเบียนรถ / ข้อมูลรถยนต์</label>
+                            <input type="text" id="license-plate" placeholder="เช่น 1กข-1234 กทม. (หากไม่มีใส่ -)"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm transition">
+                        </div>
+
+                        <!-- Department Dropdown -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">แผนกที่เข้าปฏิบัติงาน <span class="text-red-500">*</span></label>
+                            <select id="department" required class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm bg-white transition">
+                                <option value="Other">Other (อื่นๆ)</option>
+                                <option value="Engineering">Engineering (วิศวกรรม/ช่าง)</option>
+                                <option value="IT">IT (เทคโนโลยีสารสนเทศ)</option>
+                                <option value="Housekeeping">Housekeeping (แม่บ้าน)</option>
+                                <option value="Maintenance">Maintenance (ซ่อมบำรุง)</option>
+                                <option value="Security">Security (รักษาความปลอดภัย)</option>
+                                <option value="Food & Beverage">Food & Beverage (อาหารและเครื่องดื่ม)</option>
+                                <option value="Front Office">Front Office (ต้อนรับ)</option>
+                            </select>
+                        </div>
+
+                        <!-- Purpose of Visit -->
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-gray-800 mb-1">วัตถุประสงค์ในการเข้าพื้นที่ <span class="text-red-500">*</span></label>
+                            <textarea id="purpose" rows="2" required placeholder="ระบุวัตถุประสงค์ เช่น ซ่อมเครื่องปรับอากาศ, ตรวจเช็คระบบไฟ"
+                                class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none text-xs md:text-sm transition"></textarea>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="pt-2">
+                            <button type="submit" id="submit-btn" class="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm md:text-base rounded-lg shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-right-to-bracket text-lg"></i>
+                                <span>บันทึกลงเวลาเข้า (Check-In)</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 2: DAILY REPORT & HISTORY -->
+            <section id="tab-report" class="space-y-5 hidden">
+                
+                <h2 class="text-base md:text-xl font-bold text-gray-800 text-center">รายงานผู้รับเหมาประจำวัน</h2>
+
+                <!-- Date Picker & Filter Search Card -->
+                <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm space-y-3">
+                    <label class="block text-xs font-semibold text-gray-700">เลือกวันที่</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="report-date" class="flex-1 px-3.5 py-2 rounded-lg border border-gray-300 text-xs md:text-sm focus:ring-2 focus:ring-navy-800 outline-none">
+                        <button onclick="renderReport()" class="px-4 py-2 bg-navy-800 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-navy-900 transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>ค้นหา</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Statistics Counter Cards -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center shadow-sm">
+                        <div id="stat-contractors" class="text-2xl md:text-3xl font-extrabold text-navy-900">0</div>
+                        <div class="text-xs font-medium text-gray-600 mt-1">ผู้รับเหมาที่ลงทะเบียน</div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center shadow-sm">
+                        <div id="stat-companies" class="text-2xl md:text-3xl font-extrabold text-navy-900">0</div>
+                        <div class="text-xs font-medium text-gray-600 mt-1">บริษัททั้งหมด</div>
+                    </div>
+                </div>
+
+                <!-- Actions Export Buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="exportExcel()" class="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-medium rounded-lg shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-excel text-base"></i> Export Excel
+                    </button>
+                    <button onclick="exportPDF()" class="flex-1 py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-medium rounded-lg shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-base"></i> Export PDF (5 รายการ/หน้า)
+                    </button>
+                </div>
+
+                <!-- Search Keyword Filter -->
+                <div>
+                    <input type="text" id="search-keyword" onkeyup="renderReport()" placeholder="พิมพ์เพื่อค้นหา (ชื่อ, ทะเบียน, บริษัท, เบอร์โทร)..." class="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs md:text-sm outline-none focus:ring-2 focus:ring-navy-800">
+                </div>
+
+                <!-- Report Records Table -->
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="px-4 py-3 bg-navy-900 text-white font-medium text-xs md:text-sm flex justify-between items-center">
+                        <span id="report-date-display">พบข้อมูลวันที่ --/--/----</span>
+                        <span id="record-count-badge" class="bg-white/20 px-2 py-0.5 rounded text-xs">0 รายการ</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs md:text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold">
+                                    <th class="p-3">รูปถ่าย</th>
+                                    <th class="p-3">เวลาเข้า</th>
+                                    <th class="p-3">เวลาออก</th>
+                                    <th class="p-3">ชื่อ-นามสกุล</th>
+                                    <th class="p-3">บริษัท</th>
+                                    <th class="p-3">แผนก</th>
+                                    <th class="p-3">ทะเบียนรถ</th>
+                                    <th class="p-3 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body" class="divide-y divide-gray-200">
+                                <!-- Dynamic Rows rendering -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="no-data-msg" class="p-8 text-center text-gray-400 text-sm hidden">
+                        <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+                        <p>ไม่พบข้อมูลผู้รับเหมาในวันที่เลือก</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 left-5 md:left-auto md:w-96 bg-gray-900 text-white p-4 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3 pointer-events-none">
+        <div id="toast-icon" class="text-xl"></div>
+        <div id="toast-message" class="text-xs md:text-sm font-medium flex-1"></div>
+    </div>
+
+    <!-- Details View Modal -->
+    <div id="details-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+            <div class="bg-navy-900 text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base">รายละเอียดผู้รับเหมา</h3>
+                <button onclick="closeModal()" class="text-gray-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modal-content" class="p-5 space-y-3 text-xs md:text-sm max-h-[75vh] overflow-y-auto">
+                <!-- Content inserted via JS -->
+            </div>
+            <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-300">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Camera Modal -->
+    <div id="camera-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="bg-navy-900 text-white px-4 py-3 flex justify-between items-center">
+                <h3 id="camera-modal-title" class="font-bold text-sm md:text-base"><i class="fa-solid fa-camera mr-2"></i>ถ่ายรูปจากกล้องสด</h3>
+                <button onclick="closeCameraModal()" class="text-gray-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 flex flex-col items-center justify-center bg-black relative">
+                <video id="webcam-video" autoplay playsinline class="w-full h-64 md:h-80 object-cover rounded-lg border border-gray-700"></video>
+                <canvas id="webcam-canvas" class="hidden"></canvas>
+            </div>
+            <div class="bg-gray-900 px-4 py-3 flex justify-between items-center">
+                <button onclick="switchCameraFacing()" class="px-3 py-2 bg-gray-700 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> สลับกล้อง
+                </button>
+                <button onclick="captureCameraPhoto()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-xs md:text-sm shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-circle"></i> ถ่ายภาพ
+                </button>
+                <button onclick="closeCameraModal()" class="px-3 py-2 bg-gray-700 text-white rounded-lg text-xs font-medium hover:bg-gray-600">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // PWA Installation Event Prompt
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwa-install-container').classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('กำลังติดตั้งแอปบนอุปกรณ์ของคุณ...', 'success');
+                }
+                deferredPrompt = null;
+                document.getElementById('pwa-install-container').classList.add('hidden');
+            }
+        }
+
+        // Register Inline Service Worker for Offline PWA Capabilities
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'contractor-app-cache-v1';
+                    self.addEventListener('install', (e) => {
+                        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+                    });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(caches.match(e.request).then(response => response || fetch(e.request)));
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Reg Failed:', err));
+            });
+        }
+
+        // Data Storage Key
+        const STORAGE_KEY = 'hotel_contractor_logs_v2';
+        const SYNC_CHANNEL = 'hotel_contractor_sync_channel';
+        let records = [];
+
+        // Broadcast Channel for Multi-tab / Multi-window Real-time Sync
+        const syncChannel = new BroadcastChannel(SYNC_CHANNEL);
+        syncChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'SYNC_RECORDS') {
+                records = event.data.records;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+                renderReport();
+            }
+        };
+
+        // Camera State
+        let currentTargetTarget = null;
+        let mediaStream = null;
+        let facingMode = 'environment'; // Default to back camera for IDs/Plates
+
+        // Image data holder
+        let idCardImageData = null;
+        let plateImageData = null;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecords();
+            setTodayDate();
+            renderReport();
+        });
+
+        // Open Camera Stream Modal
+        async function openCameraModal(targetType) {
+            currentTargetTarget = targetType;
+            const modal = document.getElementById('camera-modal');
+            const title = document.getElementById('camera-modal-title');
+            
+            title.innerHTML = targetType === 'idCard' 
+                ? `<i class="fa-solid fa-id-card mr-2"></i>ถ่ายภาพบัตรประชาชน` 
+                : `<i class="fa-solid fa-car mr-2"></i>ถ่ายภาพป้ายทะเบียนรถ`;
+
+            modal.classList.remove('hidden');
+            await startCamera();
+        }
+
+        async function startCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+                const video = document.getElementById('webcam-video');
+                video.srcObject = mediaStream;
+            } catch (err) {
+                console.error("Camera access error:", err);
+                showToast("ไม่สามารถเปิดกล้องได้ กรุณาให้อนุญาตสิทธิ์การเข้าถึงกล้องในบราวเซอร์", "error");
+                closeCameraModal();
+            }
+        }
+
+        async function switchCameraFacing() {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            await startCamera();
+        }
+
+        function captureCameraPhoto() {
+            const video = document.getElementById('webcam-video');
+            const canvas = document.getElementById('webcam-canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+            if (currentTargetTarget === 'idCard') {
+                idCardImageData = dataUrl;
+                const img = document.getElementById('id-card-preview');
+                img.src = dataUrl;
+                img.classList.remove('hidden');
+                document.getElementById('id-card-placeholder').classList.add('hidden');
+            } else if (currentTargetTarget === 'plate') {
+                plateImageData = dataUrl;
+                const img = document.getElementById('plate-preview');
+                img.src = dataUrl;
+                img.classList.remove('hidden');
+                document.getElementById('plate-placeholder').classList.add('hidden');
+            }
+
+            showToast("ถ่ายภาพสำเร็จเรียบร้อยแล้ว", "success");
+            closeCameraModal();
+        }
+
+        function closeCameraModal() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            document.getElementById('camera-modal').classList.add('hidden');
+        }
+
+        // Image Preview Handler (File Upload)
+        function previewImage(input, previewId, placeholderId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(previewId);
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById(placeholderId).classList.add('hidden');
+
+                    if (previewId === 'id-card-preview') {
+                        idCardImageData = e.target.result;
+                    } else if (previewId === 'plate-preview') {
+                        plateImageData = e.target.result;
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Tesseract.js OCR Reader
+        async function runOCR() {
+            if (!idCardImageData) {
+                showToast('กรุณากดถ่ายภาพหรือเลือกไฟล์รูปภาพบัตรประชาชนก่อน', 'warning');
+                return;
+            }
+
+            const ocrBtn = document.getElementById('ocr-btn');
+            const originalBtnText = ocrBtn.innerHTML;
+            ocrBtn.disabled = true;
+            ocrBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>กำลังอ่านข้อมูลบัตรประชาชน...</span>`;
+
+            try {
+                const worker = await Tesseract.createWorker('tha+eng');
+                const ret = await worker.recognize(idCardImageData);
+                await worker.terminate();
+
+                const text = ret.data.text;
+                
+                // Extract 13-digit Thai ID pattern
+                const idMatch = text.match(/\b\d\s?\d{4}\s?\d{5}\s?\d{2}\s?\d\b|\b\d{13}\b/);
+                if (idMatch) {
+                    const cleanId = idMatch[0].replace(/\s+/g, '');
+                    document.getElementById('id-number').value = cleanId;
+                }
+
+                // Extract Name pattern after "นาย", "นาง", "นางสาว" or "Name"
+                const nameMatch = text.match(/(นาย|นาง|นางสาว|Mr\.|Mrs\.|Miss)\s*([ก-๙a-zA-Z]+)\s+([ก-๙a-zA-Z]+)/);
+                if (nameMatch) {
+                    document.getElementById('fullname').value = `${nameMatch[1]} ${nameMatch[2]} ${nameMatch[3]}`;
+                }
+
+                showToast('อ่านข้อมูลสำเร็จ! โปรดตรวจสอบความถูกต้องอีกครั้ง', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('อ่านข้อมูลไม่สำเร็จ กรุณากรอกด้วยตนเอง', 'error');
+            } finally {
+                ocrBtn.disabled = false;
+                ocrBtn.innerHTML = originalBtnText;
+            }
+        }
+
+        // Set default date picker to today
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('report-date').value = today;
+        }
+
+        // Tab Switcher
+        function switchTab(tabName) {
+            const regTab = document.getElementById('tab-register');
+            const reportTab = document.getElementById('tab-report');
+            const regBtn = document.getElementById('tab-reg-btn');
+            const reportBtn = document.getElementById('tab-report-btn');
+
+            if (tabName === 'register') {
+                regTab.classList.remove('hidden');
+                reportTab.classList.add('hidden');
+                
+                regBtn.className = "py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-white/20 text-white shadow-inner";
+                reportBtn.className = "py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-gray-400/30 text-white hover:bg-white/20";
+            } else {
+                regTab.classList.add('hidden');
+                reportTab.classList.remove('hidden');
+
+                reportBtn.className = "py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-white/20 text-white shadow-inner";
+                regBtn.className = "py-2.5 text-sm md:text-base font-medium rounded-lg transition-all duration-200 bg-gray-400/30 text-white hover:bg-white/20";
+                
+                renderReport();
+            }
+        }
+
+        // Quick Find Contractor to autofill form or check-out
+        function quickFindContractor() {
+            const keyword = document.getElementById('quick-search-id').value.trim().toLowerCase();
+            if (!keyword) {
+                showToast('กรุณากรอกเลขบัตรประชาชน หรือ ชื่อ เพื่อค้นหา', 'warning');
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            // Find active check-in today
+            const active = records.find(r => r.date === today && r.status === 'IN' && (r.idNumber.includes(keyword) || r.fullname.toLowerCase().includes(keyword)));
+
+            if (active) {
+                // Pre-fill form with active data
+                document.getElementById('fullname').value = active.fullname;
+                document.getElementById('company').value = active.company;
+                document.getElementById('id-number').value = active.idNumber;
+                document.getElementById('phone').value = active.phone || '-';
+                document.getElementById('license-plate').value = active.licensePlate || '-';
+                document.getElementById('department').value = active.department;
+                document.getElementById('purpose').value = active.purpose || '-';
+
+                if (active.idCardImg) {
+                    idCardImageData = active.idCardImg;
+                    const img = document.getElementById('id-card-preview');
+                    img.src = active.idCardImg;
+                    img.classList.remove('hidden');
+                    document.getElementById('id-card-placeholder').classList.add('hidden');
+                }
+
+                showToast(`พบข้อมูลกำลังเข้าปฏิบัติงาน (${active.fullname}) กดปุ่มเพื่อบันทึกเวลาออก (Check-Out)`, 'info');
+                document.getElementById('submit-btn').innerHTML = `<i class="fa-solid fa-right-from-bracket text-lg"></i> <span>บันทึกลงเวลาออก (Check-Out)</span>`;
+                document.getElementById('submit-btn').className = "w-full py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm md:text-base rounded-lg shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2";
+            } else {
+                // Find latest record for auto-fill details
+                const previous = records.find(r => r.idNumber.includes(keyword) || r.fullname.toLowerCase().includes(keyword));
+                if (previous) {
+                    document.getElementById('fullname').value = previous.fullname;
+                    document.getElementById('company').value = previous.company;
+                    document.getElementById('id-number').value = previous.idNumber;
+                    document.getElementById('phone').value = previous.phone || '';
+                    document.getElementById('license-plate').value = previous.licensePlate || '';
+                    document.getElementById('department').value = previous.department;
+                    document.getElementById('purpose').value = previous.purpose || '';
+                    
+                    showToast(`พบประวัติเดิมของ (${previous.fullname}) กรอกข้อมูลให้แล้ว`, 'success');
+                } else {
+                    showToast('ไม่พบข้อมูลประวัติ กรุณากรอกข้อมูลเพื่อลงทะเบียนใหม่', 'warning');
+                }
+                resetSubmitBtn();
+            }
+        }
+
+        function resetSubmitBtn() {
+            document.getElementById('submit-btn').innerHTML = `<i class="fa-solid fa-right-to-bracket text-lg"></i> <span>บันทึกลงเวลาเข้า (Check-In)</span>`;
+            document.getElementById('submit-btn').className = "w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm md:text-base rounded-lg shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2";
+        }
+
+        // Save or Update Entry (Check-In / Check-Out logic)
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const idNumber = document.getElementById('id-number').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const licensePlate = document.getElementById('license-plate').value.trim() || '-';
+            const department = document.getElementById('department').value;
+            const purpose = document.getElementById('purpose').value.trim();
+
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0];
+
+            // Check if contractor is currently checked-in today
+            const activeRecord = records.find(r => r.idNumber === idNumber && r.status === 'IN' && r.date === dateStr);
+
+            if (activeRecord) {
+                // Perform CHECK-OUT
+                activeRecord.timeOut = timeStr;
+                activeRecord.status = 'OUT';
+                if (plateImageData) activeRecord.plateImg = plateImageData;
+                saveRecords();
+                showToast(`บันทึกเวลาออก (Check-Out) เรียบร้อยแล้ว สำหรับ ${fullname}`, 'info');
+            } else {
+                // Perform CHECK-IN
+                const newRecord = {
+                    id: 'REC-' + Date.now(),
+                    date: dateStr,
+                    timeIn: timeStr,
+                    timeOut: '-',
+                    fullname: fullname,
+                    company: company,
+                    idNumber: idNumber,
+                    phone: phone,
+                    licensePlate: licensePlate,
+                    department: department,
+                    purpose: purpose,
+                    idCardImg: idCardImageData || null,
+                    plateImg: plateImageData || null,
+                    status: 'IN'
+                };
+                records.unshift(newRecord);
+                saveRecords();
+                showToast(`บันทึกเวลาเข้า (Check-In) เรียบร้อยแล้ว!`, 'success');
+            }
+
+            // Reset Form & Redirect
+            resetForm();
+            switchTab('report');
+        }
+
+        // Reset inputs
+        function resetForm() {
+            document.getElementById('contractor-form').reset();
+            document.getElementById('quick-search-id').value = '';
+            
+            // Clear image previews
+            document.getElementById('id-card-preview').src = '';
+            document.getElementById('id-card-preview').classList.add('hidden');
+            document.getElementById('id-card-placeholder').classList.remove('hidden');
+
+            document.getElementById('plate-preview').src = '';
+            document.getElementById('plate-preview').classList.add('hidden');
+            document.getElementById('plate-placeholder').classList.remove('hidden');
+
+            idCardImageData = null;
+            plateImageData = null;
+
+            resetSubmitBtn();
+        }
+
+        // Check Out Contractor manually from Table
+        function checkOutManual(id) {
+            const rec = records.find(r => r.id === id);
+            if (rec && rec.status === 'IN') {
+                const now = new Date();
+                rec.timeOut = now.toTimeString().split(' ')[0];
+                rec.status = 'OUT';
+                saveRecords();
+                renderReport();
+                showToast(`ลงเวลาออกสำเร็จ (${rec.fullname})`, 'info');
+            }
+        }
+
+        // Render Data Table & Summary Cards
+        function renderReport() {
+            const selectedDate = document.getElementById('report-date').value;
+            const searchKeyword = document.getElementById('search-keyword').value.toLowerCase().trim();
+            const tbody = document.getElementById('report-table-body');
+            const noDataMsg = document.getElementById('no-data-msg');
+            
+            // Format Thai date for display header
+            const dateParts = selectedDate.split('-');
+            const formattedDisplayDate = `${dateParts[2]}/${dateParts[1]}/${parseInt(dateParts[0]) + 543}`;
+            document.getElementById('report-date-display').innerText = `พบข้อมูลวันที่ ${formattedDisplayDate}`;
+
+            // Filter Records
+            const filtered = records.filter(r => {
+                const matchDate = r.date === selectedDate;
+                const matchSearch = !searchKeyword || 
+                    r.fullname.toLowerCase().includes(searchKeyword) || 
+                    r.company.toLowerCase().includes(searchKeyword) || 
+                    r.idNumber.includes(searchKeyword) ||
+                    (r.phone && r.phone.includes(searchKeyword)) ||
+                    r.licensePlate.toLowerCase().includes(searchKeyword);
+                return matchDate && matchSearch;
+            });
+
+            // Update Stats
+            document.getElementById('stat-contractors').innerText = filtered.length;
+            const uniqueCompanies = new Set(filtered.map(f => f.company.trim().toLowerCase())).size;
+            document.getElementById('stat-companies').innerText = uniqueCompanies;
+            document.getElementById('record-count-badge').innerText = `${filtered.length} รายการ`;
+
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+            noDataMsg.classList.add('hidden');
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition border-b border-gray-100";
+                
+                const isCheckIn = item.status === 'IN';
+                const thumbImg = item.idCardImg ? `<img src="${item.idCardImg}" class="w-10 h-10 object-cover rounded-lg border border-gray-200 shadow-sm">` : `<div class="w-10 h-10 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center"><i class="fa-solid fa-id-card"></i></div>`;
+
+                tr.innerHTML = `
+                    <td class="p-3">${thumbImg}</td>
+                    <td class="p-3 font-mono text-gray-800">${item.timeIn}</td>
+                    <td class="p-3 font-mono text-gray-800">${item.timeOut}</td>
+                    <td class="p-3 font-medium text-navy-900">${item.fullname}</td>
+                    <td class="p-3 text-gray-600">${item.company}</td>
+                    <td class="p-3 text-gray-600">${item.department}</td>
+                    <td class="p-3 font-mono">${item.licensePlate}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center items-center gap-1.5">
+                            <button onclick="viewDetails('${item.id}')" title="ดูรายละเอียด" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            ${isCheckIn ? `
+                                <button onclick="checkOutManual('${item.id}')" title="บันทึกเวลาออก" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-md transition">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // View Detailed Record in Modal
+        function viewDetails(id) {
+            const item = records.find(r => r.id === id);
+            if (!item) return;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="space-y-3 text-gray-700">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="block text-xs font-semibold text-gray-500 mb-1">ภาพบัตรประชาชน:</span>
+                            ${item.idCardImg ? `<img src="${item.idCardImg}" class="w-full h-28 object-cover rounded-lg border">` : `<div class="h-28 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center text-xs">ไม่มีรูปภาพ</div>`}
+                        </div>
+                        <div>
+                            <span class="block text-xs font-semibold text-gray-500 mb-1">ภาพทะเบียนรถ:</span>
+                            ${item.plateImg ? `<img src="${item.plateImg}" class="w-full h-28 object-cover rounded-lg border">` : `<div class="h-28 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center text-xs">ไม่มีรูปภาพ</div>`}
+                        </div>
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">ชื่อ-นามสกุล:</span> ${item.fullname}
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">เลขบัตรประชาชน:</span> <span class="font-mono">${item.idNumber}</span>
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">บริษัทผู้รับเหมา:</span> ${item.company}
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">เบอร์โทรศัพท์:</span> ${item.phone || '-'}
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">แผนกปฏิบัติงาน:</span> ${item.department}
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">ทะเบียนรถ:</span> ${item.licensePlate}
+                    </div>
+                    <div class="p-2.5 bg-gray-50 rounded-lg">
+                        <span class="font-semibold text-navy-900">วัตถุประสงค์:</span> ${item.purpose || '-'}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="p-2 bg-blue-50 text-blue-800 rounded">
+                            <span class="font-semibold">เวลาเข้า:</span> ${item.timeIn} น.
+                        </div>
+                        <div class="p-2 bg-amber-50 text-amber-800 rounded">
+                            <span class="font-semibold">เวลาออก:</span> ${item.timeOut}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('details-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        // EXPORT EXCEL
+        function exportExcel() {
+            const selectedDate = document.getElementById('report-date').value;
+            const filtered = records.filter(r => r.date === selectedDate);
+
+            if (filtered.length === 0) {
+                showToast('ไม่มีข้อมูลสำหรับส่งออกในวันที่เลือก', 'warning');
+                return;
+            }
+
+            const data = filtered.map((r, index) => ({
+                'ลำดับ': index + 1,
+                'วันที่': r.date,
+                'เวลาเข้า': r.timeIn,
+                'เวลาออก': r.timeOut,
+                'ชื่อ-นามสกุล': r.fullname,
+                'เลขบัตรประชาชน': r.idNumber,
+                'เบอร์โทรศัพท์': r.phone || '-',
+                'บริษัทผู้รับเหมา': r.company,
+                'แผนกปฏิบัติงาน': r.department,
+                'ทะเบียนรถ': r.licensePlate,
+                'วัตถุประสงค์': r.purpose || '-',
+                'สถานะ': r.status === 'IN' ? 'กำลังปฏิบัติงาน' : 'ออกแล้ว'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Daily_Contractors");
+            XLSX.writeFile(wb, `Contractor_Report_${selectedDate}.xlsx`);
+            showToast('ส่งออกไฟล์ Excel สำเร็จ', 'success');
+        }
+
+        // EXPORT PDF (Strict Constraint: Exactly 5 items per page with photo thumbnails)
+        function exportPDF() {
+            const selectedDate = document.getElementById('report-date').value;
+            const filtered = records.filter(r => r.date === selectedDate);
+
+            if (filtered.length === 0) {
+                showToast('ไม่มีข้อมูลสำหรับส่งออกในวันที่เลือก', 'warning');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4'); // Standard A4 portrait
+
+            const recordsPerPage = 5;
+            const totalPages = Math.ceil(filtered.length / recordsPerPage);
+
+            for (let page = 0; page < totalPages; page++) {
+                if (page > 0) doc.addPage();
+
+                // Header Header Navy Banner
+                doc.setFillColor(22, 50, 85); // Navy 900
+                doc.rect(0, 0, 210, 24, 'F');
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(13);
+                doc.text("HOTEL CONTRACTOR DAILY REPORT", 105, 11, { align: "center" });
+                doc.setFontSize(8);
+                doc.text(`SECURITY DEPARTMENT - DATE: ${selectedDate} (Page ${page + 1} of ${totalPages})`, 105, 18, { align: "center" });
+
+                // Page Items (Max 5 items per page)
+                const startIndex = page * recordsPerPage;
+                const pageItems = filtered.slice(startIndex, startIndex + recordsPerPage);
+
+                let startY = 30;
+
+                pageItems.forEach((item, idx) => {
+                    const itemNum = startIndex + idx + 1;
+
+                    // Container Card Box
+                    doc.setDrawColor(210, 215, 220);
+                    doc.setFillColor(250, 251, 252);
+                    doc.roundedRect(10, startY, 190, 44, 2, 2, 'FD');
+
+                    // Header Line Stripe inside Box
+                    doc.setFillColor(30, 64, 107);
+                    doc.rect(10, startY, 190, 7, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.text(`#${itemNum} | เข้า: ${item.timeIn} น. | ออก: ${item.timeOut} น. | สถานะ: ${item.status === 'IN' ? 'Active (กำลังปฏิบัติงาน)' : 'Completed (ออกแล้ว)'}`, 14, startY + 5);
+
+                    // Add Image Thumbnail if exists
+                    if (item.idCardImg) {
+                        try {
+                            doc.addImage(item.idCardImg, 'JPEG', 14, startY + 9, 32, 24);
+                        } catch (e) {}
+                    }
+
+                    const textLeft = item.idCardImg ? 50 : 14;
+
+                    // Contractor Information Details
+                    doc.setTextColor(30, 30, 30);
+                    doc.setFontSize(8.5);
+                    
+                    // Column 1
+                    doc.text(`ชื่อ-นามสกุล: ${item.fullname}`, textLeft, startY + 14);
+                    doc.text(`เลขบัตรประชาชน: ${item.idNumber}`, textLeft, startY + 21);
+                    doc.text(`บริษัทผู้รับเหมา: ${item.company}`, textLeft, startY + 28);
+                    doc.text(`เบอร์โทรศัพท์: ${item.phone || '-'}`, textLeft, startY + 35);
+
+                    // Column 2
+                    doc.text(`แผนกปฏิบัติงาน: ${item.department}`, 125, startY + 14);
+                    doc.text(`ทะเบียนรถ: ${item.licensePlate}`, 125, startY + 21);
+                    
+                    // Truncate long purpose for clean look
+                    const cleanPurpose = item.purpose ? (item.purpose.length > 35 ? item.purpose.substring(0, 35) + '...' : item.purpose) : '-';
+                    doc.text(`วัตถุประสงค์: ${cleanPurpose}`, 125, startY + 28);
+
+                    startY += 48; // Spacing for exactly 5 cards to fit A4 perfectly
+                });
+
+                // Signature & Approval Block at Footer
+                doc.setDrawColor(180, 180, 180);
+                doc.line(10, 274, 200, 274);
+                doc.setFontSize(8);
+                doc.setTextColor(80, 80, 80);
+                doc.text("เจ้าหน้าที่ รปภ. ผู้บันทึก: ____________________", 20, 283);
+                doc.text("หัวหน้าแผนกความปลอดภัย: ____________________", 125, 283);
+            }
+        // Save Records to Storage & Broadcast Real-Time Sync
+        function saveRecords() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+                // Broadcast to all active browsers/tabs online
+                syncChannel.postMessage({
+                    type: 'SYNC_RECORDS',
+                    records: records
+                });
+            } catch (e) {
+                showToast('หน่วยความจำเต็ม ไม่สามารถบันทึกรูปภาพขนาดใหญ่ได้', 'warning');
+            }
+        }
+
+        function loadRecords() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try {
+                    records = JSON.parse(raw);
+                } catch (e) {
+                    records = [];
+                }
+            } else {
+                // Mock initial data
+                const today = new Date().toISOString().split('T')[0];
+                records = [
+                    {
+                        id: 'REC-1001',
+                        date: today,
+                        timeIn: '08:30:15',
+                        timeOut: '17:00:00',
+                        fullname: 'วิชญ์ธนากณ ธัญญ์วรวัฒน์',
+                        company: 'สยามเอนจิเนียริ่ง จำกัด',
+                        idNumber: '1200900187669',
+                        phone: '0812345678',
+                        department: 'Engineering',
+                        licensePlate: '1กข-9999 กทม.',
+                        purpose: 'ซ่อมบำรุงเครื่องทำความเย็น',
+                        idCardImg: null,
+                        plateImg: null,
+                        status: 'OUT'
+                    },
+                    {
+                        id: 'REC-1002',
+                        date: today,
+                        timeIn: '09:15:22',
+                        timeOut: '-',
+                        fullname: 'สมชาย ใจดี',
+                        company: 'ไทยไอที เซอร์วิส',
+                        idNumber: '3100500123456',
+                        phone: '0898765432',
+                        department: 'IT',
+                        licensePlate: '2กข-1234 ชลบุรี',
+                        purpose: 'ติดตั้งสายสัญญาณ Network',
+                        idCardImg: null,
+                        plateImg: null,
+                        status: 'IN'
+                    }
+                ];
+                saveRecords();
+            }
+        }
+
+        // Custom Notification Toast
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+
+            if (type === 'success') {
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i>`;
+            } else if (type === 'warning') {
+                toastIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i>`;
+            } else if (type === 'error') {
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i>`;
+            } else {
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i>`;
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
