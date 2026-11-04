@@ -25,7 +25,7 @@
         <p class="text-sm text-center text-slate-500">เข้าสู่ระบบด้วย User ID</p>
         <div><label class="text-sm font-semibold">User ID</label><input id="loginUserId" class="w-full mt-1 p-3 border rounded-lg" placeholder="เช่น ADMIN001" autocomplete="username"></div>
         <div><label class="text-sm font-semibold">Password</label><input id="loginPassword" type="password" class="w-full mt-1 p-3 border rounded-lg" placeholder="รหัสผ่าน" autocomplete="current-password"></div>
-        <button onclick="login()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg">เข้าสู่ระบบ</button>
+        <button id="loginButton" type="button" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg">เข้าสู่ระบบ</button>
         <p id="loginMessage" class="text-sm text-center text-rose-600"></p>
       </div>
     </section>
@@ -189,6 +189,19 @@
           msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + (error.message || 'กรุณาตรวจสอบ User ID และ Password');
         }
       }
+      // ผูกปุ่มผ่าน addEventListener และเปิดฟังก์ชันบน window
+      // เพื่อให้ทำงานได้แม้ inline onclick ถูก WebView บล็อก
+      window.login = login;
+      document.getElementById('loginButton').addEventListener('click', (event) => {
+        event.preventDefault();
+        login();
+      });
+      document.getElementById('loginPassword').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          login();
+        }
+      });
       async function logout() {
         await sb.auth.signOut(); currentUser = null; db = [];
         document.getElementById('loginScreen').classList.remove('hidden');
