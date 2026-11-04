@@ -161,7 +161,14 @@
     <script>
       const SUPABASE_URL = 'https://aclsqitjruccxkzjtxbl.supabase.co';
       const SUPABASE_KEY = 'sb_publishable_46ffZxy1L4lJQv_Kgzmuzg_V97pFTuN';
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      let sb = null;
+      try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+      } catch (initError) {
+        console.error('Supabase initialization error:', initError);
+      }
       const USER_EMAILS = { ADMIN001:'admin001@contractor.local', SEC001:'sec001@contractor.local', SEC002:'sec002@contractor.local', SEC003:'sec003@contractor.local' };
       let db = [], currentUser = null, imageFiles = { id:null, car:null };
 
@@ -174,8 +181,16 @@
         const password = document.getElementById('loginPassword').value;
         const email = USER_EMAILS[userId];
         const msg = document.getElementById('loginMessage');
+        if (!sb) {
+          msg.textContent = 'ระบบเชื่อมต่อยังไม่พร้อม กรุณารีเฟรชหน้าเว็บ หรือเปลี่ยนเครือข่ายแล้วลองใหม่';
+          console.error('Supabase client unavailable. Check CDN script loading.');
+          return;
+        }
         if (!email || !password) { msg.textContent = 'กรุณาตรวจสอบ User ID และ Password'; return; }
         msg.textContent = 'กำลังเข้าสู่ระบบ...';
+        const button = document.getElementById('loginButton');
+        button.disabled = true;
+        button.textContent = 'กำลังเข้าสู่ระบบ...';
         try {
           const { error } = await sb.auth.signInWithPassword({ email, password });
           if (error) throw error;
@@ -187,6 +202,9 @@
         } catch (error) {
           console.error('Login error:', error);
           msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + (error.message || 'กรุณาตรวจสอบ User ID และ Password');
+        } finally {
+          button.disabled = false;
+          button.textContent = 'เข้าสู่ระบบ';
         }
       }
       // ผูกปุ่มผ่าน addEventListener และเปิดฟังก์ชันบน window
@@ -208,9 +226,11 @@
         document.getElementById('loginUserId').value = '';
         document.getElementById('loginMessage').textContent = '';
       }
-      sb.auth.getSession().then(({data}) => {
-        if (data.session) { sb.auth.signOut(); }
-      });
+      if (sb) {
+        sb.auth.getSession().then(({data}) => {
+          if (data.session) { sb.auth.signOut(); }
+        }).catch(error => console.error('Session check error:', error));
+      }
 
       function entryTimeValue(value){
         if(!value)return Number.MAX_SAFE_INTEGER;
