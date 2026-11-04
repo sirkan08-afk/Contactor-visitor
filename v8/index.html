@@ -194,6 +194,22 @@
         if (data.session) { sb.auth.signOut(); }
       });
 
+      function entryTimeValue(value){
+        if(!value)return Number.MAX_SAFE_INTEGER;
+        const raw=String(value).trim();
+        const timeOnly=raw.match(/^(\\d{1,2}):(\\d{2})(?::(\\d{2}))?/);
+        if(timeOnly)return Number(timeOnly[1])*3600+Number(timeOnly[2])*60+Number(timeOnly[3]||0);
+        const parsed=Date.parse(raw);
+        return Number.isNaN(parsed)?Number.MAX_SAFE_INTEGER:parsed;
+      }
+      function sortEntriesOldestFirst(rows){
+        return [...rows].sort((a,b)=>{
+          const diff=entryTimeValue(a.time_in)-entryTimeValue(b.time_in);
+          if(diff!==0)return diff;
+          return String(a.id||'').localeCompare(String(b.id||''),undefined,{numeric:true});
+        });
+      }
+
       function blobToDataURL(blob){
         return new Promise((resolve,reject)=>{
           const reader=new FileReader();
@@ -206,9 +222,9 @@
       async function fetchCloudData() {
         if (!currentUser) return;
         const selectedDate = document.getElementById('reportDate').value || bangkokDate();
-        const { data, error } = await sb.from('contractor_entries').select('*').eq('work_date', selectedDate).order('time_in',{ascending:true});
+        const { data, error } = await sb.from('contractor_entries').select('*').eq('work_date', selectedDate);
         if (error) { alert('โหลดข้อมูลไม่สำเร็จ: '+error.message); return; }
-        db = await Promise.all((data||[]).map(async row => {
+        db = sortEntriesOldestFirst(await Promise.all((data||[]).map(async row => {
           const item = {...row, date:row.work_date, timeIn:bangkokTime(new Date(row.time_in)), timeOut:row.time_out?bangkokTime(new Date(row.time_out)):'', idNumber:row.id_last4, fullName:row.full_name, companyName:row.company_name, carPlate:row.car_plate, department:row.department, workLocation:row.work_location, teamSize:row.team_size};
           if (row.id_card_path) {
             const {data:blob,error:imageError}=await sb.storage.from('contractor-private').download(row.id_card_path);
@@ -221,7 +237,7 @@
             else console.warn('โหลดรูปทะเบียนรถไม่สำเร็จ:',row.car_image_path,imageError);
           }
           return item;
-        }));
+        })));
         if (!document.getElementById('section-report').classList.contains('hidden')) loadReport();
       }
       async function uploadImage(file, kind) {
@@ -286,10 +302,16 @@
           alert('บันทึกเวลาออกเรียบร้อย');
         }else{
           if(!fullName){alert('กรุณากรอกชื่อ-นามสกุลสำหรับลงทะเบียนเข้า');return;}
+          if(!imageFiles.id||!imageFiles.car){
+            alert('กรุณาเลือกรูปบัตรประชาชนและรูปทะเบียนรถให้ครบทั้ง 2 รูป และรอให้ภาพตัวอย่างแสดงก่อนกดบันทึก');
+            return;
+          }
           if(!Number.isInteger(teamSize)||teamSize<1||teamSize>500){alert('จำนวนทีมงานต้องอยู่ระหว่าง 1-500 คน');return;}
           try{
             const idPath=await uploadImage(imageFiles.id,'id-card');
+            if(!idPath)throw new Error('ไม่มีไฟล์รูปบัตรประชาชนที่อัปโหลด');
             const carPath=await uploadImage(imageFiles.car,'vehicle');
+            if(!carPath)throw new Error('ไม่มีไฟล์รูปทะเบียนรถที่อัปโหลด');
             const {error}=await sb.from('contractor_entries').insert({work_date:today,id_last4:last4,full_name:fullName,company_name:company,car_plate:plate,department:dept,work_location:location,team_size:teamSize,id_card_path:idPath,car_image_path:carPath});
             if(error)throw error;
             alert('บันทึกเวลาเข้าเรียบร้อย');
@@ -320,7 +342,7 @@
       }
       function loadReport(){
         const selected=document.getElementById('reportDate').value||bangkokDate();
-        const rows=db.filter(x=>x.date===selected).sort((a,b)=>new Date(a.time_in)-new Date(b.time_in));
+        const rows=sortEntriesOldestFirst(db.filter(x=>x.date===selected));
         const total=rows.reduce((n,x)=>n+(Number(x.teamSize)||1),0);
         document.getElementById('statTotal').textContent=total;
         document.getElementById('statCompany').textContent=new Set(rows.map(x=>x.companyName)).size;
@@ -378,7 +400,7 @@
           '@page{size:A4 portrait;margin:0}'+
           '*{box-sizing:border-box}'+
           '.pdf-root{width:210mm;font-family:Sarabun,sans-serif;color:#172033;background:#fff}'+
-          '.pdf-page{width:210mm;height:297mm;padding:6mm;display:flex;flex-direction:column;gap:1.2mm;overflow:hidden;background:#fff;page-break-after:always;break-after:page}'+
+          '.pdf-page{width:210mm;height:296mm;padding:6mm;display:flex;flex-direction:column;gap:1.2mm;overflow:hidden;background:#fff;page-break-after:always;break-after:page}'+
           '.pdf-page:last-child{page-break-after:auto;break-after:auto}'+
           '.pdf-header{height:13mm;flex:0 0 13mm;border-bottom:1.2px solid #334155;padding:0 1mm 1.5mm;display:flex;flex-direction:column;justify-content:center}'+
           '.pdf-title{font-size:15pt;font-weight:700;line-height:1.2}'+
@@ -432,7 +454,7 @@
             image:{type:'jpeg',quality:0.99},
             html2canvas:{scale:3,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',imageTimeout:20000,logging:false},
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
-            pagebreak:{mode:['css','legacy']}
+            pagebreak:{mode:['css']}
           }).save();
         }catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message);}
         finally{el.remove();}
