@@ -176,13 +176,18 @@
         const msg = document.getElementById('loginMessage');
         if (!email || !password) { msg.textContent = 'กรุณาตรวจสอบ User ID และ Password'; return; }
         msg.textContent = 'กำลังเข้าสู่ระบบ...';
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) { msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: กรุณาตรวจสอบ User ID หรือ Password'; return; }
-        currentUser = userId;
-        document.getElementById('currentUserLabel').textContent = userId;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('loginPassword').value = '';
-        await fetchCloudData();
+        try {
+          const { error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          currentUser = userId;
+          document.getElementById('currentUserLabel').textContent = userId;
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('loginPassword').value = '';
+          await fetchCloudData();
+        } catch (error) {
+          console.error('Login error:', error);
+          msg.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + (error.message || 'กรุณาตรวจสอบ User ID และ Password');
+        }
       }
       async function logout() {
         await sb.auth.signOut(); currentUser = null; db = [];
@@ -340,6 +345,20 @@
         }
         alert('ลบรายการเรียบร้อย');await fetchCloudData();
       }
+      async function deleteEntry(id){
+        if(!currentUser){alert('กรุณาเข้าสู่ระบบ');return;}
+        const row=db.find(x=>String(x.id)===String(id));
+        if(!row){alert('ไม่พบรายการที่ต้องการลบ');return;}
+        if(!confirm('ยืนยันลบรายการของ '+(row.fullName||'ผู้รับเหมา')+'?\\nการลบนี้ไม่สามารถย้อนกลับได้'))return;
+        const {error}=await sb.from('contractor_entries').delete().eq('id',id);
+        if(error){alert('ลบรายการไม่สำเร็จ: '+error.message);return;}
+        const paths=[row.id_card_path,row.car_image_path].filter(Boolean);
+        if(paths.length){
+          const {error:storageError}=await sb.storage.from('contractor-private').remove(paths);
+          if(storageError)console.warn('ลบรูปจาก Storage ไม่สำเร็จ:',storageError);
+        }
+        alert('ลบรายการเรียบร้อย');await fetchCloudData();
+      }
       function loadReport(){
         const selected=document.getElementById('reportDate').value||bangkokDate();
         const rows=sortEntriesOldestFirst(db.filter(x=>x.date===selected));
@@ -348,7 +367,10 @@
         document.getElementById('statCompany').textContent=new Set(rows.map(x=>x.companyName)).size;
         const tbody=document.getElementById('reportTableBody');
         if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="text-center p-4 text-slate-400">ไม่พบข้อมูลในวันที่เลือก</td></tr>';return;}
-        tbody.innerHTML=rows.map(x=>'<tr class="border-b"><td class="p-2">เข้า: '+escapeHtml(x.timeIn)+'<br>ออก: '+(x.timeOut?escapeHtml(x.timeOut):'<span class="text-amber-600">กำลังปฏิบัติงาน</span>')+'</td><td class="p-2">'+escapeHtml(x.fullName)+'<br><span class="text-slate-400">เลขท้าย: '+escapeHtml(x.idNumber)+'</span></td><td class="p-2">'+escapeHtml(x.companyName)+'<br>สถานที่: '+escapeHtml(x.workLocation)+'<br>ทีมงาน: '+escapeHtml(x.teamSize)+' คน</td><td class="p-2">'+escapeHtml(x.carPlate)+'<br>'+escapeHtml(x.department)+'</td><td class="p-2"><button onclick="deleteEntry(\\''+String(x.id)+'\\')" class="bg-rose-600 text-white px-2 py-1 rounded text-xs">ลบ</button></td></tr>').join('');
+        tbody.innerHTML=rows.map(x=>'<tr class="border-b"><td class="p-2">เข้า: '+escapeHtml(x.timeIn)+'<br>ออก: '+(x.timeOut?escapeHtml(x.timeOut):'<span class="text-amber-600">กำลังปฏิบัติงาน</span>')+'</td><td class="p-2">'+escapeHtml(x.fullName)+'<br><span class="text-slate-400">เลขท้าย: '+escapeHtml(x.idNumber)+'</span></td><td class="p-2">'+escapeHtml(x.companyName)+'<br>สถานที่: '+escapeHtml(x.workLocation)+'<br>ทีมงาน: '+escapeHtml(x.teamSize)+' คน</td><td class="p-2">'+escapeHtml(x.carPlate)+'<br>'+escapeHtml(x.department)+'</td><td class="p-2"><button type="button" data-delete-id="'+escapeHtml(x.id)+'" class="bg-rose-600 text-white px-2 py-1 rounded text-xs">ลบ</button></td></tr>').join('');
+        tbody.querySelectorAll('[data-delete-id]').forEach(button=>{
+          button.addEventListener('click',()=>deleteEntry(button.getAttribute('data-delete-id')));
+        });
       }
       async function exportExcel(){
         const selected=document.getElementById('reportDate').value;
