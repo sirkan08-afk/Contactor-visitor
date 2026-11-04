@@ -367,14 +367,32 @@
         el.innerHTML=style+pages.join('');
         document.body.appendChild(el);
         try{
+          // โหลดภาพจาก Supabase แล้วแปลงเป็น Data URL ก่อนส่งเข้า html2canvas
+          // เพื่อหลีกเลี่ยงปัญหา CORS และภาพหายระหว่างสร้าง PDF
           const imgs=[...el.querySelectorAll('img')];
-          await Promise.all(imgs.map(img=>{
-            img.crossOrigin='anonymous';
-            if(img.complete&&img.naturalWidth>0)return Promise.resolve();
-            return new Promise(resolve=>{
-              img.onload=resolve; img.onerror=resolve;
-              setTimeout(resolve,10000);
-            });
+          await Promise.all(imgs.map(async img=>{
+            const source=img.getAttribute('src');
+            if(!source)return;
+            try{
+              const response=await fetch(source,{mode:'cors',cache:'no-store'});
+              if(!response.ok)throw new Error('HTTP '+response.status);
+              const blob=await response.blob();
+              const dataUrl=await new Promise((resolve,reject)=>{
+                const reader=new FileReader();
+                reader.onload=()=>resolve(reader.result);
+                reader.onerror=reject;
+                reader.readAsDataURL(blob);
+              });
+              img.removeAttribute('crossorigin');
+              img.src=dataUrl;
+              await new Promise((resolve,reject)=>{
+                if(img.complete&&img.naturalWidth>0){resolve();return;}
+                img.onload=resolve; img.onerror=reject;
+              });
+            }catch(err){
+              console.warn('ไม่สามารถฝังรูปใน PDF ได้:',source,err);
+              img.alt='ไม่สามารถโหลดรูปภาพ';
+            }
           }));
           await html2pdf().from(el).set({
             margin:0,
