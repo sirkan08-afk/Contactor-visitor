@@ -329,7 +329,7 @@
         const dept=document.getElementById('department').value;
         const location=document.getElementById('workLocation').value.trim()||'พื้นที่โรงแรม';
         const teamSize=parseInt(document.getElementById('teamSize').value||'1',10);
-        if(!/^\\d{4}$/.test(last4)){alert('กรุณากรอกเลขบัตรประชาชน 4 ตัวท้าย');return;}
+        if(!/^\d{4}$/.test(last4)){alert('กรุณากรอกเลขบัตรประชาชน 4 ตัวท้าย');return;}
         const today=bangkokDate();
         const {data:active,error:qerr}=await sb.from('contractor_entries').select('id,full_name').eq('work_date',today).eq('id_last4',last4).is('time_out',null);
         if(qerr){alert('ตรวจสอบรายการไม่สำเร็จ: '+qerr.message);return;}
