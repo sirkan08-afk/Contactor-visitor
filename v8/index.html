@@ -129,7 +129,7 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button onclick="exportExcel()" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-green-700">📥 Export Excel</button>
-                    <button onclick="exportPDF()" class="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-rose-700">📄 Export PDF (4 รายการ/แผ่น)</button>
+                    <button onclick="exportPDF()" class="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-semibold hover:bg-rose-700">📄 Export PDF (6 รายการ/แผ่น)</button>
                 </div>
             </div>
 
@@ -227,15 +227,17 @@
         reader.onload=e=>{
           const img=new Image();
           img.onload=()=>{
-            const max=1800, scale=Math.min(1,max/img.width);
+            const max=2400, scale=Math.min(1,max/img.width);
             const canvas=document.createElement('canvas'); canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
-            canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+            const ctx=canvas.getContext('2d');
+            ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+            ctx.drawImage(img,0,0,canvas.width,canvas.height);
             canvas.toBlob(blob=>{
               const optimized=new File([blob],(file.name||'image').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
               imageFiles[previewId==='idPreview'?'id':'car']=optimized;
               document.getElementById(previewId).src=URL.createObjectURL(optimized);
               document.getElementById(containerId).classList.remove('hidden');
-            },'image/jpeg',0.88);
+            },'image/jpeg',0.94);
           };
           img.src=e.target.result;
         };
@@ -304,18 +306,86 @@
       async function exportPDF(){
         const selected=document.getElementById('reportDate').value,rows=db.filter(x=>x.date===selected);
         if(!rows.length){alert('ไม่มีข้อมูลสำหรับส่งออก PDF');return;}
-        let content='<div style="font-family:Sarabun,sans-serif;padding:10px;color:#1e293b;background:white;width:750px">';
-        for(let i=0;i<rows.length;i+=4){
-          content+='<section style="'+(i?'page-break-before:always;':'')+'"><h2 style="font-size:17px;font-weight:bold;border-bottom:2px solid #334155;padding-bottom:8px">รายงานผู้รับเหมาประจำวัน '+selected+' (หน้า '+(Math.floor(i/4)+1)+'/'+Math.ceil(rows.length/4)+')</h2><table style="width:100%;border-collapse:collapse">';
-          for(const [j,x] of rows.slice(i,i+4).entries()){
-            content+='<tr style="height:150px;border-bottom:1px solid #cbd5e1"><td style="width:25%;padding:7px;text-align:center">'+(x.idCardImg?'<img src="'+x.idCardImg+'" style="width:125px;height:65px;object-fit:contain;margin-bottom:4px">':'')+(x.carImg?'<img src="'+x.carImg+'" style="width:125px;height:65px;object-fit:contain">':'')+'</td><td style="padding:8px;font-size:13px;line-height:1.6"><b>'+(i+j+1)+'. '+escapeHtml(x.fullName)+'</b> (เลขท้าย '+escapeHtml(x.idNumber)+')<br>บริษัท: '+escapeHtml(x.companyName)+' | ทีมงานรวม: '+escapeHtml(x.teamSize)+' คน<br>ทะเบียนรถ: '+escapeHtml(x.carPlate)+' | แผนก: '+escapeHtml(x.department)+'<br>สถานที่: '+escapeHtml(x.workLocation)+'<br>เข้า: '+escapeHtml(x.timeIn)+' | ออก: '+escapeHtml(x.timeOut||'กำลังปฏิบัติงาน')+'</td></tr>';
-          }
-          content+='</table><p style="font-size:11px;margin-top:16px">ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ............................................................</p></section>';
+
+        const pageSize=6, totalPages=Math.ceil(rows.length/pageSize);
+        const pages=[];
+        for(let i=0;i<rows.length;i+=pageSize){
+          const pageRows=rows.slice(i,i+pageSize);
+          let cards='';
+          pageRows.forEach((x,j)=>{
+            const idPhoto=x.idCardImg
+              ? '<img class="pdf-photo" src="'+escapeHtml(x.idCardImg)+'" alt="บัตรประชาชน">'
+              : '<div class="pdf-no-photo">ไม่มีรูปบัตรประชาชน</div>';
+            const carPhoto=x.carImg
+              ? '<img class="pdf-photo" src="'+escapeHtml(x.carImg)+'" alt="ทะเบียนรถ">'
+              : '<div class="pdf-no-photo">ไม่มีรูปทะเบียนรถ</div>';
+            cards+='<article class="pdf-record">'+
+              '<div class="pdf-images">'+
+                '<div class="pdf-image-wrap"><div class="pdf-image-label">บัตรประชาชน</div>'+idPhoto+'</div>'+
+                '<div class="pdf-image-wrap"><div class="pdf-image-label">ทะเบียนรถ</div>'+carPhoto+'</div>'+
+              '</div>'+
+              '<div class="pdf-details">'+
+                '<div class="pdf-name">'+(i+j+1)+'. '+escapeHtml(x.fullName)+'</div>'+
+                '<div><b>เลขบัตร 4 ตัวท้าย:</b> '+escapeHtml(x.idNumber||'-')+'</div>'+
+                '<div><b>บริษัท:</b> '+escapeHtml(x.companyName||'-')+' <b>ทีม:</b> '+escapeHtml(x.teamSize||'-')+' คน</div>'+
+                '<div><b>ทะเบียนรถ:</b> '+escapeHtml(x.carPlate||'-')+'</div>'+
+                '<div><b>แผนก:</b> '+escapeHtml(x.department||'-')+'</div>'+
+                '<div><b>สถานที่:</b> '+escapeHtml(x.workLocation||'-')+'</div>'+
+                '<div><b>เข้า:</b> '+escapeHtml(x.timeIn||'-')+' <b>ออก:</b> '+escapeHtml(x.timeOut||'กำลังปฏิบัติงาน')+'</div>'+
+              '</div></article>';
+          });
+          pages.push('<section class="pdf-page">'+
+            '<header class="pdf-header"><div class="pdf-title">รายงานผู้รับเหมาประจำวัน</div>'+
+            '<div class="pdf-subtitle">วันที่ '+escapeHtml(selected)+' <span>หน้า '+(pages.length+1)+' / '+totalPages+'</span></div></header>'+
+            '<div class="pdf-records">'+cards+'</div>'+
+            '<footer class="pdf-footer">ลงชื่อเจ้าหน้าที่ รปภ. ผู้ตรวจสอบ: ....................................................</footer>'+
+          '</section>');
         }
-        content+='</div>';
-        const el=document.createElement('div');el.innerHTML=content;document.body.appendChild(el);
-        try{await html2pdf().from(el).set({margin:8,filename:'Contractor_Report_'+selected+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:3,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).save();}
-        catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message);}finally{el.remove();}
+
+        const style='<style>'+
+          '@page{size:A4 portrait;margin:0}'+
+          '*{box-sizing:border-box}'+
+          '.pdf-root{width:210mm;font-family:Sarabun,sans-serif;color:#172033;background:#fff}'+
+          '.pdf-page{width:210mm;height:297mm;padding:6mm;display:flex;flex-direction:column;gap:1.2mm;overflow:hidden;background:#fff;page-break-after:always;break-after:page}'+
+          '.pdf-page:last-child{page-break-after:auto;break-after:auto}'+
+          '.pdf-header{height:13mm;flex:0 0 13mm;border-bottom:1.2px solid #334155;padding:0 1mm 1.5mm;display:flex;flex-direction:column;justify-content:center}'+
+          '.pdf-title{font-size:15pt;font-weight:700;line-height:1.2}'+
+          '.pdf-subtitle{font-size:9pt;display:flex;justify-content:space-between;margin-top:1mm}'+
+          '.pdf-records{flex:1;min-height:0;display:flex;flex-direction:column;gap:1mm}'+
+          '.pdf-record{flex:1;min-height:0;border:0.35mm solid #cbd5e1;border-radius:1.5mm;padding:1.3mm;display:flex;align-items:center;gap:2mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid}'+
+          '.pdf-images{width:42%;height:100%;display:flex;gap:1.5mm;align-items:center;justify-content:space-between}'+
+          '.pdf-image-wrap{width:50%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}'+
+          '.pdf-image-label{font-size:7pt;font-weight:700;color:#475569;margin-bottom:0.7mm;white-space:nowrap}'+
+          '.pdf-photo{display:block;width:100%;height:30mm;max-height:calc(100% - 5mm);object-fit:contain;image-rendering:auto}'+
+          '.pdf-no-photo{width:100%;height:25mm;border:0.25mm dashed #cbd5e1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:7pt;color:#94a3b8;padding:1mm}'+
+          '.pdf-details{width:58%;font-size:8.3pt;line-height:1.42;overflow:hidden;overflow-wrap:anywhere}'+
+          '.pdf-name{font-size:10pt;font-weight:700;margin-bottom:1mm;color:#0f172a}'+
+          '.pdf-footer{height:7mm;flex:0 0 7mm;border-top:0.25mm solid #cbd5e1;padding-top:1.2mm;font-size:8pt}'+
+          '</style>';
+        const el=document.createElement('div');
+        el.className='pdf-root';
+        el.innerHTML=style+pages.join('');
+        document.body.appendChild(el);
+        try{
+          const imgs=[...el.querySelectorAll('img')];
+          await Promise.all(imgs.map(img=>{
+            img.crossOrigin='anonymous';
+            if(img.complete&&img.naturalWidth>0)return Promise.resolve();
+            return new Promise(resolve=>{
+              img.onload=resolve; img.onerror=resolve;
+              setTimeout(resolve,10000);
+            });
+          }));
+          await html2pdf().from(el).set({
+            margin:0,
+            filename:'Contractor_Report_'+selected+'.pdf',
+            image:{type:'jpeg',quality:0.99},
+            html2canvas:{scale:3,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',imageTimeout:20000,logging:false},
+            jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+            pagebreak:{mode:['css','legacy']}
+          }).save();
+        }catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message);}
+        finally{el.remove();}
       }
       document.getElementById('reportDate').value=bangkokDate();
     </script>
