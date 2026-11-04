@@ -46,7 +46,7 @@
         <!-- REGISTRATION SECTION -->
         <div id="section-register" class="space-y-4">
             <div class="bg-white p-4 rounded-xl shadow">
-                <h2 class="text-md font-bold text-slate-700 mb-3">📸 ถ่ายภาพบัตรประชาชน & ป้ายทะเบียน</h2>
+                <h2 class="text-md font-bold text-slate-700 mb-1">📸 ภาพบัตรประชาชน & ป้ายทะเบียน (ไม่บังคับ)</h2><p class="text-xs text-slate-500 mb-3">สามารถถ่ายภาพหรือเลือกไฟล์จากอุปกรณ์ได้ โดยไม่จำเป็นต้องแนบรูปเพื่อบันทึกข้อมูล</p>
                 
                 <div class="space-y-3">
                     <div>
@@ -365,16 +365,10 @@
           alert('บันทึกเวลาออกเรียบร้อย');
         }else{
           if(!fullName){alert('กรุณากรอกชื่อ-นามสกุลสำหรับลงทะเบียนเข้า');return;}
-          if(!imageFiles.id||!imageFiles.car){
-            alert('กรุณาเลือกรูปบัตรประชาชนและรูปทะเบียนรถให้ครบทั้ง 2 รูป และรอให้ภาพตัวอย่างแสดงก่อนกดบันทึก');
-            return;
-          }
           if(!Number.isInteger(teamSize)||teamSize<1||teamSize>500){alert('จำนวนทีมงานต้องอยู่ระหว่าง 1-500 คน');return;}
           try{
-            const idPath=await uploadImage(imageFiles.id,'id-card');
-            if(!idPath)throw new Error('ไม่มีไฟล์รูปบัตรประชาชนที่อัปโหลด');
-            const carPath=await uploadImage(imageFiles.car,'vehicle');
-            if(!carPath)throw new Error('ไม่มีไฟล์รูปทะเบียนรถที่อัปโหลด');
+            const idPath=imageFiles.id?await uploadImage(imageFiles.id,'id-card'):null;
+            const carPath=imageFiles.car?await uploadImage(imageFiles.car,'vehicle'):null;
             const {error}=await sb.from('contractor_entries').insert({work_date:today,id_last4:last4,full_name:fullName,company_name:company,car_plate:plate,department:dept,work_location:location,team_size:teamSize,id_card_path:idPath,car_image_path:carPath});
             if(error)throw error;
             alert('บันทึกเวลาเข้าเรียบร้อย');
