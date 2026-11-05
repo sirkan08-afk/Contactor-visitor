@@ -1,15 +1,13 @@
 {
-  "id": "https://sirkan08-afk.github.io/Contactor-visitor/patrol/",
   "name": "U Khaochichan Pattaya Security Patrol",
   "short_name": "Security Patrol",
   "description": "ระบบตรวจจุด Patrol สำหรับแผนก Security",
-  "start_url": "https://sirkan08-afk.github.io/Contactor-visitor/patrol/",
-  "scope": "https://sirkan08-afk.github.io/Contactor-visitor/patrol/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f1f5f9",
-  "theme_color": "#790044",
-  "lang": "th",
+  "background_color": "#ffffff",
+  "theme_color": "#80004f",
   "icons": [
     {
       "src": "./patrol-app-icon-192.png",
