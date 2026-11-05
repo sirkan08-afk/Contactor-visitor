@@ -1,16 +1,18 @@
 {
   "id": "./",
-  "name": "Hotel Security Patrol",
+  "name": "U Khaochichan Pattaya Security Patrol",
   "short_name": "Security Patrol",
   "description": "ระบบตรวจจุด Patrol สำหรับแผนก Security",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#f1f5f9",
   "theme_color": "#790044",
   "lang": "th",
+  "prefer_related_applications": false,
   "icons": [
-    {"src": "./patrol-app-icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any"}
+    {"src": "./patrol-app-icon.svg?v=2", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
   ]
 }
