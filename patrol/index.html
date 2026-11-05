@@ -41,7 +41,8 @@ const POINTS=[
 ["BALI","Bali","ทางเดินหน้าห้องพัก"],
 ["EXT","จุดตรวจภายนอก","ถนนหน้าทางเข้า"],["EXT","จุดตรวจภายนอก","ถนนทางเข้า"],["EXT","จุดตรวจภายนอก","แยกเข้าล็อบบี้"],["EXT","จุดตรวจภายนอก","ทางไปอาคาร F"],["T2","อาคาร T2","ห้อง MBD อาคาร T2"],["EXT","จุดตรวจภายนอก","ลานจอดรถด้านนอก"]
 ];
-let sb=null,profile=null,selectedPoint=null,points=[],logs=[],dayPlan=null;\nconst PLAN_ROUNDS={full_day:['10:00','14:00','18:00','22:00'],morning_only:['10:00','14:00'],afternoon_only:['18:00','22:00']};
+let sb=null,profile=null,selectedPoint=null,points=[],logs=[],dayPlan=null;
+const PLAN_ROUNDS={full_day:['10:00','14:00','18:00','22:00'],morning_only:['10:00','14:00'],afternoon_only:['18:00','22:00']};
 function cfg(){return {url:localStorage.getItem('patrol_url'),key:localStorage.getItem('patrol_key')}}
 function saveConfig(){const u=document.getElementById('sburl').value.trim(),k=document.getElementById('sbkey').value.trim();if(!u||!k)return alert('กรุณากรอก URL และ key');localStorage.setItem('patrol_url',u);localStorage.setItem('patrol_key',k);connect()}
 async function connect(){const c=cfg();if(!c.url||!c.key){document.getElementById('setup').classList.remove('hidden');return}sb=window.supabase.createClient(c.url,c.key);document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');const {data}=await sb.auth.getSession();if(data.session)await loadProfile()}
