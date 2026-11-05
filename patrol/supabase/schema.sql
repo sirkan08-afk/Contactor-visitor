@@ -34,27 +34,37 @@ create table if not exists public.patrol_logs (
 );
 create index if not exists patrol_logs_created_at_idx on public.patrol_logs(created_at);
 create index if not exists patrol_logs_point_id_idx on public.patrol_logs(point_id);
+alter table public.patrol_logs add column if not exists patrol_cycle smallint generated always as (floor(extract(hour from (created_at at time zone 'Asia/Bangkok')) / 3)::smallint + 1) stored;
+create index if not exists patrol_logs_cycle_idx on public.patrol_logs(patrol_cycle);
 
 alter table public.patrol_profiles enable row level security;
 alter table public.patrol_points enable row level security;
 alter table public.patrol_logs enable row level security;
 
+-- SECURITY DEFINER helpers avoid recursive RLS when policies check the caller's profile.
+create or replace function public.patrol_is_active()
+returns boolean language sql stable security definer set search_path = public
+as $ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active); $;
+create or replace function public.patrol_is_admin()
+returns boolean language sql stable security definer set search_path = public
+as $ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active and p.role='admin'); $;
+
 -- Profiles: users can read their own profile; admins can read all profiles.
 create policy "profile self or admin read" on public.patrol_profiles for select to authenticated
-using (id = auth.uid() or exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.role='admin' and me.active));
+using (id = auth.uid() or public.patrol_is_admin());
 
 -- Active users can read point list. Only admins can manage points.
 create policy "active users read points" on public.patrol_points for select to authenticated
-using (exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.active));
+using (public.patrol_is_active());
 create policy "admins manage points" on public.patrol_points for all to authenticated
-using (exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.role='admin' and me.active))
+using (public.patrol_is_admin())
 with check (exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.role='admin' and me.active));
 
 -- Guards can insert their own logs. Guards see own logs; admins see all logs.
 create policy "insert own patrol log" on public.patrol_logs for insert to authenticated
 with check (guard_id=auth.uid() and exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.active));
 create policy "read own or admin patrol logs" on public.patrol_logs for select to authenticated
-using (guard_id=auth.uid() or exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.role='admin' and me.active));
+using (guard_id=auth.uid() or public.patrol_is_admin());
 
 -- Private evidence bucket. Files are stored under {auth.uid()}/...
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
