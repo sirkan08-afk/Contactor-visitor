@@ -2,6 +2,16 @@
 -- It lets every active Patrol account see the shared patrol log and report evidence,
 -- while keeping insert permission limited to each user's own records.
 
+-- Let active Patrol users see the names of teammates shown in shared reports.
+drop policy if exists "profile self or admin read" on public.patrol_profiles;
+drop policy if exists "active users read team profiles" on public.patrol_profiles;
+create policy "active users read team profiles"
+on public.patrol_profiles
+for select
+to authenticated
+using (public.patrol_is_active());
+
+
 drop policy if exists "read own or admin patrol logs" on public.patrol_logs;
 drop policy if exists "active users read all patrol logs" on public.patrol_logs;
 create policy "active users read all patrol logs"
