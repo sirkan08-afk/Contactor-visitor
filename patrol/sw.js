@@ -1,4 +1,4 @@
-const CACHE_NAME='security-patrol-v8';
+const CACHE_NAME='security-patrol-v9';
 self.addEventListener('install',event=>{
  event.waitUntil(self.skipWaiting());
 });
