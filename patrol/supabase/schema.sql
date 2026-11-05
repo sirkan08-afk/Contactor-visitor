@@ -36,6 +36,17 @@ create index if not exists patrol_logs_created_at_idx on public.patrol_logs(crea
 create index if not exists patrol_logs_point_id_idx on public.patrol_logs(point_id);
 alter table public.patrol_logs add column if not exists patrol_cycle smallint generated always as (floor(extract(hour from (created_at at time zone 'Asia/Bangkok')) / 3)::smallint + 1) stored;
 create index if not exists patrol_logs_cycle_idx on public.patrol_logs(patrol_cycle);
+alter table public.patrol_logs add column if not exists round_time text check (round_time in ('10:00','14:00','18:00','22:00'));
+
+-- Daily staffing plan: admin selects which patrol rounds are required on each date.
+create table if not exists public.patrol_day_plans (
+ patrol_date date primary key,
+ plan_type text not null check (plan_type in ('full_day','morning_only','afternoon_only')),
+ configured_by uuid not null references public.patrol_profiles(id),
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now()
+);
+alter table public.patrol_day_plans enable row level security;
 
 alter table public.patrol_profiles enable row level security;
 alter table public.patrol_points enable row level security;
@@ -65,6 +76,13 @@ create policy "insert own patrol log" on public.patrol_logs for insert to authen
 with check (guard_id=auth.uid() and exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.active));
 create policy "read own or admin patrol logs" on public.patrol_logs for select to authenticated
 using (guard_id=auth.uid() or public.patrol_is_admin());
+
+create policy "active users read day plans" on public.patrol_day_plans for select to authenticated
+using (public.patrol_is_active());
+create policy "admins insert day plans" on public.patrol_day_plans for insert to authenticated
+with check (public.patrol_is_admin() and configured_by=auth.uid());
+create policy "admins update day plans" on public.patrol_day_plans for update to authenticated
+using (public.patrol_is_admin()) with check (public.patrol_is_admin() and configured_by=auth.uid());
 
 -- Private evidence bucket. Files are stored under {auth.uid()}/...
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
