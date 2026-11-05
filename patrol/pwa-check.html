@@ -50,6 +50,7 @@ let installPromptSeen=false;\nwindow.addEventListener('beforeinstallprompt',()=>
  }catch(e){row('Manifest','ไม่ผ่าน',String(e))}
  try{const reg=await navigator.serviceWorker.getRegistration(root.href);row('Service Worker',reg?'ผ่าน':'ไม่พบ',reg?reg.scope+' · '+(reg.active?'ACTIVE':'ยังไม่ ACTIVE'):'ไม่พบ registration ใน scope นี้')}catch(e){row('Service Worker','ไม่ผ่าน',String(e))}
  row('เบราว์เซอร์',/Chrome\//.test(navigator.userAgent)?'ผ่าน':'ตรวจสอบ',navigator.userAgent);
+ setTimeout(()=>{if(!installPromptSeen)row('Chrome Install Prompt','ไม่พบ Event','Chrome ยังไม่ส่ง beforeinstallprompt ในหน้านี้; ไม่ได้แปลว่าเมนูติดตั้งใช้ไม่ได้เสมอไป')},8000);
 }
 check();
 </script>
