@@ -6,27 +6,14 @@
   "start_url": "/Contactor-visitor/patrol/?source=pwa",
   "scope": "/Contactor-visitor/patrol/",
   "display": "standalone",
-  "display_override": [
-    "standalone",
-    "minimal-ui"
-  ],
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#f1f5f9",
   "theme_color": "#790044",
   "lang": "th",
   "prefer_related_applications": false,
   "icons": [
-    {
-      "src": "/Contactor-visitor/patrol/patrol-app-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/Contactor-visitor/patrol/patrol-app-icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    {"src": "/Contactor-visitor/patrol/patrol-app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/Contactor-visitor/patrol/patrol-app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
   ]
 }
