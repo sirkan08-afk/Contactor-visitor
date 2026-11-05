@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#790044">
+<title>Security Patrol PWA Check</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#172033;margin:0;padding:18px}
+main{max-width:720px;margin:auto;background:#fff;border-radius:16px;padding:18px}
+h2{margin-top:0;color:#790044}p{line-height:1.5}.item{padding:12px 0;border-bottom:1px solid #e2e8f0}
+.ok{color:#15803d;font-weight:700}.bad{color:#b91c1c;font-weight:700}.wait{color:#a16207;font-weight:700}
+small{display:block;color:#64748b;overflow-wrap:anywhere}button{margin-top:16px;background:#790044;color:#fff;border:0;border-radius:10px;padding:12px 16px;font-size:16px}
+</style>
+</head>
+<body><main>
+<h2>ตรวจสอบการติดตั้ง Security Patrol</h2>
+<p>หน้านี้ตรวจไฟล์ PWA โดยไม่เปลี่ยนแปลงข้อมูล Login, QR หรือ Supabase</p>
+<div id="results">กำลังตรวจสอบ...</div>
+<button onclick="location.reload()">ตรวจสอบอีกครั้ง</button>
+<script>
+const root=new URL('./',location.href), manifestURL=new URL('manifest.webmanifest',root);
+const results=document.getElementById('results');
+function row(name,status,detail=''){const d=document.createElement('div');d.className='item';const s=document.createElement('span');s.className=status==='ผ่าน'?'ok':status==='ไม่ผ่าน'?'bad':'wait';s.textContent=status;const b=document.createElement('b');b.textContent=' '+name;const sm=document.createElement('small');sm.textContent=detail;d.append(s,b,sm);results.append(d)}
+async function check(){
+ results.textContent='';
+ row('HTTPS',location.protocol==='https:'?'ผ่าน':'ไม่ผ่าน',location.origin);
+ try{
+  const mr=await fetch(manifestURL,{cache:'no-store'});
+  row('โหลด Manifest',mr.ok?'ผ่าน':'ไม่ผ่าน',mr.status+' · '+(mr.headers.get('content-type')||'ไม่มี Content-Type'));
+  if(!mr.ok)throw Error('โหลด manifest ไม่สำเร็จ');
+  const m=await mr.json();
+  row('ชื่อแอป',m.name||m.short_name?'ผ่าน':'ไม่ผ่าน',m.name||m.short_name||'ไม่มี name/short_name');
+  row('Display', ['standalone','fullscreen','minimal-ui'].includes(m.display)?'ผ่าน':'ไม่ผ่าน',String(m.display));
+  const scope=new URL(m.scope||'./',manifestURL), start=new URL(m.start_url||'./',manifestURL);
+  row('Start URL อยู่ใน Scope',start.origin===scope.origin&&start.pathname.startsWith(scope.pathname)?'ผ่าน':'ไม่ผ่าน','Start: '+start.href+' | Scope: '+scope.href);
+  const icons=Array.isArray(m.icons)?m.icons:[];
+  for(const size of [192,512]){
+   const icon=icons.find(i=>(i.sizes||'').split(/\s+/).includes(size+'x'+size));
+   if(!icon){row('ไอคอน '+size+'×'+size,'ไม่ผ่าน','ไม่พบใน manifest');continue}
+   const url=new URL(icon.src,manifestURL);
+   try{const ir=await fetch(url,{cache:'no-store'});if(!ir.ok){row('ไอคอน '+size+'×'+size,'ไม่ผ่าน',ir.status+' · '+url.href);continue}
+    const blob=await ir.blob(), img=new Image();const object=URL.createObjectURL(blob);
+    await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=object});
+    row('ไอคอน '+size+'×'+size,(img.naturalWidth===size&&img.naturalHeight===size)?'ผ่าน':'ไม่ผ่าน',img.naturalWidth+'×'+img.naturalHeight+' · '+blob.type);
+    URL.revokeObjectURL(object);
+   }catch(e){row('ไอคอน '+size+'×'+size,'ไม่ผ่าน',String(e))}
+  }
+  row('prefer_related_applications',m.prefer_related_applications===true?'ไม่ผ่าน':'ผ่าน',String(m.prefer_related_applications));
+ }catch(e){row('Manifest','ไม่ผ่าน',String(e))}
+ try{const reg=await navigator.serviceWorker.getRegistration(root.href);row('Service Worker',reg?'ผ่าน':'ไม่พบ',reg?reg.scope+' · '+(reg.active?'ACTIVE':'ยังไม่ ACTIVE'):'ไม่พบ registration ใน scope นี้')}catch(e){row('Service Worker','ไม่ผ่าน',String(e))}
+ row('เบราว์เซอร์',/Chrome\//.test(navigator.userAgent)?'ผ่าน':'ตรวจสอบ',navigator.userAgent);
+}
+check();
+</script>
+</main></body></html>
