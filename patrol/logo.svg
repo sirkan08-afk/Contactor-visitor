@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 470" role="img" aria-label="U Khao Chi Chan Pattaya">
+<rect width="420" height="470" fill="#fff"/>
+<g fill="#85004f">
+<path d="M94 34 C82 66 37 75 37 127 L37 278 C37 356 91 393 208 395 C128 384 92 345 92 280 L92 34 Z"/>
+<path d="M327 34 C312 67 270 76 270 127 L270 279 C270 321 250 337 223 344 C277 358 363 341 363 278 L363 34 Z"/>
+</g>
+<g fill="#111" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" letter-spacing="5">
+<text x="210" y="437" font-size="30">KHAO CHI CHAN</text>
+<text x="210" y="466" font-size="30">PATTAYA</text>
+</g></svg>
