@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="104" fill="#790044"/>
+<rect x="74" y="96" width="364" height="320" rx="26" fill="#fff"/>
+<image href="./logo.svg" x="90" y="112" width="332" height="278" preserveAspectRatio="xMidYMid meet"/>
+</svg>
