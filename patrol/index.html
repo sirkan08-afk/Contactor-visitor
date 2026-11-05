@@ -165,12 +165,12 @@ async function exportPDF(){
  // Export only rounds that have at least one saved scan.
  const rounds=order.filter(t=>logs.some(x=>x.round_time===t));
  if(!rounds.length){alert('วันที่เลือกยังไม่มีข้อมูลการสแกนในรอบตรวจ จึงไม่มีรายงานให้ส่งออก');return}
- const allFourRoundsScanned=rounds.length===4;
+ const allFourRoundsCompleted=order.every(t=>new Set(logs.filter(x=>x.round_time===t).map(x=>x.patrol_points?.point_code).filter(Boolean)).size>=points.length);
  const buildings=[...new Set([...points.map(p=>p.area_name),...logs.map(x=>x.patrol_points?.area_name||'ไม่ระบุอาคาร')])].sort((a,b)=>a.localeCompare(b,'th'));
  const pages=[];
  for(let ri=0;ri<rounds.length;ri++){
   const round=rounds[ri],data=logs.filter(x=>x.round_time===round),rows=[];
-  const manpower=allFourRoundsScanned&&round==='14:00'?2:1;
+  const manpower=allFourRoundsCompleted&&round==='14:00'?2:1;
   for(const building of buildings){
    const items=data.filter(x=>(x.patrol_points?.area_name||'ไม่ระบุอาคาร')===building).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
    if(!items.length)continue;
