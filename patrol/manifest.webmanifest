@@ -13,6 +13,7 @@
   "lang": "th",
   "prefer_related_applications": false,
   "icons": [
-    {"src": "./patrol-app-icon.svg?v=2", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+    {"src": "./patrol-app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./patrol-app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
   ]
 }
