@@ -60,9 +60,11 @@ create or replace function public.patrol_is_admin()
 returns boolean language sql stable security definer set search_path = public
 as $$ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active and p.role='admin'); $$;
 
--- Profiles: users can read their own profile; admins can read all profiles.
-create policy "profile self or admin read" on public.patrol_profiles for select to authenticated
-using (id = auth.uid() or public.patrol_is_admin());
+-- All active Patrol users can read team names for shared reports; profile editing remains restricted.
+drop policy if exists "profile self or admin read" on public.patrol_profiles;
+drop policy if exists "active users read team profiles" on public.patrol_profiles;
+create policy "active users read team profiles" on public.patrol_profiles for select to authenticated
+using (public.patrol_is_active());
 
 -- Active users can read point list. Only admins can manage points.
 create policy "active users read points" on public.patrol_points for select to authenticated
