@@ -1,9 +1,9 @@
-const CACHE_NAME='security-patrol-v9';
+const CACHE_NAME='security-patrol-v10';
 self.addEventListener('install',event=>{
  event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('activate',event=>{
- event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));
+ event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('security-patrol-') && key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));
 });
 self.addEventListener('fetch',event=>{
  const req=event.request;
