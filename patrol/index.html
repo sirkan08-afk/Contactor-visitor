@@ -194,34 +194,34 @@ async function exportPDF(){
  holder.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:2147483647;display:block;visibility:visible;opacity:1;pointer-events:none;';
  const style=document.createElement('style');style.textContent=`
  #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
- #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:8mm 8mm 7mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+ #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:6mm 7mm 5mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
  #patrol-pdf .round-page:last-child{page-break-after:auto;break-after:auto}
- #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:2mm;padding:2.5mm 4mm;margin-bottom:2mm;display:flex;align-items:center;justify-content:space-between;gap:4mm;min-height:26mm}
- #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:4mm;min-width:0}
- #patrol-pdf .pdf-brand img{width:25mm;height:20.95mm;object-fit:contain;object-position:center;background:#fff;border-radius:1mm;padding:0.5mm;flex:0 0 25mm;mix-blend-mode:normal}
- #patrol-pdf .heading{font-size:15pt;font-weight:700;color:#fff}
- #patrol-pdf .date{font-size:8pt;color:#f7dce9}
- #patrol-pdf .round{font-size:9pt;font-weight:700;color:#fff;margin:0 0 0 auto;border:0;padding:0;white-space:nowrap;text-align:right}
- #patrol-pdf .round small{display:block;font-size:7pt;color:#f7dce9;font-weight:400;margin-top:1mm}
- #patrol-pdf .summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2mm;background:#f9edf3;border-radius:2mm;padding:2.5mm;margin:3mm 0;font-size:8pt}
- #patrol-pdf .summary b{font-size:11pt;margin-left:1mm}
+ #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:1.5mm;padding:1.5mm 3mm;margin-bottom:1mm;display:flex;align-items:center;justify-content:space-between;gap:3mm;min-height:17mm}
+ #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:3mm;min-width:0}
+ #patrol-pdf .pdf-brand img{width:18mm;height:15.08mm;object-fit:contain;object-position:center;background:#fff;border-radius:0.8mm;padding:0.3mm;flex:0 0 18mm;mix-blend-mode:normal}
+ #patrol-pdf .heading{font-size:13pt;font-weight:700;color:#fff}
+ #patrol-pdf .date{font-size:7pt;color:#f7dce9}
+ #patrol-pdf .round{font-size:8pt;font-weight:700;color:#fff;margin:0 0 0 auto;border:0;padding:0;white-space:nowrap;text-align:right}
+ #patrol-pdf .round small{display:block;font-size:6.5pt;color:#f7dce9;font-weight:400;margin-top:0.5mm}
+ #patrol-pdf .summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1.5mm;background:#f9edf3;border-radius:1.5mm;padding:1.8mm;margin:1.5mm 0;font-size:7.5pt}
+ #patrol-pdf .summary b{font-size:10pt;margin-left:1mm}
  #patrol-pdf .ok{color:#15803d;font-weight:700}#patrol-pdf .ng{color:#b91c1c;font-weight:700}#patrol-pdf .na{color:#a16207;font-weight:700}
- #patrol-pdf .buildings{display:flex;flex-direction:column;gap:2mm;flex:1;min-height:0}
- #patrol-pdf .building-row{display:grid;grid-template-columns:30mm 1fr;border:1px solid #cbd5e1;border-radius:1.5mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
- #patrol-pdf .building-label{background:#eaf0f8;padding:2mm;display:flex;flex-direction:column;justify-content:center}
- #patrol-pdf .building-label b{font-size:10pt}#patrol-pdf .building-label small{font-size:7pt;color:#64748b}
- #patrol-pdf .building-content{padding:1.5mm 2mm;min-width:0}
- #patrol-pdf .counts{display:flex;gap:4mm;font-size:7.5pt;margin-bottom:1mm}
- #patrol-pdf .point-list{font-size:7pt;line-height:1.25;color:#334155}
- #patrol-pdf .issues{display:flex;flex-direction:column;gap:1mm;margin-top:1mm}
- #patrol-pdf .issue{display:flex;align-items:center;gap:2mm;background:#fff7f7;border-left:1mm solid #dc2626;padding:1mm 1.5mm;break-inside:avoid;page-break-inside:avoid}
- #patrol-pdf .issue-desc{flex:1;min-width:0;font-size:7.5pt;line-height:1.25}
- #patrol-pdf .issue-desc small{font-size:6.5pt;color:#64748b}
+ #patrol-pdf .buildings{display:flex;flex-direction:column;gap:1.2mm;flex:1;min-height:0}
+ #patrol-pdf .building-row{display:grid;grid-template-columns:27mm 1fr;border:1px solid #cbd5e1;border-radius:1.2mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .building-label{background:#eaf0f8;padding:1.4mm;display:flex;flex-direction:column;justify-content:center}
+ #patrol-pdf .building-label b{font-size:9pt}#patrol-pdf .building-label small{font-size:6.5pt;color:#64748b}
+ #patrol-pdf .building-content{padding:1mm 1.5mm;min-width:0}
+ #patrol-pdf .counts{display:flex;gap:3mm;font-size:7pt;margin-bottom:0.6mm}
+ #patrol-pdf .point-list{font-size:6.8pt;line-height:1.2;color:#334155}
+ #patrol-pdf .issues{display:flex;flex-direction:column;gap:0.7mm;margin-top:0.7mm}
+ #patrol-pdf .issue{display:flex;align-items:center;gap:1.5mm;background:#fff7f7;border-left:0.8mm solid #dc2626;padding:0.7mm 1mm;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .issue-desc{flex:1;min-width:0;font-size:7pt;line-height:1.2}
+ #patrol-pdf .issue-desc small{font-size:6pt;color:#64748b}
  #patrol-pdf .alert{float:right;color:#b91c1c;font-weight:700}
- #patrol-pdf .proof-wrap{width:25mm;flex:0 0 25mm;text-align:center}
- #patrol-pdf .proof{width:24mm;height:18mm;object-fit:cover;border:1px solid #cbd5e1}
- #patrol-pdf .blocked{font-size:7pt;color:#92400e;background:#fffbeb;margin-top:1mm;padding:1mm}
- #patrol-pdf footer{font-size:8pt;text-align:right;border-top:1px solid #cbd5e1;padding-top:2mm;margin-top:2mm}
+ #patrol-pdf .proof-wrap{width:22mm;flex:0 0 22mm;text-align:center}
+ #patrol-pdf .proof{width:21mm;height:15mm;object-fit:cover;border:1px solid #cbd5e1}
+ #patrol-pdf .blocked{font-size:6.8pt;color:#92400e;background:#fffbeb;margin-top:0.7mm;padding:0.7mm}
+ #patrol-pdf footer{font-size:7pt;text-align:right;border-top:1px solid #cbd5e1;padding-top:1mm;margin-top:1mm}
  `;
  holder.appendChild(style);document.body.appendChild(holder);
  try{
