@@ -81,7 +81,7 @@ async function savePatrol(){
  if(!selectedPoint)return;
  const st=document.getElementById('status').value,rt=activePatrolRound();
  if(!rt){const next=nextPatrolRound();alert(next?'หมดเวลารอบก่อนแล้ว กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}
- const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const d=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
  const {data:existing,error:checkError}=await sb.from('patrol_logs').select('id').eq('point_id',selectedPoint.id).eq('round_time',rt).gte('created_at',start).lte('created_at',end).limit(1);
  if(checkError){alert('ตรวจสอบรายการซ้ำไม่สำเร็จ: '+checkError.message);return}
  if(existing&&existing.length){alert('จุดตรวจนี้ถูกบันทึกในรอบ '+rt+' แล้ว ไม่สามารถบันทึกซ้ำได้ หากข้อมูลเดิมผิด ให้ลบรายการเดิมจากรายงานก่อน');return}
