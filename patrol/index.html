@@ -95,45 +95,88 @@ async function startScan(){try{if(!scanner)scanner=new Html5Qrcode('reader');awa
 async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).trim():raw.trim();const {data,error}=await sb.from('patrol_points').select('*').eq('qr_token',token).eq('active',true).single();if(error||!data){scanmsg.textContent='QR ไม่ถูกต้องหรือจุดตรวจถูกปิดใช้งาน';return}if(!dayPlan){alert('ยังไม่มีแผนรอบตรวจวันนี้ กรุณาแจ้งหัวหน้า Security ให้กำหนดแผนก่อน');return}selectedPoint=data;fillRoundOptions();pointtitle.textContent=data.area_name+' – '+data.point_name;pointcode.textContent='รหัส '+data.point_code;notes.value='';document.getElementById('status').value='normal';checkform.classList.remove('hidden');checkform.scrollIntoView({behavior:'smooth'})}
 async function savePatrol(){if(!selectedPoint)return;const st=document.getElementById('status').value;let evidenceUrl=null;const f=evidence.files[0];if(f){const path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
 const rt=document.getElementById('roundtime').value;if(!rt){alert('ยังไม่มีรอบตรวจที่กำหนด');return}const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');evidence.value='';selectedPoint=null;await loadReport()}
-async function loadReport(){if(!sb||!profile)return;const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';const {data,error}=await sb.from('patrol_logs').select('id,status,notes,round_time,created_at,patrol_points(point_code,area_name,point_name),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:false});if(error){reportlist.textContent=error.message;return}logs=data||[];const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));done.textContent=doneIds.size;abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;pending.textContent=Math.max(0,points.length-doneIds.size);reportlist.innerHTML=logs.map(x=>'<div class="point"><b>'+esc(x.patrol_points?.area_name)+' – '+esc(x.patrol_points?.point_name)+'</b><div class="muted">รอบ '+esc(x.round_time||'-')+' น. · '+new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})+' · '+esc(x.patrol_profiles?.full_name)+'</div><span class="pill '+(x.status==='normal'?'':x.status==='abnormal'?'bad':'wait')+'">'+esc(x.status)+'</span><div class="small">'+esc(x.notes)+'</div></div>').join('')||'<p class="muted">ยังไม่มีรายการตรวจในวันนี้</p>'}
+async function loadReport(){if(!sb||!profile)return;const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';const {data,error}=await sb.from('patrol_logs').select('id,status,notes,evidence_path,round_time,created_at,patrol_points(point_code,area_name,point_name),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:false});if(error){reportlist.textContent=error.message;return}logs=data||[];const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));done.textContent=doneIds.size;abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;pending.textContent=Math.max(0,points.length-doneIds.size);reportlist.innerHTML=logs.map(x=>'<div class="point"><b>'+esc(x.patrol_points?.area_name)+' – '+esc(x.patrol_points?.point_name)+'</b><div class="muted">รอบ '+esc(x.round_time||'-')+' น. · '+new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})+' · '+esc(x.patrol_profiles?.full_name)+'</div><span class="pill '+(x.status==='normal'?'':x.status==='abnormal'?'bad':'wait')+'">'+esc(x.status)+'</span><div class="small">'+esc(x.notes)+'</div></div>').join('')||'<p class="muted">ยังไม่มีรายการตรวจในวันนี้</p>'}
 async function exportPDF(){
  const d=document.getElementById('reportdate').value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
  if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก กรุณากดค้นหาก่อน');return}
  if(!window.html2pdf){alert('ระบบสร้าง PDF ยังโหลดไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');return}
  const dateText=new Date(d+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
- const sorted=[...logs].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
- const rows=[];
- for(const x of sorted){
-  let photo='';
-  if(x.evidence_path){
-   try{const {data}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,300);if(data?.signedUrl)photo='<img class="ev" src="'+esc(data.signedUrl)+'">'}catch(e){}
-  }
-  const result=x.status==='normal'?'ปกติ':x.status==='abnormal'?'พบความผิดปกติ':'ไม่สามารถเข้าตรวจ';
-  rows.push('<tr><td>'+new Date(x.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})+'</td><td><b>'+esc(x.patrol_points?.point_code||'-')+'</b><br>'+esc(x.patrol_points?.area_name||'')+' – '+esc(x.patrol_points?.point_name||'')+'</td><td>'+esc(x.round_time||'-')+'</td><td>'+esc(x.patrol_profiles?.full_name||'-')+'</td><td class="'+(x.status==='abnormal'?'bad':'')+'">'+result+'</td><td>'+esc(x.notes||'-')+(photo?'<br>'+photo:'')+'</td></tr>');
+ const grouped=new Map();
+ for(const x of logs){
+  const building=x.patrol_points?.area_name||'ไม่ระบุอาคาร';
+  const round=x.round_time||'ไม่ระบุรอบ';
+  if(!grouped.has(building))grouped.set(building,new Map());
+  const rounds=grouped.get(building);if(!rounds.has(round))rounds.set(round,[]);
+  rounds.get(round).push(x);
  }
- const chunks=[];for(let i=0;i<rows.length;i+=12)chunks.push(rows.slice(i,i+12));
- const pages=chunks.map((chunk,i)=>'<section class="pdfpage"><header><div class="ptitle">รายงานการตรวจ Patrol ประจำวัน</div><div class="pmeta"><span>HOTEL SECURITY DEPARTMENT · '+dateText+'</span><span>หน้า '+(i+1)+' / '+chunks.length+'</span></div></header><div class="summary"><span>รายการตรวจทั้งหมด <b>'+logs.length+'</b></span><span>ปกติ <b>'+logs.filter(x=>x.status==='normal').length+'</b></span><span>ผิดปกติ <b>'+logs.filter(x=>x.status==='abnormal').length+'</b></span><span>เข้าตรวจไม่ได้ <b>'+logs.filter(x=>x.status==='inaccessible').length+'</b></span></div><table><thead><tr><th>เวลา</th><th>จุดตรวจ</th><th>รอบ</th><th>ผู้ตรวจ</th><th>ผลตรวจ</th><th>หมายเหตุ / หลักฐาน</th></tr></thead><tbody>'+chunk.join('')+'</tbody></table><footer>ลงชื่อเจ้าหน้าที่ผู้ตรวจสอบ: ....................................................</footer></section>').join('');
- const holder=document.createElement('div');holder.id='patrol-pdf';holder.innerHTML=pages;
+ const roundOrder=['10:00','14:00','18:00','22:00'];
+ const buildingNames=[...grouped.keys()].sort((a,b)=>a.localeCompare(b,'th'));
+ let allNormal=logs.filter(x=>x.status==='normal').length;
+ let allAbnormal=logs.filter(x=>x.status==='abnormal').length;
+ let allBlocked=logs.filter(x=>x.status==='inaccessible').length;
+ let buildingHtml='';
+ for(const building of buildingNames){
+  const rounds=grouped.get(building);
+  const orderedRounds=[...rounds.keys()].sort((a,b)=>{const ai=roundOrder.indexOf(a),bi=roundOrder.indexOf(b);return (ai<0?99:ai)-(bi<0?99:bi)||a.localeCompare(b)});
+  let roundHtml='';
+  for(const round of orderedRounds){
+   const items=rounds.get(round).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+   const normal=items.filter(x=>x.status==='normal'),abnormal=items.filter(x=>x.status==='abnormal'),blocked=items.filter(x=>x.status==='inaccessible');
+   const pointLabel=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b> '+esc(x.patrol_points?.point_name||'');
+   const normalHtml=normal.length?'<div class="normal-list"><b>ปกติ '+normal.length+' จุด</b><div>'+normal.map(pointLabel).join(' · ')+'</div></div>':'';
+   let issueHtml='';
+   for(const x of abnormal){
+    let photo='';
+    if(x.evidence_path){
+     try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="issue-photo" src="'+esc(data.signedUrl)+'" alt="ภาพถ่ายหลักฐาน">'}catch(e){}
+    }
+    issueHtml+='<div class="issue"><div class="issue-head">⚠ '+pointLabel(x)+' <span>ผิดปกติ</span></div><div class="issue-note">'+esc(x.notes||'ไม่ได้ระบุรายละเอียด')+'</div>'+(photo?'<div class="photo-wrap">'+photo+'</div>':'')+'<div class="byline">ผู้ตรวจ: '+esc(x.patrol_profiles?.full_name||'-')+' · '+new Date(x.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})+'</div></div>';
+   }
+   let blockedHtml='';
+   if(blocked.length)blockedHtml='<div class="blocked"><b>เข้าตรวจไม่ได้ '+blocked.length+' จุด</b><div>'+blocked.map(x=>pointLabel(x)+' — '+esc(x.notes||'ไม่ระบุเหตุผล')).join('<br>')+'</div></div>';
+   roundHtml+='<article class="round-card"><div class="round-title">รอบ '+esc(round)+' น.</div><div class="counts"><span class="count-good">ปกติ '+normal.length+' จุด</span><span class="count-bad">ผิดปกติ '+abnormal.length+' จุด</span><span class="count-wait">เข้าตรวจไม่ได้ '+blocked.length+' จุด</span><b>รวม '+items.length+' จุด</b></div>'+normalHtml+(issueHtml||'')+(blockedHtml||'')+'</article>';
+  }
+  const buildingTotal=[...rounds.values()].flat();
+  buildingHtml+='<section class="building"><div class="building-head"><h2>'+esc(building)+'</h2><span>ตรวจแล้ว '+buildingTotal.length+' จุด · ปกติ '+buildingTotal.filter(x=>x.status==='normal').length+' · ผิดปกติ '+buildingTotal.filter(x=>x.status==='abnormal').length+'</span></div><div class="round-grid">'+roundHtml+'</div></section>';
+ }
+ const holder=document.createElement('div');holder.id='patrol-pdf';
+ holder.innerHTML='<div class="pdf-header"><div class="main-title">รายงานสรุปการตรวจ Patrol ประจำวัน</div><div class="sub-title">HOTEL SECURITY DEPARTMENT · '+dateText+'</div><div class="overall"><div><small>รายการตรวจทั้งหมด</small><b>'+logs.length+'</b></div><div><small>ปกติ</small><b class="good">'+allNormal+'</b></div><div><small>ผิดปกติ</small><b class="bad">'+allAbnormal+'</b></div><div><small>เข้าตรวจไม่ได้</small><b>'+allBlocked+'</b></div></div></div>'+buildingHtml+'<div class="sign">ลงชื่อหัวหน้า Security / ผู้ตรวจสอบ: ............................................................</div>';
  holder.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1';
  const style=document.createElement('style');style.textContent=`
- #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
- #patrol-pdf .pdfpage{width:210mm;min-height:296mm;padding:9mm 8mm 8mm;background:white;page-break-after:always;break-after:page;display:flex;flex-direction:column}
- #patrol-pdf .pdfpage:last-child{page-break-after:auto;break-after:auto}
- #patrol-pdf header{position:static;background:white;color:#172033;padding:0 0 4mm;border-bottom:1px solid #64748b}
- #patrol-pdf .ptitle{font-size:18pt;font-weight:700}
- #patrol-pdf .pmeta{display:flex;justify-content:space-between;font-size:9pt;margin-top:2mm}
- #patrol-pdf .summary{display:flex;justify-content:space-between;gap:2mm;background:#eff6ff;padding:3mm;margin:4mm 0;font-size:9pt}
- #patrol-pdf table{width:100%;border-collapse:collapse;font-size:8.5pt}
- #patrol-pdf th{background:#e2e8f0;text-align:left;font-weight:700}
- #patrol-pdf th,#patrol-pdf td{border:0.25mm solid #cbd5e1;padding:2mm;vertical-align:top}
- #patrol-pdf .bad{color:#b91c1c;font-weight:700}
- #patrol-pdf .ev{display:block;max-width:35mm;max-height:24mm;object-fit:contain;margin-top:1mm}
- #patrol-pdf footer{margin-top:auto;padding-top:8mm;text-align:right;font-size:9pt;color:#334155}
+ #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff;padding:9mm;width:210mm}
+ #patrol-pdf .pdf-header{border-bottom:1px solid #64748b;padding-bottom:4mm;margin-bottom:5mm}
+ #patrol-pdf .main-title{font-size:18pt;font-weight:700}
+ #patrol-pdf .sub-title{font-size:9pt;color:#475569;margin-top:1mm}
+ #patrol-pdf .overall{display:flex;gap:3mm;margin-top:4mm}
+ #patrol-pdf .overall>div{flex:1;background:#eff6ff;padding:2.5mm;border-radius:2mm}
+ #patrol-pdf .overall small{display:block;font-size:8pt;color:#475569}
+ #patrol-pdf .overall b{font-size:16pt}
+ #patrol-pdf .good{color:#15803d}#patrol-pdf .bad{color:#b91c1c}
+ #patrol-pdf .building{border:1px solid #94a3b8;border-radius:2mm;margin:0 0 5mm;padding:3mm;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .building-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:2mm;margin-bottom:2mm}
+ #patrol-pdf h2{font-size:14pt;margin:0}
+ #patrol-pdf .building-head span{font-size:8pt;color:#475569}
+ #patrol-pdf .round-grid{display:block}
+ #patrol-pdf .round-card{border:1px solid #e2e8f0;border-radius:2mm;padding:2.5mm;margin:2mm 0;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .round-title{font-size:11pt;font-weight:700;color:#1e3a8a}
+ #patrol-pdf .counts{display:flex;gap:4mm;flex-wrap:wrap;font-size:8.5pt;margin:1.5mm 0 2mm}
+ #patrol-pdf .count-good{color:#15803d;font-weight:700}#patrol-pdf .count-bad{color:#b91c1c;font-weight:700}#patrol-pdf .count-wait{color:#a16207}
+ #patrol-pdf .normal-list{font-size:8.5pt;background:#f0fdf4;padding:2mm;border-radius:1mm;margin:1mm 0}
+ #patrol-pdf .issue{border-left:1.2mm solid #dc2626;background:#fff7f7;padding:2mm;margin:2mm 0;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .issue-head{font-size:9pt;font-weight:700;color:#991b1b}
+ #patrol-pdf .issue-head span{float:right}
+ #patrol-pdf .issue-note{font-size:9pt;margin-top:1mm;white-space:pre-wrap}
+ #patrol-pdf .photo-wrap{margin-top:2mm}
+ #patrol-pdf .issue-photo{display:block;max-width:85mm;max-height:55mm;object-fit:contain;border:1px solid #cbd5e1;background:#fff}
+ #patrol-pdf .byline{font-size:7.5pt;color:#64748b;margin-top:1mm}
+ #patrol-pdf .blocked{font-size:8.5pt;background:#fffbeb;padding:2mm;margin-top:1mm}
+ #patrol-pdf .sign{font-size:9pt;text-align:right;margin-top:8mm;padding-top:3mm;border-top:1px solid #cbd5e1}
  `;
  holder.appendChild(style);document.body.appendChild(holder);
  try{
   await document.fonts.ready;
-  await html2pdf().set({margin:0,filename:'Hotel-Security-Patrol-'+d+'.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(holder).save();
+  await Promise.all([...holder.querySelectorAll('img')].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
+  await html2pdf().set({margin:0,filename:'Hotel-Security-Patrol-Summary-'+d+'.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(holder).save();
  }catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message)}finally{holder.remove()}
 }
 function exportCSV(){const rows=[['เวลาบันทึก','รอบตรวจ','รหัสจุด','พื้นที่','จุดตรวจ','พนักงาน','ผล','หมายเหตุ'],...logs.map(x=>[new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}),x.round_time,x.patrol_points?.point_code,x.patrol_points?.area_name,x.patrol_points?.point_name,x.patrol_profiles?.full_name,x.status,x.notes])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='security-patrol-'+reportdate.value+'.csv';a.click();URL.revokeObjectURL(a.href)}
