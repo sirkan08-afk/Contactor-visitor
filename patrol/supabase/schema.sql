@@ -71,11 +71,28 @@ create policy "admins manage points" on public.patrol_points for all to authenti
 using (public.patrol_is_admin())
 with check (exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.role='admin' and me.active));
 
--- Guards can insert their own logs. Guards see own logs; admins see all logs.
+-- All active Patrol users can see the shared team log; each guard can still insert only their own records.
 create policy "insert own patrol log" on public.patrol_logs for insert to authenticated
-with check (guard_id=auth.uid() and exists(select 1 from public.patrol_profiles me where me.id=auth.uid() and me.active));
-create policy "read own or admin patrol logs" on public.patrol_logs for select to authenticated
-using (guard_id=auth.uid() or public.patrol_is_admin());
+with check (guard_id=auth.uid() and public.patrol_is_active());
+drop policy if exists "read own or admin patrol logs" on public.patrol_logs;
+drop policy if exists "active users read all patrol logs" on public.patrol_logs;
+create policy "active users read all patrol logs" on public.patrol_logs for select to authenticated
+using (public.patrol_is_active());
+
+-- Allow active Patrol users to view evidence attached to shared team reports.
+drop policy if exists "patrol read own or admin evidence" on storage.objects;
+drop policy if exists "patrol read team evidence" on storage.objects;
+create policy "patrol read team evidence" on storage.objects for select to authenticated
+using (bucket_id='patrol-evidence' and public.patrol_is_active());
+
+-- Enable Supabase Realtime for new patrol log records (safe to run more than once).
+do $
+begin
+ if exists(select 1 from pg_publication where pubname='supabase_realtime')
+ and not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='patrol_logs') then
+  alter publication supabase_realtime add table public.patrol_logs;
+ end if;
+end $;
 
 create policy "active users read day plans" on public.patrol_day_plans for select to authenticated
 using (public.patrol_is_active());
