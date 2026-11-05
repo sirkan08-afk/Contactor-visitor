@@ -5,6 +5,7 @@
 <title>Hotel Security Patrol</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 :root{font-family:Sarabun,system-ui;color:#172033;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#172554;color:white;padding:18px 16px;position:sticky;top:0;z-index:2}header h1{font-size:19px;margin:0}header p{margin:2px 0 0;color:#cbd5e1;font-size:12px}.wrap{max-width:760px;margin:auto;padding:14px}.card{background:white;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0f172a0d}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:#eff6ff;border-radius:12px;padding:12px}.stat b{font-size:25px;display:block;color:#1d4ed8}.muted{color:#64748b;font-size:12px}label{display:block;font-size:13px;font-weight:600;margin:10px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:white}button{border:0;border-radius:11px;padding:12px 14px;font:600 14px Sarabun;cursor:pointer;background:#1d4ed8;color:white}.galleryBtn{display:block;text-align:center;margin-top:9px;padding:12px 14px;border-radius:11px;background:#e2e8f0;color:#172033;font-weight:600;cursor:pointer;font-size:14px}.btn2{background:#e2e8f0;color:#172033}.btn-danger{background:#b91c1c}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.tabs{display:flex;gap:8px;overflow:auto}.tabs button{white-space:nowrap}.hidden{display:none!important}.point{padding:10px;border-bottom:1px solid #e2e8f0}.pill{font-size:11px;padding:3px 8px;border-radius:99px;background:#dcfce7;color:#166534}.pill.bad{background:#fee2e2;color:#991b1b}.pill.wait{background:#fef3c7;color:#92400e}#reader{width:100%;max-width:440px;margin:auto}.notice{padding:10px;border-radius:10px;background:#fffbeb;color:#92400e;font-size:12px}.danger{background:#fef2f2;color:#991b1b}.small{font-size:12px}footer{text-align:center;color:#64748b;padding:20px;font-size:11px}
@@ -26,7 +27,7 @@
 <div class="card"><div class="tabs"><button onclick="showTab('scan')">สแกน QR</button><button class="btn2" onclick="showTab('points')">จุดตรวจ</button><button class="btn2" onclick="showTab('report')">รายงานวันนี้</button></div></div>
 <div id="tab-scan" class="card"><h3>สแกนจุดตรวจ</h3><p class="muted">สแกน QR ประจำจุดเพื่อบันทึกเวลาและผลตรวจ</p><div id="reader"></div><button style="width:100%;margin-top:10px" onclick="startScan()">เปิดกล้องสแกน QR</button><label for="qrImageFile" class="galleryBtn">เลือกรูป QR Code จากอัลบั้ม</label><input id="qrImageFile" type="file" accept="image/*" style="display:none" onchange="scanQRFromAlbum(this.files[0])"><div class="muted">หากบันทึกรูป QR Code ไว้ในโทรศัพท์ สามารถเลือกจากอัลบั้มเพื่อตรวจสอบได้</div><div id="scanmsg" class="muted"></div></div>
 <div id="tab-points" class="card hidden"><h3>รายการจุดตรวจ</h3><input id="filter" placeholder="ค้นหาอาคาร / จุดตรวจ" oninput="renderPoints()"><button id="printQrBtn" class="hidden" style="width:100%;margin:10px 0" onclick="printAllQRCodes()">สร้าง / พิมพ์ QR Code ทั้ง 45 จุด</button><div id="pointlist"></div><p class="muted">QR Code แต่ละจุดสร้างจาก Token จริงในฐานข้อมูล Patrol และสามารถพิมพ์เพื่อนำไปติดตั้งได้</p></div>
-<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><button class="btn2" style="width:100%;margin-top:10px" onclick="exportCSV()">ส่งออก CSV</button></div>
+<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
 <div id="checkform" class="card hidden"><h3 id="pointtitle">บันทึกผลตรวจ</h3><p id="pointcode" class="muted"></p><label>รอบตรวจ</label><select id="roundtime"></select><label>ผลการตรวจ</label><select id="status"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="notes" rows="3" placeholder="รายละเอียดที่พบ (ถ้ามี)"></textarea><label>รูปถ่ายหลักฐาน (ถ้ามี)</label><input type="file" id="evidence" accept="image/*" capture="environment"><button style="width:100%;margin-top:12px" onclick="savePatrol()">บันทึกผลตรวจ</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('checkform').classList.add('hidden')">ยกเลิก</button></div>
 </section></main><footer>HOTEL SECURITY PATROL SYSTEM · เวลาบันทึกใช้ Asia/Bangkok</footer>
 <script>
@@ -95,6 +96,46 @@ async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).
 async function savePatrol(){if(!selectedPoint)return;const st=document.getElementById('status').value;let evidenceUrl=null;const f=evidence.files[0];if(f){const path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
 const rt=document.getElementById('roundtime').value;if(!rt){alert('ยังไม่มีรอบตรวจที่กำหนด');return}const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');evidence.value='';selectedPoint=null;await loadReport()}
 async function loadReport(){if(!sb||!profile)return;const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';const {data,error}=await sb.from('patrol_logs').select('id,status,notes,round_time,created_at,patrol_points(point_code,area_name,point_name),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:false});if(error){reportlist.textContent=error.message;return}logs=data||[];const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));done.textContent=doneIds.size;abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;pending.textContent=Math.max(0,points.length-doneIds.size);reportlist.innerHTML=logs.map(x=>'<div class="point"><b>'+esc(x.patrol_points?.area_name)+' – '+esc(x.patrol_points?.point_name)+'</b><div class="muted">รอบ '+esc(x.round_time||'-')+' น. · '+new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})+' · '+esc(x.patrol_profiles?.full_name)+'</div><span class="pill '+(x.status==='normal'?'':x.status==='abnormal'?'bad':'wait')+'">'+esc(x.status)+'</span><div class="small">'+esc(x.notes)+'</div></div>').join('')||'<p class="muted">ยังไม่มีรายการตรวจในวันนี้</p>'}
+async function exportPDF(){
+ const d=document.getElementById('reportdate').value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก กรุณากดค้นหาก่อน');return}
+ if(!window.html2pdf){alert('ระบบสร้าง PDF ยังโหลดไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');return}
+ const dateText=new Date(d+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
+ const sorted=[...logs].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+ const rows=[];
+ for(const x of sorted){
+  let photo='';
+  if(x.evidence_path){
+   try{const {data}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,300);if(data?.signedUrl)photo='<img class="ev" src="'+esc(data.signedUrl)+'">'}catch(e){}
+  }
+  const result=x.status==='normal'?'ปกติ':x.status==='abnormal'?'พบความผิดปกติ':'ไม่สามารถเข้าตรวจ';
+  rows.push('<tr><td>'+new Date(x.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})+'</td><td><b>'+esc(x.patrol_points?.point_code||'-')+'</b><br>'+esc(x.patrol_points?.area_name||'')+' – '+esc(x.patrol_points?.point_name||'')+'</td><td>'+esc(x.round_time||'-')+'</td><td>'+esc(x.patrol_profiles?.full_name||'-')+'</td><td class="'+(x.status==='abnormal'?'bad':'')+'">'+result+'</td><td>'+esc(x.notes||'-')+(photo?'<br>'+photo:'')+'</td></tr>');
+ }
+ const chunks=[];for(let i=0;i<rows.length;i+=12)chunks.push(rows.slice(i,i+12));
+ const pages=chunks.map((chunk,i)=>'<section class="pdfpage"><header><div class="ptitle">รายงานการตรวจ Patrol ประจำวัน</div><div class="pmeta"><span>HOTEL SECURITY DEPARTMENT · '+dateText+'</span><span>หน้า '+(i+1)+' / '+chunks.length+'</span></div></header><div class="summary"><span>รายการตรวจทั้งหมด <b>'+logs.length+'</b></span><span>ปกติ <b>'+logs.filter(x=>x.status==='normal').length+'</b></span><span>ผิดปกติ <b>'+logs.filter(x=>x.status==='abnormal').length+'</b></span><span>เข้าตรวจไม่ได้ <b>'+logs.filter(x=>x.status==='inaccessible').length+'</b></span></div><table><thead><tr><th>เวลา</th><th>จุดตรวจ</th><th>รอบ</th><th>ผู้ตรวจ</th><th>ผลตรวจ</th><th>หมายเหตุ / หลักฐาน</th></tr></thead><tbody>'+chunk.join('')+'</tbody></table><footer>ลงชื่อเจ้าหน้าที่ผู้ตรวจสอบ: ....................................................</footer></section>').join('');
+ const holder=document.createElement('div');holder.id='patrol-pdf';holder.innerHTML=pages;
+ holder.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;background:#fff;z-index:-1';
+ const style=document.createElement('style');style.textContent=`
+ #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
+ #patrol-pdf .pdfpage{width:210mm;min-height:296mm;padding:9mm 8mm 8mm;background:white;page-break-after:always;break-after:page;display:flex;flex-direction:column}
+ #patrol-pdf .pdfpage:last-child{page-break-after:auto;break-after:auto}
+ #patrol-pdf header{position:static;background:white;color:#172033;padding:0 0 4mm;border-bottom:1px solid #64748b}
+ #patrol-pdf .ptitle{font-size:18pt;font-weight:700}
+ #patrol-pdf .pmeta{display:flex;justify-content:space-between;font-size:9pt;margin-top:2mm}
+ #patrol-pdf .summary{display:flex;justify-content:space-between;gap:2mm;background:#eff6ff;padding:3mm;margin:4mm 0;font-size:9pt}
+ #patrol-pdf table{width:100%;border-collapse:collapse;font-size:8.5pt}
+ #patrol-pdf th{background:#e2e8f0;text-align:left;font-weight:700}
+ #patrol-pdf th,#patrol-pdf td{border:0.25mm solid #cbd5e1;padding:2mm;vertical-align:top}
+ #patrol-pdf .bad{color:#b91c1c;font-weight:700}
+ #patrol-pdf .ev{display:block;max-width:35mm;max-height:24mm;object-fit:contain;margin-top:1mm}
+ #patrol-pdf footer{margin-top:auto;padding-top:8mm;text-align:right;font-size:9pt;color:#334155}
+ `;
+ holder.appendChild(style);document.body.appendChild(holder);
+ try{
+  await document.fonts.ready;
+  await html2pdf().set({margin:0,filename:'Hotel-Security-Patrol-'+d+'.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(holder).save();
+ }catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message)}finally{holder.remove()}
+}
 function exportCSV(){const rows=[['เวลาบันทึก','รอบตรวจ','รหัสจุด','พื้นที่','จุดตรวจ','พนักงาน','ผล','หมายเหตุ'],...logs.map(x=>[new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}),x.round_time,x.patrol_points?.point_code,x.patrol_points?.area_name,x.patrol_points?.point_name,x.patrol_profiles?.full_name,x.status,x.notes])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='security-patrol-'+reportdate.value+'.csv';a.click();URL.revokeObjectURL(a.href)}
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 connect();
