@@ -45,7 +45,7 @@ const POINTS=[
 ["BALI","Bali","ทางเดินหน้าห้องพัก"],
 ["EXT","จุดตรวจภายนอก","ถนนหน้าทางเข้า"],["EXT","จุดตรวจภายนอก","ถนนทางเข้า"],["EXT","จุดตรวจภายนอก","แยกเข้าล็อบบี้"],["EXT","จุดตรวจภายนอก","ทางไปอาคาร F"],["T2","อาคาร T2","ห้อง MBD อาคาร T2"],["EXT","จุดตรวจภายนอก","ลานจอดรถด้านนอก"]
 ];
-let sb=null,profile=null,selectedPoint=null,points=[],logs=[],dayPlan=null;
+let sb=null,profile=null,selectedPoint=null,points=[],logs=[],dayPlan=null,reportRound='10:00';
 const PLAN_ROUNDS={full_day:['10:00','14:00','18:00','22:00'],morning_only:['10:00','14:00'],afternoon_only:['18:00','22:00']};
 function cfg(){return {url:localStorage.getItem('patrol_url'),key:localStorage.getItem('patrol_key')}}
 function editConnection(){document.getElementById('sburl').value=localStorage.getItem('patrol_url')||'';document.getElementById('sbkey').value=localStorage.getItem('patrol_key')||'';document.getElementById('login').classList.add('hidden');document.getElementById('setup').classList.remove('hidden');document.getElementById('connectionmsg').textContent='ตรวจสอบ URL และ Publishable Key แล้วกดบันทึกอีกครั้ง';}
@@ -97,7 +97,54 @@ async function startScan(){try{if(!scanner)scanner=new Html5Qrcode('reader');awa
 async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).trim():raw.trim();const {data,error}=await sb.from('patrol_points').select('*').eq('qr_token',token).eq('active',true).single();if(error||!data){scanmsg.textContent='QR ไม่ถูกต้องหรือจุดตรวจถูกปิดใช้งาน';return}if(!dayPlan){alert('ยังไม่มีแผนรอบตรวจวันนี้ กรุณาแจ้งหัวหน้า Security ให้กำหนดแผนก่อน');return}selectedPoint=data;fillRoundOptions();pointtitle.textContent=data.area_name+' – '+data.point_name;pointcode.textContent='รหัส '+data.point_code;notes.value='';document.getElementById('status').value='normal';checkform.classList.remove('hidden');checkform.scrollIntoView({behavior:'smooth'})}
 async function savePatrol(){if(!selectedPoint)return;const st=document.getElementById('status').value;let evidenceUrl=null;const f=evidence.files[0];if(f){const path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
 const rt=document.getElementById('roundtime').value;if(!rt){alert('ยังไม่มีรอบตรวจที่กำหนด');return}const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');evidence.value='';selectedPoint=null;await loadReport()}
-async function loadReport(){if(!sb||!profile)return;const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';const {data,error}=await sb.from('patrol_logs').select('id,status,notes,evidence_path,round_time,created_at,patrol_points(point_code,area_name,point_name),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:false});if(error){reportlist.textContent=error.message;return}logs=data||[];const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));done.textContent=doneIds.size;abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;pending.textContent=Math.max(0,points.length-doneIds.size);reportlist.innerHTML=logs.map(x=>'<div class="point"><b>'+esc(x.patrol_points?.area_name)+' – '+esc(x.patrol_points?.point_name)+'</b><div class="muted">รอบ '+esc(x.round_time||'-')+' น. · '+new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})+' · '+esc(x.patrol_profiles?.full_name)+'</div><span class="pill '+(x.status==='normal'?'':x.status==='abnormal'?'bad':'wait')+'">'+esc(x.status)+'</span><div class="small">'+esc(x.notes)+'</div></div>').join('')||'<p class="muted">ยังไม่มีรายการตรวจในวันนี้</p>'}
+async function loadReport(){
+ if(!sb||!profile)return;
+ const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const {data,error}=await sb.from('patrol_logs').select('id,status,notes,evidence_path,round_time,created_at,patrol_points(point_code,area_name,point_name,sort_order),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:true});
+ if(error){reportlist.textContent=error.message;return}
+ logs=data||[];
+ const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));
+ done.textContent=doneIds.size;
+ abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;
+ pending.textContent=Math.max(0,points.length-doneIds.size);
+ const availableRounds=dayPlan?PLAN_ROUNDS[dayPlan.plan_type]:['10:00','14:00','18:00','22:00'];
+ if(!availableRounds.includes(reportRound))reportRound=availableRounds[0]||'10:00';
+ renderRoundReport(availableRounds);
+}
+function selectReportRound(t){
+ reportRound=t;
+ const availableRounds=dayPlan?PLAN_ROUNDS[dayPlan.plan_type]:['10:00','14:00','18:00','22:00'];
+ renderRoundReport(availableRounds);
+}
+function renderRoundReport(rounds){
+ const selected=logs.filter(x=>(x.round_time||'')===reportRound);
+ const latestByCode={};
+ selected.forEach(x=>{const code=x.patrol_points?.point_code;if(code)latestByCode[code]=x});
+ const orderPoints=[...points].sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999)||String(a.point_code).localeCompare(String(b.point_code),'th'));
+ const grouped={};
+ orderPoints.forEach(p=>(grouped[p.area_name]??=[]).push(p));
+ const totalDone=Object.keys(latestByCode).length;
+ const good=selected.filter(x=>x.status==='normal').length;
+ const bad=selected.filter(x=>x.status==='abnormal').length;
+ const blocked=selected.filter(x=>x.status==='inaccessible').length;
+ const tabs=rounds.map(t=>'<button type="button" onclick="selectReportRound(\''+t+'\')" style="flex:1;min-width:65px;padding:10px 6px;border-radius:10px;border:1px solid '+(t===reportRound?'#1d4ed8':'#cbd5e1')+';background:'+(t===reportRound?'#1d4ed8':'#e2e8f0')+';color:'+(t===reportRound?'white':'#172033')+';font-weight:700"> '+t+' น. </button>').join('');
+ let html='<div style="display:flex;gap:7px;flex-wrap:wrap;margin:12px 0">'+tabs+'</div>';
+ html+='<div class="muted" style="margin:6px 0 12px">รอบ '+reportRound+' น. · ตรวจแล้ว '+totalDone+'/'+points.length+' จุด · ปกติ '+good+' · ผิดปกติ '+bad+' · เข้าตรวจไม่ได้ '+blocked+'</div>';
+ html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#eaf0f8"><th style="padding:9px;text-align:left">จุดตรวจ (เรียงตามลำดับ)</th><th style="padding:9px;text-align:center;min-width:105px">'+reportRound+' น.</th></tr></thead><tbody>';
+ Object.entries(grouped).forEach(([area,items])=>{
+  html+='<tr><td colspan="2" style="padding:9px 8px;background:#f1f5f9;font-weight:700;border-top:1px solid #cbd5e1">'+esc(area)+'</td></tr>';
+  items.forEach(p=>{
+   const x=latestByCode[p.point_code];
+   const label=x?(x.status==='normal'?'ปกติ':x.status==='abnormal'?'ผิดปกติ':'เข้าตรวจไม่ได้'):'ยังไม่ได้ตรวจ';
+   const bg=x?(x.status==='normal'?'#dcfce7':x.status==='abnormal'?'#fee2e2':'#fef3c7'):'#f1f5f9';
+   const color=x?(x.status==='normal'?'#166534':x.status==='abnormal'?'#991b1b':'#92400e'):'#64748b';
+   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+'</td></tr>';
+  });
+ });
+ html+='</tbody></table></div>';
+ reportlist.innerHTML=html;
+}
 async function exportPDF(){
  const d=document.getElementById('reportdate').value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
  if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก กรุณากดค้นหาก่อน');return}
