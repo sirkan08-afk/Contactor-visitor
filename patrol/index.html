@@ -162,13 +162,15 @@ async function exportPDF(){
  if(!window.html2pdf){alert('ระบบสร้าง PDF ยังโหลดไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');return}
  const dateText=new Date(d+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
  const order=['10:00','14:00','18:00','22:00'];
- const rounds=order;
+ // Export only rounds that have at least one saved scan.
+ const rounds=order.filter(t=>logs.some(x=>x.round_time===t));
+ if(!rounds.length){alert('วันที่เลือกยังไม่มีข้อมูลการสแกนในรอบตรวจ จึงไม่มีรายงานให้ส่งออก');return}
+ const allFourRoundsScanned=rounds.length===4;
  const buildings=[...new Set([...points.map(p=>p.area_name),...logs.map(x=>x.patrol_points?.area_name||'ไม่ระบุอาคาร')])].sort((a,b)=>a.localeCompare(b,'th'));
  const pages=[];
- const completedRounds=order.filter(t=>new Set(logs.filter(x=>x.round_time===t).map(x=>x.patrol_points?.point_code).filter(Boolean)).size>=points.length).length;
- const manpowerNote=completedRounds<4?'Manpower: 1 person':'';
  for(let ri=0;ri<rounds.length;ri++){
-  const round=rounds[ri],data=logs.filter(x=>(x.round_time||'ไม่ระบุรอบ')===round),rows=[];
+  const round=rounds[ri],data=logs.filter(x=>x.round_time===round),rows=[];
+  const manpower=allFourRoundsScanned&&round==='14:00'?2:1;
   for(const building of buildings){
    const items=data.filter(x=>(x.patrol_points?.area_name||'ไม่ระบุอาคาร')===building).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
    if(!items.length)continue;
@@ -186,7 +188,7 @@ async function exportPDF(){
   const good=data.filter(x=>x.status==='normal').length,bad=data.filter(x=>x.status==='abnormal').length,blocked=data.filter(x=>x.status==='inaccessible').length;
   const reporterNames=[...new Set(data.map(x=>x.patrol_profiles?.full_name).filter(Boolean))];
   const reporterText=reporterNames.length?reporterNames.join(', '):'-';
-  pages.push('<section class="round-page"><header><div class="pdf-brand"><img src="./logo.svg?v=original1" alt="Khao Chi Chan Pattaya original logo"><div><div class="heading">U Khaochichan Pattaya Security Patrol</div><div class="date">SECURITY DEPARTMENT · รายงานสรุปการตรวจ Patrol · '+dateText+'</div></div></div><div class="round">รอบตรวจ '+esc(round)+' น. <small>หน้า '+(ri+1)+'/'+rounds.length+'</small></div></header><div class="summary"><span>ตรวจทั้งหมด <b>'+data.length+'</b> จุด</span><span class="ok">ปกติ <b>'+good+'</b></span><span class="ng">ผิดปกติ <b>'+bad+'</b></span><span>เข้าตรวจไม่ได้ <b>'+blocked+'</b></span><span>อาคาร <b>'+rows.length+'</b></span>'+(manpowerNote?'<span style="color:#941052;font-weight:700">'+manpowerNote+'</span>':'')+'</div><main class="buildings">'+(rows.join('')||'ไม่มีข้อมูล')+'</main><footer>ผู้รายงาน: '+esc(reporterText)+'</footer></section>');
+  pages.push('<section class="round-page"><header><div class="pdf-brand"><img src="./logo.svg?v=original1" alt="Khao Chi Chan Pattaya original logo"><div><div class="heading">U Khaochichan Pattaya Security Patrol</div><div class="date">SECURITY DEPARTMENT · รายงานสรุปการตรวจ Patrol · '+dateText+'</div></div></div><div class="round">รอบตรวจ '+esc(round)+' น. <small>หน้า '+(ri+1)+'/'+rounds.length+'</small></div></header><div class="summary"><span>ตรวจทั้งหมด <b>'+data.length+'</b> จุด</span><span class="ok">ปกติ <b>'+good+'</b></span><span class="ng">ผิดปกติ <b>'+bad+'</b></span><span>เข้าตรวจไม่ได้ <b>'+blocked+'</b></span><span>อาคาร <b>'+rows.length+'</b></span>'+'<span style="color:#941052;font-weight:700">Manpower: '+manpower+' person</span></div><main class="buildings">'+(rows.join('')||'ไม่มีข้อมูล')+'</main><footer>ผู้รายงาน: '+esc(reporterText)+'</footer></section>');
  }
  const holder=document.createElement('div');holder.id='patrol-pdf';holder.innerHTML=pages.join('');
  holder.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:2147483647;display:block;visibility:visible;opacity:1;pointer-events:none;';
