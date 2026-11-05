@@ -34,7 +34,6 @@ create table if not exists public.patrol_logs (
 );
 create index if not exists patrol_logs_created_at_idx on public.patrol_logs(created_at);
 create index if not exists patrol_logs_point_id_idx on public.patrol_logs(point_id);
-alter table public.patrol_logs add column if not exists patrol_cycle smallint generated always as (floor(extract(hour from (created_at at time zone 'Asia/Bangkok')) / 3)::smallint + 1) stored;
 drop index if exists public.patrol_logs_cycle_idx;\nalter table public.patrol_logs drop column if exists patrol_cycle;
 alter table public.patrol_logs add column if not exists round_time text check (round_time in ('10:00','14:00','18:00','22:00'));
 
