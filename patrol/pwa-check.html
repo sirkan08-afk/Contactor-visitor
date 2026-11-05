@@ -22,7 +22,10 @@ small{display:block;color:#64748b;overflow-wrap:anywhere}button{margin-top:16px;
 const root=new URL('./',location.href), manifestURL=new URL('manifest.webmanifest',root);
 const results=document.getElementById('results');
 function row(name,status,detail=''){const d=document.createElement('div');d.className='item';const s=document.createElement('span');s.className=status==='ผ่าน'?'ok':status==='ไม่ผ่าน'?'bad':'wait';s.textContent=status;const b=document.createElement('b');b.textContent=' '+name;const sm=document.createElement('small');sm.textContent=detail;d.append(s,b,sm);results.append(d)}
-let installPromptSeen=false;\nwindow.addEventListener('beforeinstallprompt',()=>{installPromptSeen=true;row('Chrome Install Prompt','ผ่าน','beforeinstallprompt ถูกเรียก: Chrome ประเมินว่าเว็บติดตั้งได้');});\nwindow.addEventListener('appinstalled',()=>row('ติดตั้งแอป','ผ่าน','Chrome ส่ง appinstalled event'));\nasync function check(){
+let installPromptSeen=false;
+window.addEventListener('beforeinstallprompt',()=>{installPromptSeen=true;row('Chrome Install Prompt','ผ่าน','beforeinstallprompt ถูกเรียก: Chrome ประเมินว่าเว็บติดตั้งได้');});
+window.addEventListener('appinstalled',()=>row('ติดตั้งแอป','ผ่าน','Chrome ส่ง appinstalled event'));
+async function check(){
  results.textContent='';
  row('HTTPS',location.protocol==='https:'?'ผ่าน':'ไม่ผ่าน',location.origin);
  try{
