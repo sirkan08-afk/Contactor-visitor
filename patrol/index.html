@@ -196,13 +196,13 @@ async function exportPDF(){
  #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
  #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:8mm 8mm 7mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
  #patrol-pdf .round-page:last-child{page-break-after:auto;break-after:auto}
- #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:2mm;padding:3mm 4mm;margin-bottom:2mm}
- #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:4mm}
- #patrol-pdf .pdf-brand img{width:25mm;height:27mm;object-fit:contain;background:#fff;border-radius:1mm;padding:0.5mm;flex:0 0 25mm;mix-blend-mode:normal}
+ #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:2mm;padding:2.5mm 4mm;margin-bottom:2mm;display:flex;align-items:center;justify-content:space-between;gap:4mm;min-height:26mm}
+ #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:4mm;min-width:0}
+ #patrol-pdf .pdf-brand img{width:25mm;height:20.95mm;object-fit:contain;object-position:center;background:#fff;border-radius:1mm;padding:0.5mm;flex:0 0 25mm;mix-blend-mode:normal}
  #patrol-pdf .heading{font-size:15pt;font-weight:700;color:#fff}
  #patrol-pdf .date{font-size:8pt;color:#f7dce9}
- #patrol-pdf .round{font-size:12pt;font-weight:700;color:#790044;margin-top:2mm;border-bottom:1px solid #ead3df;padding:1mm 0 2mm}
- #patrol-pdf .round small{float:right;font-size:8pt;color:#64748b;font-weight:400}
+ #patrol-pdf .round{font-size:9pt;font-weight:700;color:#fff;margin:0 0 0 auto;border:0;padding:0;white-space:nowrap;text-align:right}
+ #patrol-pdf .round small{display:block;font-size:7pt;color:#f7dce9;font-weight:400;margin-top:1mm}
  #patrol-pdf .summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2mm;background:#f9edf3;border-radius:2mm;padding:2.5mm;margin:3mm 0;font-size:8pt}
  #patrol-pdf .summary b{font-size:11pt;margin-left:1mm}
  #patrol-pdf .ok{color:#15803d;font-weight:700}#patrol-pdf .ng{color:#b91c1c;font-weight:700}#patrol-pdf .na{color:#a16207;font-weight:700}
