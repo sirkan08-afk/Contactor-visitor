@@ -55,10 +55,10 @@ alter table public.patrol_logs enable row level security;
 -- SECURITY DEFINER helpers avoid recursive RLS when policies check the caller's profile.
 create or replace function public.patrol_is_active()
 returns boolean language sql stable security definer set search_path = public
-as $ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active); $;
+as $$ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active); $$;
 create or replace function public.patrol_is_admin()
 returns boolean language sql stable security definer set search_path = public
-as $ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active and p.role='admin'); $;
+as $$ select exists(select 1 from public.patrol_profiles p where p.id=auth.uid() and p.active and p.role='admin'); $$;
 
 -- Profiles: users can read their own profile; admins can read all profiles.
 create policy "profile self or admin read" on public.patrol_profiles for select to authenticated
