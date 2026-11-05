@@ -4,7 +4,7 @@ Separate Patrol application under `/patrol/` in the existing Contactor-visitor r
 
 ## Current scope
 - QR scan per physical patrol point
-- 3-hour patrol cycle is the operating target (schedule enforcement / missed-cycle alerts are a next phase)
+- Daily patrol plan selected by Security admin: full day (10:00, 14:00, 18:00, 22:00), morning-only (10:00, 14:00), or afternoon-only (18:00, 22:00)\n- Each scan log stores the selected patrol round time; unassigned shifts are not treated as missed rounds
 - Security guard and Security admin roles
 - Daily report and CSV export
 - Photo evidence in a private Supabase Storage bucket
