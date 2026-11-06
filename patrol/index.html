@@ -37,6 +37,10 @@
 <button id="addPatrolPointBtn" type="button" style="width:100%;margin-top:12px;background:#790044" onclick="addPatrolPoint()">+ เพิ่มจุดสแกนใหม่</button>
 <button type="button" class="btn2" style="width:100%;margin-top:8px" onclick="refreshPatrolPoints()">โหลดรายการจุดสแกนใหม่</button>
 <button id="downloadNewQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" disabled onclick="printNewQRCodes()">ดาวน์โหลด QR จุดที่เพิ่มใหม่</button>
+<label for="selectQrPoints" style="display:block;margin-top:14px">เลือกจุดตรวจที่ต้องการดาวน์โหลด (เลือกได้หลายจุด)</label>
+<select id="selectQrPoints" multiple size="7" style="width:100%;min-height:150px;margin-top:6px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:white"></select>
+<p class="muted">กดเลือก 1 จุดหรือหลายจุดได้ โดยแตะรายการที่ต้องการ</p>
+<button id="downloadSelectedQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" onclick="printSelectedQRCodes()">ดาวน์โหลด QR เฉพาะจุดที่เลือก</button>
 <button id="adminDownloadQrBtn" type="button" style="width:100%;margin-top:8px" onclick="printAllQRCodes()">ดาวน์โหลด QR จุดตรวจทั้งหมด (PDF)</button>
 <p id="adminPointMsg" class="muted" role="status" aria-live="polite"></p>
 </div>
@@ -66,16 +70,19 @@ async function connect(){const c=cfg();if(!c.url||!c.key){document.getElementByI
 document.getElementById('saveConnectionBtn').addEventListener('click',saveConfig);
 async function signIn(){const raw=email.value.trim();const loginEmail=raw.includes('@')?raw:`${raw.toLowerCase()}@patrol.com`;const {data,error}=await sb.auth.signInWithPassword({email:loginEmail,password:password.value});if(error){loginmsg.textContent=error.message;return}await loadProfile()}
 async function signOut(){await sb.auth.signOut();location.reload()}
-async function loadProfile(){const {data:{user}}=await sb.auth.getUser();if(!user)return;const {data,error}=await sb.from('patrol_profiles').select('*').eq('id',user.id).single();if(error){alert('ยังไม่มีข้อมูลโปรไฟล์หรือสิทธิ์ใช้งาน กรุณาให้ผู้ดูแลเพิ่มผู้ใช้ใน patrol_profiles');return}profile=data;login.classList.add('hidden');app.classList.remove('hidden');userlabel.textContent=data.full_name||user.email;rolelabel.textContent=data.role==='admin'?'หัวหน้า Security':(['SEC001','SEC002'].includes(data.employee_code)?'Security Supervisor':'พนักงาน Security');reportdate.value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});if(data.role==='admin'){document.getElementById('adminQrPanel').classList.remove('hidden')}await loadPoints();await loadDayPlan();await loadReport();subscribePatrolRealtime()}
+async function loadProfile(){const {data:{user}}=await sb.auth.getUser();if(!user)return;const {data,error}=await sb.from('patrol_profiles').select('*').eq('id',user.id).single();if(error){alert('ยังไม่มีข้อมูลโปรไฟล์หรือสิทธิ์ใช้งาน กรุณาให้ผู้ดูแลเพิ่มผู้ใช้ใน patrol_profiles');return}profile=data;login.classList.add('hidden');app.classList.remove('hidden');userlabel.textContent=data.full_name||user.email;rolelabel.textContent=data.role==='admin'?'หัวหน้า Security':(['SEC001','SEC002'].includes(data.employee_code)?'Security Supervisor':'พนักงาน Security');reportdate.value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});if(data.role==='admin'&&data.employee_code==='ADMIN001'){document.getElementById('adminQrPanel').classList.remove('hidden')}await loadPoints();await loadDayPlan();await loadReport();subscribePatrolRealtime()}
 async function loadDayPlan(){dayPlan=null;const el=document.getElementById('planSummary');if(el)el.textContent='แสดงผลร่วมกันทุกคน · รอบตรวจ 10:00 / 14:00 / 18:00 / 22:00';fillRoundOptions()}
 function bangkokMinutes(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());const h=Number(p.find(x=>x.type==='hour').value),m=Number(p.find(x=>x.type==='minute').value);return h*60+m}
 function activePatrolRound(){const minute=bangkokMinutes();const windows=[['10:00',600,720],['14:00',840,960],['18:00',1080,1200],['22:00',1320,1440]];return windows.find(w=>minute>=w[1]&&minute<w[2])?.[0]||''}
 function nextPatrolRound(){const minute=bangkokMinutes();const windows=[['10:00',600],['14:00',840],['18:00',1080],['22:00',1320]];return windows.find(w=>minute<w[1])?.[0]||''}
 function fillRoundOptions(){const sel=document.getElementById('roundtime');const active=activePatrolRound();if(active){sel.innerHTML='<option value="'+active+'">รอบ '+active+' น. (ช่วงเวลาตรวจ '+({'10:00':'10:00–12:00','14:00':'14:00–16:00','18:00':'18:00–20:00','22:00':'22:00–24:00'}[active])+')</option>';sel.value=active;sel.disabled=true}else{const next=nextPatrolRound();sel.innerHTML='<option value="">'+(next?'หมดเวลารอบก่อนแล้ว รอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่')+'</option>';sel.disabled=true}}
-async function loadPoints(){const {data,error}=await sb.from('patrol_points').select('*').eq('active',true).order('sort_order');if(error){alert('โหลดจุดตรวจไม่สำเร็จ: '+error.message);return}points=data||[];total.textContent=points.length;renderPoints();return points}
-async function refreshPatrolPoints(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}const msg=document.getElementById('adminPointMsg');msg.textContent='กำลังโหลดรายการจุดตรวจจากฐานข้อมูล...';await loadPoints();msg.textContent='โหลดรายการจุดตรวจล่าสุดแล้ว · '+points.length+' จุด';}
+async function loadPoints(){const {data,error}=await sb.from('patrol_points').select('*').eq('active',true).order('sort_order');if(error){alert('โหลดจุดตรวจไม่สำเร็จ: '+error.message);return}points=data||[];total.textContent=points.length;renderPoints();populateQrPointOptions();return points}
+function isAdmin001(){return profile?.role==='admin'&&profile?.employee_code==='ADMIN001'}
+function populateQrPointOptions(){const sel=document.getElementById('selectQrPoints');if(!sel)return;const prior=new Set([...sel.selectedOptions].map(o=>o.value));sel.innerHTML=points.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.point_code)+' · '+esc(p.area_name)+' · '+esc(p.point_name)+'</option>').join('');[...sel.options].forEach(o=>{if(prior.has(o.value))o.selected=true})}
+function printSelectedQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const sel=document.getElementById('selectQrPoints');const ids=new Set([...sel.selectedOptions].map(o=>o.value));const chosen=points.filter(p=>ids.has(p.id));if(!chosen.length){alert('กรุณาเลือกจุดตรวจอย่างน้อย 1 จุด');return}printQRCodes(chosen,'QR CODE จุดตรวจที่เลือก ('+chosen.length+' จุด)')}
+async function refreshPatrolPoints(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const msg=document.getElementById('adminPointMsg');msg.textContent='กำลังโหลดรายการจุดตรวจจากฐานข้อมูล...';await loadPoints();msg.textContent='โหลดรายการจุดตรวจล่าสุดแล้ว · '+points.length+' จุด';}
 async function addPatrolPoint(){
- if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}
+ if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}
  const code=document.getElementById('newPointCode').value.trim().toUpperCase();
  const areaCode=document.getElementById('newAreaCode').value.trim().toUpperCase();
  const areaName=document.getElementById('newAreaName').value.trim();
@@ -95,12 +102,12 @@ async function addPatrolPoint(){
  await loadPoints();
  msg.textContent='เพิ่มจุดตรวจ '+data.point_code+' สำเร็จ · มี QR ประจำจุดพร้อมดาวน์โหลด';
 }
-function printNewQRCodes(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}if(!newPointsSession.length){alert('ยังไม่มีจุดตรวจใหม่ในรอบการใช้งานนี้');return}printQRCodes(newPointsSession,'QR CODE จุดตรวจที่เพิ่มใหม่')}
+function printNewQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}if(!newPointsSession.length){alert('ยังไม่มีจุดตรวจใหม่ในรอบการใช้งานนี้');return}printQRCodes(newPointsSession,'QR CODE จุดตรวจที่เพิ่มใหม่')}
 
 function renderPoints(){const q=(filter?.value||'').toLowerCase();pointlist.innerHTML=points.filter(p=>(p.area_name+' '+p.point_name+' '+p.point_code).toLowerCase().includes(q)).map(p=>'<div class="point"><b>'+esc(p.area_name)+'</b><div>'+esc(p.point_name)+'</div><span class="muted">'+esc(p.point_code)+'</span></div>').join('')}
-function printAllQRCodes(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}if(!points.length){alert('ไม่พบรายการจุดตรวจ');return}printQRCodes(points,'QR CODE จุดตรวจทั้งหมด')}
+function printAllQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}if(!points.length){alert('ไม่พบรายการจุดตรวจ');return}printQRCodes(points,'QR CODE จุดตรวจทั้งหมด')}
 function printQRCodes(sourcePoints,title){
- if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}
+ if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}
  if(!sourcePoints?.length){alert('ไม่พบรายการจุดตรวจ');return}
  const w=window.open('','_blank');if(!w){alert('กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้แล้วลองใหม่');return}
  const data=JSON.stringify(sourcePoints.map(p=>({code:p.point_code,area:p.area_name,name:p.point_name,token:'PATROL:'+p.qr_token}))).replace(/</g,'\\u003c');
