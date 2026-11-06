@@ -27,23 +27,32 @@
 <div class="grid"><div class="stat"><span class="muted">ตรวจแล้ววันนี้</span><b id="done">0</b></div><div class="stat"><span class="muted">จุดตรวจทั้งหมด</span><b id="total">45</b></div><div class="stat"><span class="muted">ผิดปกติ</span><b id="abnormal">0</b></div><div class="stat"><span class="muted">ยังไม่ตรวจ</span><b id="pending">45</b></div></div>
 <div class="card" id="planPanel"><h3>รอบตรวจประจำวัน</h3><p class="muted" id="planSummary">ทุกคนสามารถดูและบันทึกผลตรวจได้ครบทั้ง 4 รอบ โดยใช้ข้อมูลชุดเดียวกัน</p></div>
 <div class="card"><div class="tabs"><button onclick="showTab('scan')">สแกน QR</button><button class="btn2" onclick="showTab('report')">รายงานวันนี้</button></div></div>
-<div id="adminQrPanel" class="card hidden">
-<h3>จัดการจุดตรวจ (ADMIN)</h3>
-<p class="muted">เพิ่มจุดสแกนใหม่ อัปเดตรายการ และดาวน์โหลด QR Code</p>
+<section id="adminQrPanel" class="hidden">
+<div class="card">
+<h3>เพิ่มจุดตรวจใหม่</h3>
+<p class="muted">เฉพาะ ADMIN001 · เพิ่มจุดตรวจลงฐานข้อมูลกลาง</p>
 <label for="newPointCode">รหัสจุดตรวจ</label><input id="newPointCode" placeholder="เช่น A-03 หรือ NEW-001" maxlength="30">
 <label for="newAreaCode">รหัสอาคาร / พื้นที่</label><input id="newAreaCode" placeholder="เช่น A, B, EXT" maxlength="30">
 <label for="newAreaName">ชื่ออาคาร / พื้นที่</label><input id="newAreaName" placeholder="เช่น อาคาร A หรือ พื้นที่ภายนอก" maxlength="100">
 <label for="newPointName">ชื่อจุดสแกน</label><input id="newPointName" placeholder="เช่น ประตูทางเข้า ชั้น 1" maxlength="150">
 <button id="addPatrolPointBtn" type="button" style="width:100%;margin-top:12px;background:#790044" onclick="addPatrolPoint()">+ เพิ่มจุดสแกนใหม่</button>
-<button type="button" class="btn2" style="width:100%;margin-top:8px" onclick="refreshPatrolPoints()">โหลดรายการจุดสแกนใหม่</button>
-<button id="downloadNewQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" disabled onclick="printNewQRCodes()">ดาวน์โหลด QR จุดที่เพิ่มใหม่</button>
-<label for="selectQrPoints" style="display:block;margin-top:14px">เลือกจุดตรวจที่ต้องการดาวน์โหลด (เลือกได้หลายจุด)</label>
-<select id="selectQrPoints" multiple size="7" style="width:100%;min-height:150px;margin-top:6px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:white"></select>
-<p class="muted">กดเลือก 1 จุดหรือหลายจุดได้ โดยแตะรายการที่ต้องการ</p>
-<button id="downloadSelectedQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" onclick="printSelectedQRCodes()">ดาวน์โหลด QR เฉพาะจุดที่เลือก</button>
-<button id="adminDownloadQrBtn" type="button" style="width:100%;margin-top:8px" onclick="printAllQRCodes()">ดาวน์โหลด QR จุดตรวจทั้งหมด (PDF)</button>
 <p id="adminPointMsg" class="muted" role="status" aria-live="polite"></p>
 </div>
+<div class="card">
+<h3>ดาวน์โหลด QR Code จุดตรวจ</h3>
+<p class="muted">เลือกช่องสี่เหลี่ยมหน้าจุดตรวจที่ต้องการ จะเลือกเพียง 1 จุดหรือหลายจุดก็ได้</p>
+<button type="button" class="btn2" style="width:100%" onclick="refreshPatrolPoints()">โหลดรายการจุดสแกนล่าสุด</button>
+<div class="row" style="margin:10px 0">
+<button type="button" class="btn2" onclick="selectAllQrPoints(true)">เลือกทั้งหมด</button>
+<button type="button" class="btn2" onclick="selectAllQrPoints(false)">ล้างการเลือก</button>
+</div>
+<div id="qrPointCheckboxList" style="display:grid;gap:8px;max-height:360px;overflow:auto;padding:8px;border:1px solid #e2e8f0;border-radius:10px;background:#fff"></div>
+<p id="qrSelectionCount" class="muted">เลือก 0 จุด</p>
+<button id="downloadSelectedQrBtn" type="button" style="width:100%;background:#790044" onclick="printSelectedQRCodes()">ดาวน์โหลด QR เฉพาะจุดที่เลือก</button>
+<button id="downloadNewQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" disabled onclick="printNewQRCodes()">ดาวน์โหลด QR จุดที่เพิ่มใหม่</button>
+<button id="adminDownloadQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" onclick="printAllQRCodes()">ดาวน์โหลด QR จุดตรวจทั้งหมด (PDF)</button>
+</div>
+</section>
 <div id="tab-scan" class="card"><h3>สแกนจุดตรวจ</h3><p class="muted">สแกน QR ประจำจุดเพื่อบันทึกเวลาและผลตรวจ</p><div id="reader"></div><button style="width:100%;margin-top:10px" onclick="startScan()">เปิดกล้องสแกน QR</button><label style="display:block;width:100%;text-align:center;margin-top:8px;padding:12px 14px;border-radius:11px;background:#e2e8f0;color:#172033;font-weight:600;cursor:pointer">ถ่ายรูปจุดตรวจ<input id="patrolCamera" type="file" accept="image/*" capture="environment" hidden onchange="capturePatrolPhoto(this)"></label><div id="photoMsg" class="muted">สแกน QR เพื่อเลือกจุดตรวจ แล้วถ่ายภาพหลักฐานได้</div><div id="scanmsg" class="muted"></div></div>
 <div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
 <div id="checkform" class="card hidden"><h3 id="pointtitle">บันทึกผลตรวจ</h3><p id="pointcode" class="muted"></p><label>รอบตรวจ</label><select id="roundtime"></select><label>ผลการตรวจ</label><select id="status"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="notes" rows="3" placeholder="รายละเอียดที่พบ (ถ้ามี)"></textarea><button style="width:100%;margin-top:12px" onclick="savePatrol()">บันทึกผลตรวจ</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('checkform').classList.add('hidden')">ยกเลิก</button></div><div id="editLogForm" class="card hidden"><h3>แก้ไขผลตรวจ</h3><p id="editLogTitle" class="muted"></p><label>ผลการตรวจ</label><select id="editLogStatus"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="editLogNotes" rows="3"></textarea><label>ถ่ายรูปหลักฐานใหม่ (ถ้ามี)</label><input id="editLogPhoto" type="file" accept="image/*" capture="environment"><button style="width:100%;margin-top:12px" onclick="saveEditedLog()">บันทึกการแก้ไข</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('editLogForm').classList.add('hidden')">ยกเลิก</button></div>
@@ -78,8 +87,10 @@ function nextPatrolRound(){const minute=bangkokMinutes();const windows=[['10:00'
 function fillRoundOptions(){const sel=document.getElementById('roundtime');const active=activePatrolRound();if(active){sel.innerHTML='<option value="'+active+'">รอบ '+active+' น. (ช่วงเวลาตรวจ '+({'10:00':'10:00–12:00','14:00':'14:00–16:00','18:00':'18:00–20:00','22:00':'22:00–24:00'}[active])+')</option>';sel.value=active;sel.disabled=true}else{const next=nextPatrolRound();sel.innerHTML='<option value="">'+(next?'หมดเวลารอบก่อนแล้ว รอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่')+'</option>';sel.disabled=true}}
 async function loadPoints(){const {data,error}=await sb.from('patrol_points').select('*').eq('active',true).order('sort_order');if(error){alert('โหลดจุดตรวจไม่สำเร็จ: '+error.message);return}points=data||[];total.textContent=points.length;renderPoints();populateQrPointOptions();return points}
 function isAdmin001(){return profile?.role==='admin'&&profile?.employee_code==='ADMIN001'}
-function populateQrPointOptions(){const sel=document.getElementById('selectQrPoints');if(!sel)return;const prior=new Set([...sel.selectedOptions].map(o=>o.value));sel.innerHTML=points.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.point_code)+' · '+esc(p.area_name)+' · '+esc(p.point_name)+'</option>').join('');[...sel.options].forEach(o=>{if(prior.has(o.value))o.selected=true})}
-function printSelectedQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const sel=document.getElementById('selectQrPoints');const ids=new Set([...sel.selectedOptions].map(o=>o.value));const chosen=points.filter(p=>ids.has(p.id));if(!chosen.length){alert('กรุณาเลือกจุดตรวจอย่างน้อย 1 จุด');return}printQRCodes(chosen,'QR CODE จุดตรวจที่เลือก ('+chosen.length+' จุด)')}
+function populateQrPointOptions(){const box=document.getElementById('qrPointCheckboxList');if(!box)return;const prior=new Set([...box.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value));box.innerHTML=points.map(p=>'<label style="display:flex;align-items:flex-start;gap:10px;padding:9px;border-bottom:1px solid #f1f5f9"><input type="checkbox" class="qr-point-choice" value="'+esc(p.id)+'" style="width:20px;height:20px;flex:0 0 20px;margin-top:2px"><span><b>'+esc(p.point_code)+'</b><br><small>'+esc(p.area_name)+' · '+esc(p.point_name)+'</small></span></label>').join('');[...box.querySelectorAll('input[type="checkbox"]')].forEach(x=>{x.checked=prior.has(x.value);x.addEventListener('change',updateQrSelectionCount)});updateQrSelectionCount()}
+function selectAllQrPoints(checked){if(!isAdmin001())return;document.querySelectorAll('#qrPointCheckboxList input[type="checkbox"]').forEach(x=>x.checked=checked);updateQrSelectionCount()}
+function updateQrSelectionCount(){const n=document.querySelectorAll('#qrPointCheckboxList input[type="checkbox"]:checked').length;const el=document.getElementById('qrSelectionCount');if(el)el.textContent='เลือก '+n+' จุด'}
+function printSelectedQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const ids=new Set([...document.querySelectorAll('#qrPointCheckboxList input[type="checkbox"]:checked')].map(x=>x.value));const chosen=points.filter(p=>ids.has(p.id));if(!chosen.length){alert('กรุณาติ๊กเลือกจุดตรวจอย่างน้อย 1 จุด');return}printQRCodes(chosen,'QR CODE จุดตรวจที่เลือก ('+chosen.length+' จุด)')}
 async function refreshPatrolPoints(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const msg=document.getElementById('adminPointMsg');msg.textContent='กำลังโหลดรายการจุดตรวจจากฐานข้อมูล...';await loadPoints();msg.textContent='โหลดรายการจุดตรวจล่าสุดแล้ว · '+points.length+' จุด';}
 async function addPatrolPoint(){
  if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}
