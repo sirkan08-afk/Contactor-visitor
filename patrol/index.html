@@ -27,7 +27,19 @@
 <div class="grid"><div class="stat"><span class="muted">ตรวจแล้ววันนี้</span><b id="done">0</b></div><div class="stat"><span class="muted">จุดตรวจทั้งหมด</span><b id="total">45</b></div><div class="stat"><span class="muted">ผิดปกติ</span><b id="abnormal">0</b></div><div class="stat"><span class="muted">ยังไม่ตรวจ</span><b id="pending">45</b></div></div>
 <div class="card" id="planPanel"><h3>รอบตรวจประจำวัน</h3><p class="muted" id="planSummary">ทุกคนสามารถดูและบันทึกผลตรวจได้ครบทั้ง 4 รอบ โดยใช้ข้อมูลชุดเดียวกัน</p></div>
 <div class="card"><div class="tabs"><button onclick="showTab('scan')">สแกน QR</button><button class="btn2" onclick="showTab('report')">รายงานวันนี้</button></div></div>
-<div id="adminQrPanel" class="card hidden"><button id="adminDownloadQrBtn" type="button" style="width:100%;background:#790044" onclick="printAllQRCodes()">ดาวน์โหลด QR Code จุดตรวจทั้งหมด (PDF)</button></div>
+<div id="adminQrPanel" class="card hidden">
+<h3>จัดการจุดตรวจ (ADMIN)</h3>
+<p class="muted">เพิ่มจุดสแกนใหม่ อัปเดตรายการ และดาวน์โหลด QR Code</p>
+<label for="newPointCode">รหัสจุดตรวจ</label><input id="newPointCode" placeholder="เช่น A-03 หรือ NEW-001" maxlength="30">
+<label for="newAreaCode">รหัสอาคาร / พื้นที่</label><input id="newAreaCode" placeholder="เช่น A, B, EXT" maxlength="30">
+<label for="newAreaName">ชื่ออาคาร / พื้นที่</label><input id="newAreaName" placeholder="เช่น อาคาร A หรือ พื้นที่ภายนอก" maxlength="100">
+<label for="newPointName">ชื่อจุดสแกน</label><input id="newPointName" placeholder="เช่น ประตูทางเข้า ชั้น 1" maxlength="150">
+<button id="addPatrolPointBtn" type="button" style="width:100%;margin-top:12px;background:#790044" onclick="addPatrolPoint()">+ เพิ่มจุดสแกนใหม่</button>
+<button type="button" class="btn2" style="width:100%;margin-top:8px" onclick="refreshPatrolPoints()">โหลดรายการจุดสแกนใหม่</button>
+<button id="downloadNewQrBtn" type="button" class="btn2" style="width:100%;margin-top:8px" disabled onclick="printNewQRCodes()">ดาวน์โหลด QR จุดที่เพิ่มใหม่</button>
+<button id="adminDownloadQrBtn" type="button" style="width:100%;margin-top:8px" onclick="printAllQRCodes()">ดาวน์โหลด QR จุดตรวจทั้งหมด (PDF)</button>
+<p id="adminPointMsg" class="muted" role="status" aria-live="polite"></p>
+</div>
 <div id="tab-scan" class="card"><h3>สแกนจุดตรวจ</h3><p class="muted">สแกน QR ประจำจุดเพื่อบันทึกเวลาและผลตรวจ</p><div id="reader"></div><button style="width:100%;margin-top:10px" onclick="startScan()">เปิดกล้องสแกน QR</button><label style="display:block;width:100%;text-align:center;margin-top:8px;padding:12px 14px;border-radius:11px;background:#e2e8f0;color:#172033;font-weight:600;cursor:pointer">ถ่ายรูปจุดตรวจ<input id="patrolCamera" type="file" accept="image/*" capture="environment" hidden onchange="capturePatrolPhoto(this)"></label><div id="photoMsg" class="muted">สแกน QR เพื่อเลือกจุดตรวจ แล้วถ่ายภาพหลักฐานได้</div><div id="scanmsg" class="muted"></div></div>
 <div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
 <div id="checkform" class="card hidden"><h3 id="pointtitle">บันทึกผลตรวจ</h3><p id="pointcode" class="muted"></p><label>รอบตรวจ</label><select id="roundtime"></select><label>ผลการตรวจ</label><select id="status"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="notes" rows="3" placeholder="รายละเอียดที่พบ (ถ้ามี)"></textarea><button style="width:100%;margin-top:12px" onclick="savePatrol()">บันทึกผลตรวจ</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('checkform').classList.add('hidden')">ยกเลิก</button></div><div id="editLogForm" class="card hidden"><h3>แก้ไขผลตรวจ</h3><p id="editLogTitle" class="muted"></p><label>ผลการตรวจ</label><select id="editLogStatus"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="editLogNotes" rows="3"></textarea><label>ถ่ายรูปหลักฐานใหม่ (ถ้ามี)</label><input id="editLogPhoto" type="file" accept="image/*" capture="environment"><button style="width:100%;margin-top:12px" onclick="saveEditedLog()">บันทึกการแก้ไข</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('editLogForm').classList.add('hidden')">ยกเลิก</button></div>
@@ -45,7 +57,7 @@ const POINTS=[
 ["BALI","Bali","ทางเดินหน้าห้องพัก"],
 ["EXT","จุดตรวจภายนอก","ถนนหน้าทางเข้า"],["EXT","จุดตรวจภายนอก","ถนนทางเข้า"],["EXT","จุดตรวจภายนอก","แยกเข้าล็อบบี้"],["EXT","จุดตรวจภายนอก","ทางไปอาคาร F"],["T2","อาคาร T2","ห้อง MBD อาคาร T2"],["EXT","จุดตรวจภายนอก","ลานจอดรถด้านนอก"]
 ];
-let sb=null,profile=null,selectedPoint=null,points=[],logs=[],dayPlan=null,reportRound='10:00',patrolRealtimeChannel=null,reportRefreshBusy=false;
+let sb=null,profile=null,selectedPoint=null,points=[],newPointsSession=[],logs=[],dayPlan=null,reportRound='10:00',patrolRealtimeChannel=null,reportRefreshBusy=false;
 const PLAN_ROUNDS={full_day:['10:00','14:00','18:00','22:00'],morning_only:['10:00','14:00'],afternoon_only:['18:00','22:00']};
 function cfg(){return {url:localStorage.getItem('patrol_url'),key:localStorage.getItem('patrol_key')}}
 function editConnection(){document.getElementById('sburl').value=localStorage.getItem('patrol_url')||'';document.getElementById('sbkey').value=localStorage.getItem('patrol_key')||'';document.getElementById('login').classList.add('hidden');document.getElementById('setup').classList.remove('hidden');document.getElementById('connectionmsg').textContent='ตรวจสอบ URL และ Publishable Key แล้วกดบันทึกอีกครั้ง';}
@@ -60,16 +72,41 @@ function bangkokMinutes(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asi
 function activePatrolRound(){const minute=bangkokMinutes();const windows=[['10:00',600,720],['14:00',840,960],['18:00',1080,1200],['22:00',1320,1440]];return windows.find(w=>minute>=w[1]&&minute<w[2])?.[0]||''}
 function nextPatrolRound(){const minute=bangkokMinutes();const windows=[['10:00',600],['14:00',840],['18:00',1080],['22:00',1320]];return windows.find(w=>minute<w[1])?.[0]||''}
 function fillRoundOptions(){const sel=document.getElementById('roundtime');const active=activePatrolRound();if(active){sel.innerHTML='<option value="'+active+'">รอบ '+active+' น. (ช่วงเวลาตรวจ '+({'10:00':'10:00–12:00','14:00':'14:00–16:00','18:00':'18:00–20:00','22:00':'22:00–24:00'}[active])+')</option>';sel.value=active;sel.disabled=true}else{const next=nextPatrolRound();sel.innerHTML='<option value="">'+(next?'หมดเวลารอบก่อนแล้ว รอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่')+'</option>';sel.disabled=true}}
-async function loadPoints(){const {data,error}=await sb.from('patrol_points').select('*').eq('active',true).order('sort_order');if(error){alert('โหลดจุดตรวจไม่สำเร็จ: '+error.message);return}points=data;total.textContent=points.length;renderPoints()}
+async function loadPoints(){const {data,error}=await sb.from('patrol_points').select('*').eq('active',true).order('sort_order');if(error){alert('โหลดจุดตรวจไม่สำเร็จ: '+error.message);return}points=data||[];total.textContent=points.length;renderPoints();return points}
+async function refreshPatrolPoints(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}const msg=document.getElementById('adminPointMsg');msg.textContent='กำลังโหลดรายการจุดตรวจจากฐานข้อมูล...';await loadPoints();msg.textContent='โหลดรายการจุดตรวจล่าสุดแล้ว · '+points.length+' จุด';}
+async function addPatrolPoint(){
+ if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}
+ const code=document.getElementById('newPointCode').value.trim().toUpperCase();
+ const areaCode=document.getElementById('newAreaCode').value.trim().toUpperCase();
+ const areaName=document.getElementById('newAreaName').value.trim();
+ const pointName=document.getElementById('newPointName').value.trim();
+ const msg=document.getElementById('adminPointMsg');
+ if(!code||!areaCode||!areaName||!pointName){msg.textContent='กรุณากรอกข้อมูลทั้ง 4 ช่องให้ครบ';return}
+ if(points.some(p=>String(p.point_code).toUpperCase()===code)){msg.textContent='รหัสจุดตรวจนี้มีอยู่แล้ว กรุณาใช้รหัสอื่น';return}
+ const maxOrder=points.reduce((m,p)=>Math.max(m,Number(p.sort_order)||0),0);
+ const {data,error}=await sb.from('patrol_points').insert({point_code:code,area_code:areaCode,area_name:areaName,point_name:pointName,sort_order:maxOrder+1,active:true}).select('*').single();
+ if(error){msg.textContent='เพิ่มจุดตรวจไม่สำเร็จ: '+error.message;return}
+ newPointsSession.push(data);
+ document.getElementById('newPointCode').value='';
+ document.getElementById('newAreaCode').value='';
+ document.getElementById('newAreaName').value='';
+ document.getElementById('newPointName').value='';
+ document.getElementById('downloadNewQrBtn').disabled=false;
+ await loadPoints();
+ msg.textContent='เพิ่มจุดตรวจ '+data.point_code+' สำเร็จ · มี QR ประจำจุดพร้อมดาวน์โหลด';
+}
+function printNewQRCodes(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}if(!newPointsSession.length){alert('ยังไม่มีจุดตรวจใหม่ในรอบการใช้งานนี้');return}printQRCodes(newPointsSession,'QR CODE จุดตรวจที่เพิ่มใหม่')}
+
 function renderPoints(){const q=(filter?.value||'').toLowerCase();pointlist.innerHTML=points.filter(p=>(p.area_name+' '+p.point_name+' '+p.point_code).toLowerCase().includes(q)).map(p=>'<div class="point"><b>'+esc(p.area_name)+'</b><div>'+esc(p.point_name)+'</div><span class="muted">'+esc(p.point_code)+'</span></div>').join('')}
-function printAllQRCodes(){
- if(profile?.role!=='admin'){alert('เฉพาะบัญชีผู้ดูแลระบบเท่านั้นที่ดาวน์โหลด QR Code ได้');return}
- if(!points.length){alert('ไม่พบรายการจุดตรวจ');return}
+function printAllQRCodes(){if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}if(!points.length){alert('ไม่พบรายการจุดตรวจ');return}printQRCodes(points,'QR CODE จุดตรวจทั้งหมด')}
+function printQRCodes(sourcePoints,title){
+ if(profile?.role!=='admin'){alert('เฉพาะ ADMIN001 ที่มีสิทธิ์ผู้ดูแลเท่านั้น');return}
+ if(!sourcePoints?.length){alert('ไม่พบรายการจุดตรวจ');return}
  const w=window.open('','_blank');if(!w){alert('กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้แล้วลองใหม่');return}
- const data=JSON.stringify(points.map(p=>({code:p.point_code,area:p.area_name,name:p.point_name,token:'PATROL:'+p.qr_token}))).replace(/</g,'\\u003c');
+ const data=JSON.stringify(sourcePoints.map(p=>({code:p.point_code,area:p.area_name,name:p.point_name,token:'PATROL:'+p.qr_token}))).replace(/</g,'\\u003c');
  w.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Security Patrol - QR Codes</title><style>
  @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Thai',sans-serif;margin:0;color:#111}h1{text-align:center;font-size:18px;margin:0 0 4px}p{text-align:center;font-size:11px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7mm}.item{border:1px solid #777;border-radius:5px;padding:5mm 2mm;text-align:center;break-inside:avoid;min-height:59mm}.qr{display:flex;justify-content:center;margin:2mm auto}.code{font-size:12px;font-weight:bold;margin-top:2mm}.area{font-size:11px;font-weight:bold}.name{font-size:11px;min-height:9mm;margin-top:1mm}.hint{font-size:8px;color:#555;margin-top:2mm}@media screen{body{padding:12px}.grid{max-width:190mm;margin:auto}.print{display:block;margin:12px auto;padding:10px 20px}}@media print{.print{display:none}.grid{gap:5mm}.item{min-height:55mm}}
- </style></head><body><h1>HOTEL SECURITY PATROL</h1><p>QR CODE จุดตรวจทั้งหมด · สแกนด้วยระบบ Patrol เท่านั้น</p><button class="print" onclick="window.print()">พิมพ์ QR Code / บันทึกเป็น PDF</button><div class="grid" id="grid"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>const items=${data};const grid=document.getElementById('grid');items.forEach(p=>{const el=document.createElement('div');el.className='item';el.innerHTML='<div class="area"></div><div class="name"></div><div class="qr"></div><div class="code"></div><div class="hint">HOTEL SECURITY PATROL</div>';el.querySelector('.area').textContent=p.area;el.querySelector('.name').textContent=p.name;el.querySelector('.code').textContent=p.code;grid.appendChild(el);new QRCode(el.querySelector('.qr'),{text:p.token,width:145,height:145,correctLevel:QRCode.CorrectLevel.M})});<\/script></body></html>`);
+ </style></head><body><h1>HOTEL SECURITY PATROL</h1><p>${title} · สแกนด้วยระบบ Patrol เท่านั้น</p><button class="print" onclick="window.print()">พิมพ์ QR Code / บันทึกเป็น PDF</button><div class="grid" id="grid"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>const items=${data};const grid=document.getElementById('grid');items.forEach(p=>{const el=document.createElement('div');el.className='item';el.innerHTML='<div class="area"></div><div class="name"></div><div class="qr"></div><div class="code"></div><div class="hint">HOTEL SECURITY PATROL</div>';el.querySelector('.area').textContent=p.area;el.querySelector('.name').textContent=p.name;el.querySelector('.code').textContent=p.code;grid.appendChild(el);new QRCode(el.querySelector('.qr'),{text:p.token,width:145,height:145,correctLevel:QRCode.CorrectLevel.M})});<\/script></body></html>`);
  w.document.close();
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
