@@ -21,7 +21,7 @@
 <button id="saveConnectionBtn" type="button" style="width:100%;margin-top:12px">บันทึกการเชื่อมต่อ</button><p id="connectionmsg" class="muted" role="status">พร้อมเชื่อมต่อฐานข้อมูล</p>
 <p class="notice">ห้ามนำ service_role key มาใส่ในเว็บโดยเด็ดขาด</p>
 </section>
-<section id="login" class="card"><h3>เข้าสู่ระบบพนักงาน</h3><label>รหัสพนักงาน / Email</label><input id="email" type="text" autocomplete="username" placeholder="เช่น ADMIN001 หรือ SEC001" autocapitalize="characters"><label>รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password"><button style="width:100%;margin-top:12px" onclick="signIn()">เข้าสู่ระบบ</button><p id="loginmsg" class="muted"></p><button type="button" class="btn2" style="width:100%;margin-top:10px" onclick="editConnection()">แก้ไขการเชื่อมต่อฐานข้อมูล</button></section>
+<section id="login" class="card hidden"><h3>เข้าสู่ระบบพนักงาน</h3><label>รหัสพนักงาน / Email</label><input id="email" type="text" autocomplete="username" placeholder="เช่น ADMIN001 หรือ SEC001" autocapitalize="characters"><label>รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password"><button style="width:100%;margin-top:12px" onclick="signIn()">เข้าสู่ระบบ</button><p id="loginmsg" class="muted"></p><button type="button" class="btn2" style="width:100%;margin-top:10px" onclick="editConnection()">แก้ไขการเชื่อมต่อฐานข้อมูล</button></section>
 <section id="app" class="hidden">
 <div class="card"><div class="row"><div><b id="userlabel">ผู้ใช้งาน</b><div id="rolelabel" class="muted"></div></div><button class="btn2" onclick="signOut()">ออกจากระบบ</button></div></div>
 <div class="grid"><div class="stat"><span class="muted">ตรวจแล้ววันนี้</span><b id="done">0</b></div><div class="stat"><span class="muted">จุดตรวจทั้งหมด</span><b id="total">45</b></div><div class="stat"><span class="muted">ผิดปกติ</span><b id="abnormal">0</b></div><div class="stat"><span class="muted">ยังไม่ตรวจ</span><b id="pending">45</b></div></div>
@@ -77,7 +77,7 @@ const DEFAULT_PATROL_KEY='sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI';
 function cfg(){return {url:localStorage.getItem('patrol_url')||DEFAULT_PATROL_URL,key:localStorage.getItem('patrol_key')||DEFAULT_PATROL_KEY}}
 function editConnection(){document.getElementById('sburl').value=localStorage.getItem('patrol_url')||'';document.getElementById('sbkey').value=localStorage.getItem('patrol_key')||'';document.getElementById('login').classList.add('hidden');document.getElementById('setup').classList.remove('hidden');document.getElementById('connectionmsg').textContent='ตรวจสอบ URL และ Publishable Key แล้วกดบันทึกอีกครั้ง';}
 async function saveConfig(){const msg=document.getElementById('connectionmsg');try{const u=document.getElementById('sburl').value.trim(),k=document.getElementById('sbkey').value.trim();if(!u||!k){msg.textContent='กรุณากรอก Supabase URL และ Publishable Key ให้ครบ';return}if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(u)){msg.textContent='รูปแบบ Supabase URL ไม่ถูกต้อง';return}if(!window.supabase||!window.supabase.createClient){msg.textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บและลองใหม่';return}localStorage.setItem('patrol_url',u);localStorage.setItem('patrol_key',k);msg.textContent='กำลังตรวจสอบการเชื่อมต่อ...';await connect();}catch(e){msg.textContent='บันทึกไม่สำเร็จ: '+(e?.message||String(e));}}
-async function connect(){if(window.__patrolConnecting)return window.__patrolConnecting;window.__patrolConnecting=(async()=>{const c=cfg();if(!window.supabase||!window.supabase.createClient){document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');document.getElementById('loginmsg').textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';return}localStorage.setItem('patrol_url',c.url);localStorage.setItem('patrol_key',c.key);sb=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');const {data,error}=await sb.auth.getSession();if(error){document.getElementById('loginmsg').textContent='เชื่อมต่อฐานข้อมูลไม่สำเร็จ: '+error.message;return}if(data.session)await loadProfile()})();try{return await window.__patrolConnecting}finally{window.__patrolConnecting=null}}
+async function connect(){const c=cfg();if(!window.supabase||!window.supabase.createClient){document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');document.getElementById('loginmsg').textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';return}localStorage.setItem('patrol_url',c.url);localStorage.setItem('patrol_key',c.key);sb=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');const {data,error}=await sb.auth.getSession();if(error){document.getElementById('loginmsg').textContent='เชื่อมต่อฐานข้อมูลไม่สำเร็จ: '+error.message;return}if(data.session)await loadProfile()}
 document.getElementById('saveConnectionBtn').addEventListener('click',saveConfig);
 async function signIn(){const raw=email.value.trim();const loginEmail=raw.includes('@')?raw:`${raw.toLowerCase()}@patrol.com`;const {data,error}=await sb.auth.signInWithPassword({email:loginEmail,password:password.value});if(error){loginmsg.textContent=error.message;return}await loadProfile()}
 async function signOut(){await sb.auth.signOut();location.reload()}
@@ -92,7 +92,7 @@ function isAdmin001(){return profile?.role==='admin'&&profile?.employee_code==='
 function populateQrPointOptions(){const body=document.getElementById('qrPointTableBody');if(!body)return;const prior=new Set([...body.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value));if(!points.length){body.innerHTML='<tr><td colspan="5" style="padding:16px;text-align:center;color:#64748b">ไม่พบจุดตรวจในฐานข้อมูล (patrol_points)</td></tr>';updateQrSelectionCount();return}body.innerHTML=points.map(p=>'<tr style="border-top:1px solid #e2e8f0"><td style="padding:9px;text-align:center"><input type="checkbox" class="qr-point-choice" value="'+esc(p.id)+'" style="width:19px;height:19px"></td><td style="padding:9px;font-weight:700">'+esc(p.point_code)+'</td><td style="padding:9px">'+esc(p.area_name)+'</td><td style="padding:9px">'+esc(p.point_name)+'</td><td style="padding:9px;white-space:nowrap">'+(newPointsSession.some(n=>n.id===p.id)?'เพิ่มใหม่':'จุดเดิม')+'</td></tr>').join('');[...body.querySelectorAll('input[type="checkbox"]')].forEach(x=>{x.checked=prior.has(x.value);x.addEventListener('change',updateQrSelectionCount)});updateQrSelectionCount()}
 function selectAllQrPoints(checked){if(!isAdmin001())return;document.querySelectorAll('#qrPointTableBody input[type="checkbox"]').forEach(x=>x.checked=checked);updateQrSelectionCount()}
 function updateQrSelectionCount(){const n=document.querySelectorAll('#qrPointTableBody input[type="checkbox"]:checked').length;const el=document.getElementById('qrSelectionCount');if(el)el.textContent='เลือก '+n+' จุด'}
-function printSelectedQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const ids=new Set([...document.querySelectorAll('#qrPointTableBody input[type="checkbox"]:checked')].map(x=>x.value));const chosen=points.filter(p=>ids.has(p.id));if(!chosen.length){alert('กรุณาติ๊กเลือกจุดตรวจอย่างน้อย 1 จุด');return}printQRCodes(chosen,'QR CODE จุดตรวจที่เลือก ('+chosen.length+' จุด)')}
+function printSelectedQRCodes(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const ids=new Set([...document.querySelectorAll('#qrPointCheckboxList input[type="checkbox"]:checked')].map(x=>x.value));const chosen=points.filter(p=>ids.has(p.id));if(!chosen.length){alert('กรุณาติ๊กเลือกจุดตรวจอย่างน้อย 1 จุด');return}printQRCodes(chosen,'QR CODE จุดตรวจที่เลือก ('+chosen.length+' จุด)')}
 async function refreshPatrolPoints(){if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}const msg=document.getElementById('adminPointMsg');msg.textContent='กำลังโหลดรายการจุดตรวจจากฐานข้อมูล...';try{await loadPoints();msg.textContent='โหลดรายการจุดตรวจล่าสุดแล้ว · '+points.length+' จุด'}catch(e){msg.textContent='โหลดรายการไม่สำเร็จ: '+(e?.message||String(e))}}
 async function addPatrolPoint(){
  if(!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}
@@ -125,8 +125,232 @@ function printQRCodes(sourcePoints,title){
  const w=window.open('','_blank');if(!w){alert('กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้แล้วลองใหม่');return}
  const data=JSON.stringify(sourcePoints.map(p=>({code:p.point_code,area:p.area_name,name:p.point_name,token:'PATROL:'+p.qr_token}))).replace(/</g,'\\u003c');
  w.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Security Patrol - QR Codes</title><style>
- @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Thai',sans-serif;margin:0;color:#111}h1{text-align:center;font-size:18px;margin:0 0 4px}p{text-align:center;font-size:11px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7mm}.item{border:1px solid #777;border-radius:5px;padding:5mm 2mm;text-align:center;break-inside:avoid;min-height:59mm}.qr{display:flex;justify-content:center;margin:2mm auto}.code{font-size:12px;font-weight:bold;margin-top:2mm}.area{font-size:11px;font-weight:bold}.name{font-size:11px;min-height:9mm;margin-top:1mm}.hint{font-size:8px;color:#555;margin-top:2mm}@media screen{body{padding:12px}.grid{max-width:190mm;margin:auto}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px auto}.actions button{padding:10px 18px}.pdf{background:#790044;color:#fff}.print{background:#e2e8f0;color:#172033}.status{text-align:center;font-size:12px;color:#64748b;min-height:18px}.actions button:disabled{opacity:.6;cursor:wait}}@media print{.actions,.status{display:none}.grid{gap:5mm}.item{min-height:55mm}}
- </style></head><body><h1>HOTEL SECURITY PATROL</h1><p>${title} · สแกนด้วยระบบ Patrol เท่านั้น</p><div class="actions"><button class="pdf" onclick="downloadQrPDF()">ดาวน์โหลด PDF</button><button class="print" onclick="window.print()">พิมพ์ QR Code</button></div><p id="pdfStatus" class="status" aria-live="polite"></p><div class="grid" id="grid"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><script>const items=${data};const grid=document.getElementById("grid");items.forEach(p=>{const el=document.createElement("div");el.className="item";el.innerHTML='<div class="area"></div><div class="name"></div><div class="qr"></div><div class="code"></div><div class="hint">HOTEL SECURITY PATROL</div>';el.querySelector(".area").textContent=p.area;el.querySelector(".name").textContent=p.name;el.querySelector(".code").textContent=p.code;grid.appendChild(el);new QRCode(el.querySelector(".qr"),{text:p.token,width:145,height:145,correctLevel:QRCode.CorrectLevel.M})});async function downloadQrPDF(){const status=document.getElementById("pdfStatus"),btn=document.querySelector(".pdf");if(typeof html2pdf==="undefined"){status.textContent="โหลดระบบสร้าง PDF ไม่สำเร็จ กรุณารีเฟรชแล้วลองใหม่";return}btn.disabled=true;btn.textContent="กำลังสร้าง PDF...";status.textContent="กำลังเตรียม QR Code จำนวน "+items.length+" จุด";try{await new Promise(resolve=>setTimeout(resolve,500));await html2pdf().set({margin:10,filename:"Security-Patrol-QR-Codes.pdf",image:{type:"jpeg",quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(grid).save();status.textContent="สร้างไฟล์ PDF เรียบร้อยแล้ว"}catch(e){status.textContent="สร้าง PDF ไม่สำเร็จ: "+(e.message||e)}finally{btn.disabled=false;btn.textContent="ดาวน์โหลด PDF"}}<\/script></body></html>`);w.document.close();
+ @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Thai',sans-serif;margin:0;color:#111}h1{text-align:center;font-size:18px;margin:0 0 4px}p{text-align:center;font-size:11px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7mm}.item{border:1px solid #777;border-radius:5px;padding:5mm 2mm;text-align:center;break-inside:avoid;min-height:59mm}.qr{display:flex;justify-content:center;margin:2mm auto}.code{font-size:12px;font-weight:bold;margin-top:2mm}.area{font-size:11px;font-weight:bold}.name{font-size:11px;min-height:9mm;margin-top:1mm}.hint{font-size:8px;color:#555;margin-top:2mm}@media screen{body{padding:12px}.grid{max-width:190mm;margin:auto}.print{display:block;margin:12px auto;padding:10px 20px}}@media print{.print{display:none}.grid{gap:5mm}.item{min-height:55mm}}
+ </style></head><body><h1>HOTEL SECURITY PATROL</h1><p>${title} · สแกนด้วยระบบ Patrol เท่านั้น</p><button class="print" onclick="window.print()">พิมพ์ QR Code / บันทึกเป็น PDF</button><div class="grid" id="grid"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>const items=${data};const grid=document.getElementById('grid');items.forEach(p=>{const el=document.createElement('div');el.className='item';el.innerHTML='<div class="area"></div><div class="name"></div><div class="qr"></div><div class="code"></div><div class="hint">HOTEL SECURITY PATROL</div>';el.querySelector('.area').textContent=p.area;el.querySelector('.name').textContent=p.name;el.querySelector('.code').textContent=p.code;grid.appendChild(el);new QRCode(el.querySelector('.qr'),{text:p.token,width:145,height:145,correctLevel:QRCode.CorrectLevel.M})});<\/script></body></html>`);
+ w.document.close();
 }
-connect().catch(error=>{console.error("Patrol startup error:",error);const setupBox=document.getElementById("setup");if(setupBox)setupBox.classList.add("hidden");const loginBox=document.getElementById("login");if(loginBox)loginBox.classList.remove("hidden");const msg=document.getElementById("loginmsg");if(msg)msg.textContent="เริ่มต้นระบบไม่สำเร็จ: "+(error?.message||String(error));});
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function showTab(t){if(t==='adminQr'&&!isAdmin001()){alert('เฉพาะ ADMIN001 เท่านั้น');return}['scan','report','adminQr'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));['scan','report','adminQr'].forEach(x=>{const b=document.getElementById('tabBtn'+x.charAt(0).toUpperCase()+x.slice(1));if(b)b.classList.toggle('btn2',x!==t)});if(t==='report')loadReport();if(t==='adminQr')refreshPatrolPoints()}
+
+let scanner=null,pendingPatrolPhoto=null;
+async function startScan(){try{if(!scanner)scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},async text=>{await scanner.stop();await handleQR(text)},()=>{});scanmsg.textContent='กำลังสแกน...'}catch(e){scanmsg.textContent='เปิดกล้องไม่ได้: '+e}}
+async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).trim():raw.trim();const {data,error}=await sb.from('patrol_points').select('*').eq('qr_token',token).eq('active',true).single();if(error||!data){scanmsg.textContent='QR ไม่ถูกต้องหรือจุดตรวจถูกปิดใช้งาน';return}const active=activePatrolRound();if(!active){const next=nextPatrolRound();alert(next?'หมดเวลารอบก่อนแล้ว กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}selectedPoint=data;fillRoundOptions();pointtitle.textContent=data.area_name+' – '+data.point_name;pointcode.textContent='รหัส '+data.point_code;notes.value='';document.getElementById('status').value='normal';document.getElementById('photoMsg').textContent='เลือกจุด '+data.point_code+' แล้ว · กดถ่ายรูปจุดตรวจได้';checkform.classList.remove('hidden');checkform.scrollIntoView({behavior:'smooth'})}
+function capturePatrolPhoto(input){const f=input.files&&input.files[0];if(!f)return;if(!selectedPoint){alert('กรุณาสแกน QR เลือกจุดตรวจก่อนถ่ายรูป');input.value='';return}pendingPatrolPhoto=f;document.getElementById('photoMsg').textContent='แนบรูปจุด '+selectedPoint.point_code+' แล้ว: '+f.name}
+async function savePatrol(){
+ if(!selectedPoint)return;
+ const st=document.getElementById('status').value,rt=activePatrolRound();
+ if(!rt){const next=nextPatrolRound();alert(next?'หมดเวลารอบก่อนแล้ว กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}
+ const d=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const {data:existing,error:checkError}=await sb.from('patrol_logs').select('id').eq('point_id',selectedPoint.id).eq('round_time',rt).gte('created_at',start).lte('created_at',end).limit(1);
+ if(checkError){alert('ตรวจสอบรายการซ้ำไม่สำเร็จ: '+checkError.message);return}
+ if(existing&&existing.length){alert('จุดตรวจนี้ถูกบันทึกในรอบ '+rt+' แล้ว ไม่สามารถบันทึกซ้ำได้ หากข้อมูลเดิมผิด ให้ใช้ปุ่มแก้ไขในรายงาน');return}
+ let evidenceUrl=null;
+ if(pendingPatrolPhoto){const f=pendingPatrolPhoto,path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
+ const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});
+ if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}
+ alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');selectedPoint=null;pendingPatrolPhoto=null;document.getElementById('patrolCamera').value='';document.getElementById('photoMsg').textContent='สแกน QR เพื่อเลือกจุดตรวจ แล้วถ่ายภาพหลักฐานได้';await loadReport();
+}
+function subscribePatrolRealtime(){
+ if(!sb||!profile)return;
+ if(patrolRealtimeChannel){sb.removeChannel(patrolRealtimeChannel);patrolRealtimeChannel=null}
+ const statusEl=document.getElementById('liveStatus');
+ if(statusEl)statusEl.textContent='กำลังเชื่อมต่อข้อมูลเรียลไทม์...';
+ patrolRealtimeChannel=sb.channel('patrol-live-shared')
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'patrol_logs'},payload=>{
+    if(statusEl)statusEl.textContent='● เชื่อมต่อเรียลไทม์แล้ว · มีการบันทึกจากผู้ใช้งานในทีม';
+    if(!reportRefreshBusy){reportRefreshBusy=true;loadReport().finally(()=>{reportRefreshBusy=false})}
+  })
+  .subscribe(state=>{
+    if(!statusEl)return;
+    if(state==='SUBSCRIBED')statusEl.textContent='● เรียลไทม์: เชื่อมต่อแล้ว · เห็นข้อมูลจากทุกบัญชี';
+    else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')statusEl.textContent='เชื่อมต่อเรียลไทม์ไม่สำเร็จ · ระบบจะลองใหม่เมื่อเชื่อมต่อได้';
+    else if(state==='CLOSED')statusEl.textContent='การเชื่อมต่อเรียลไทม์ปิดอยู่';
+  });
+}
+async function loadReport(){
+ if(!sb||!profile)return;
+ const d=reportdate.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const {data,error}=await sb.from('patrol_logs').select('id,status,notes,evidence_path,round_time,created_at,patrol_points(point_code,area_name,point_name,sort_order),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:true});
+ if(error){reportlist.textContent=error.message;return}
+ logs=data||[];
+ const doneIds=new Set(logs.map(x=>x.patrol_points?.point_code));
+ done.textContent=doneIds.size;
+ abnormal.textContent=logs.filter(x=>x.status==='abnormal').length;
+ pending.textContent=Math.max(0,points.length-doneIds.size);
+ const availableRounds=['10:00','14:00','18:00','22:00'];
+ if(!availableRounds.includes(reportRound))reportRound=availableRounds[0]||'10:00';
+ renderRoundReport(availableRounds);
+}
+function selectReportRound(t){
+ reportRound=t;
+ const availableRounds=['10:00','14:00','18:00','22:00'];
+ renderRoundReport(availableRounds);
+}
+async function editPatrolLog(logId){
+ const x=logs.find(v=>String(v.id)===String(logId));if(!x){alert('ไม่พบรายการนี้ กรุณาโหลดรายงานใหม่');return}
+ document.getElementById('editLogTitle').textContent=(x.patrol_points?.point_code||'')+' · '+(x.patrol_points?.point_name||'')+' · รอบ '+x.round_time;
+ document.getElementById('editLogStatus').value=x.status;
+ document.getElementById('editLogNotes').value=x.notes||'';
+ document.getElementById('editLogPhoto').value='';
+ document.getElementById('editLogForm').dataset.logId=logId;
+ document.getElementById('editLogForm').classList.remove('hidden');
+ document.getElementById('editLogForm').scrollIntoView({behavior:'smooth'});
+}
+async function saveEditedLog(){
+ const form=document.getElementById('editLogForm'),logId=form.dataset.logId;if(!logId)return;
+ const patch={status:document.getElementById('editLogStatus').value,notes:document.getElementById('editLogNotes').value.trim()};
+ const file=document.getElementById('editLogPhoto').files?.[0];
+ if(file){if(!file.type.startsWith('image/')){alert('กรุณาเลือกไฟล์รูปภาพ');return}
+  const path=profile.id+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,file,{upsert:false});
+  if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}patch.evidence_path=path;
+ }
+ const {error}=await sb.from('patrol_logs').update(patch).eq('id',logId);
+ if(error){alert('แก้ไขรายการไม่สำเร็จ: '+error.message+' (ตรวจสอบสิทธิ์ UPDATE ใน Supabase RLS)');return}
+ alert('แก้ไขรายการเรียบร้อย');form.classList.add('hidden');await loadReport();
+}
+function renderRoundReport(rounds){
+ const selected=logs.filter(x=>(x.round_time||'')===reportRound);
+ const latestByCode={};
+ selected.forEach(x=>{const code=x.patrol_points?.point_code;if(code)latestByCode[code]=x});
+ const orderPoints=[...points].sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999)||String(a.point_code).localeCompare(String(b.point_code),'th'));
+ const grouped={};
+ orderPoints.forEach(p=>(grouped[p.area_name]??=[]).push(p));
+ const totalDone=Object.keys(latestByCode).length;
+ const good=selected.filter(x=>x.status==='normal').length;
+ const bad=selected.filter(x=>x.status==='abnormal').length;
+ const blocked=selected.filter(x=>x.status==='inaccessible').length;
+ const tabs=rounds.map(t=>'<button type="button" onclick="selectReportRound(\''+t+'\')" style="flex:1;min-width:65px;padding:10px 6px;border-radius:10px;border:1px solid '+(t===reportRound?'#941052':'#cbd5e1')+';background:'+(t===reportRound?'#941052':'#e2e8f0')+';color:'+(t===reportRound?'white':'#172033')+';font-weight:700"> '+t+' น. </button>').join('');
+ let html='<div style="display:flex;gap:7px;flex-wrap:wrap;margin:12px 0">'+tabs+'</div>';
+ html+='<div class="muted" style="margin:6px 0 12px">รอบ '+reportRound+' น. · ตรวจแล้ว '+totalDone+'/'+points.length+' จุด · ปกติ '+good+' · ผิดปกติ '+bad+' · เข้าตรวจไม่ได้ '+blocked+'</div>';
+ html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#eaf0f8"><th style="padding:9px;text-align:left">จุดตรวจ (เรียงตามลำดับ)</th><th style="padding:9px;text-align:center;min-width:105px">'+reportRound+' น.</th></tr></thead><tbody>';
+ Object.entries(grouped).forEach(([area,items])=>{
+  html+='<tr><td colspan="2" style="padding:9px 8px;background:#f1f5f9;font-weight:700;border-top:1px solid #cbd5e1">'+esc(area)+'</td></tr>';
+  items.forEach(p=>{
+   const x=latestByCode[p.point_code];
+   const label=x?(x.status==='normal'?'ปกติ':x.status==='abnormal'?'ผิดปกติ':'เข้าตรวจไม่ได้'):'ยังไม่ได้ตรวจ';
+   const bg=x?(x.status==='normal'?'#dcfce7':x.status==='abnormal'?'#fee2e2':'#fef3c7'):'#f1f5f9';
+   const color=x?(x.status==='normal'?'#166534':x.status==='abnormal'?'#991b1b':'#92400e'):'#64748b';
+   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+(x?'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px"><button type="button" style="padding:5px 8px;background:#eaf0f8;color:#172033;font-size:11px" onclick="editPatrolLog(\''+esc(x.id)+'\')">แก้ไขรายการ</button></div>':'')+'</td></tr>';
+  });
+ });
+ html+='</tbody></table></div>';
+ reportlist.innerHTML=html;
+}
+async function exportPDF(){
+ const d=document.getElementById('reportdate').value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก กรุณากดค้นหาก่อน');return}
+ if(!window.html2pdf){alert('ระบบสร้าง PDF ยังโหลดไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');return}
+ const dateText=new Date(d+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
+ const order=['10:00','14:00','18:00','22:00'];
+ // Export only rounds that have at least one saved scan.
+ const rounds=order.filter(t=>logs.some(x=>x.round_time===t));
+ if(!rounds.length){alert('วันที่เลือกยังไม่มีข้อมูลการสแกนในรอบตรวจ จึงไม่มีรายงานให้ส่งออก');return}
+ const allFourRoundsCompleted=order.every(t=>new Set(logs.filter(x=>x.round_time===t).map(x=>x.patrol_points?.point_code).filter(Boolean)).size>=points.length);
+ const buildings=[...new Set([...points.map(p=>p.area_name),...logs.map(x=>x.patrol_points?.area_name||'ไม่ระบุอาคาร')])].sort((a,b)=>a.localeCompare(b,'th'));
+ const pages=[];
+ for(let ri=0;ri<rounds.length;ri++){
+  const round=rounds[ri],data=logs.filter(x=>x.round_time===round),rows=[];
+  const manpower=allFourRoundsCompleted&&round==='14:00'?2:1;
+  for(const building of buildings){
+   const items=data.filter(x=>(x.patrol_points?.area_name||'ไม่ระบุอาคาร')===building).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+   if(!items.length)continue;
+   const good=items.filter(x=>x.status==='normal'),bad=items.filter(x=>x.status==='abnormal'),blocked=items.filter(x=>x.status==='inaccessible');
+   const label=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b> '+esc(x.patrol_points?.point_name||'');
+   let issues='';
+   for(const x of bad){
+    let photo='';
+    if(x.evidence_path){try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="proof" src="'+esc(data.signedUrl)+'" alt="ภาพหลักฐาน">'}catch(e){}}
+    issues+='<div class="issue"><div class="issue-desc"><b>'+label(x)+'</b><span class="alert">ผิดปกติ</span><div>'+esc(x.notes||'ไม่ได้ระบุรายละเอียด')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
+   }
+   const blockedText=blocked.map(x=>label(x)+' — '+esc(x.notes||'เข้าตรวจไม่ได้')).join(' / ');
+   rows.push('<div class="building-row"><div class="building-label"><b>'+esc(building)+'</b><small>'+items.length+' จุด</small></div><div class="building-content"><div class="counts"><span class="ok">ปกติ '+good.length+'</span><span class="ng">ผิดปกติ '+bad.length+'</span><span class="na">เข้าตรวจไม่ได้ '+blocked.length+'</span></div><div class="point-list">'+(good.length?good.map(label).join('　/　'):'—')+'</div>'+(issues?'<div class="issues">'+issues+'</div>':'')+(blockedText?'<div class="blocked">'+blockedText+'</div>':'')+'</div></div>');
+  }
+  const good=data.filter(x=>x.status==='normal').length,bad=data.filter(x=>x.status==='abnormal').length,blocked=data.filter(x=>x.status==='inaccessible').length;
+  const reporterNames=[...new Set(data.map(x=>x.patrol_profiles?.full_name).filter(Boolean))];
+  const reporterText=reporterNames.length?reporterNames.join(', '):'-';
+  pages.push('<section class="round-page"><header><div class="pdf-brand"><img src="./logo.svg?v=white3" alt="Khao Chi Chan Pattaya original logo"><div><div class="heading">U Khaochichan Pattaya Security Patrol</div><div class="date">SECURITY DEPARTMENT · รายงานสรุปการตรวจ Patrol · '+dateText+'</div></div></div><div class="round">รอบตรวจ '+esc(round)+' น. <small>หน้า '+(ri+1)+'/'+rounds.length+'</small></div></header><div class="summary"><span>ตรวจทั้งหมด <b>'+data.length+'</b> จุด</span><span class="ok">ปกติ <b>'+good+'</b></span><span class="ng">ผิดปกติ <b>'+bad+'</b></span><span>เข้าตรวจไม่ได้ <b>'+blocked+'</b></span><span>อาคาร <b>'+rows.length+'</b></span>'+'<span style="color:#941052;font-weight:700">Manpower: '+manpower+' person</span></div><main class="buildings">'+(rows.join('')||'ไม่มีข้อมูล')+'</main><footer>ผู้รายงาน: '+esc(reporterText)+'</footer></section>');
+ }
+ const holder=document.createElement('div');holder.id='patrol-pdf';holder.innerHTML=pages.join('');
+ holder.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:2147483647;display:block;visibility:visible;opacity:1;pointer-events:none;';
+ const style=document.createElement('style');style.textContent=`
+ #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
+ #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:6mm 7mm 5mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+ #patrol-pdf .round-page:last-child{page-break-after:auto;break-after:auto}
+ #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:1.5mm;padding:1.5mm 3mm;margin-bottom:1mm;display:flex;align-items:center;justify-content:space-between;gap:3mm;min-height:17mm}
+ #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:3mm;min-width:0}
+ #patrol-pdf .pdf-brand img{width:18mm;height:15.08mm;object-fit:contain;object-position:center;background:#fff;border-radius:0.8mm;padding:0.3mm;flex:0 0 18mm;mix-blend-mode:normal}
+ #patrol-pdf .heading{font-size:13pt;font-weight:700;color:#fff}
+ #patrol-pdf .date{font-size:7pt;color:#f7dce9}
+ #patrol-pdf .round{font-size:8pt;font-weight:700;color:#fff;margin:0 0 0 auto;border:0;padding:0;white-space:nowrap;text-align:right}
+ #patrol-pdf .round small{display:block;font-size:6.5pt;color:#f7dce9;font-weight:400;margin-top:0.5mm}
+ #patrol-pdf .summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1.5mm;background:#f9edf3;border-radius:1.5mm;padding:1.8mm;margin:1.5mm 0;font-size:7.5pt}
+ #patrol-pdf .summary b{font-size:10pt;margin-left:1mm}
+ #patrol-pdf .ok{color:#15803d;font-weight:700}#patrol-pdf .ng{color:#b91c1c;font-weight:700}#patrol-pdf .na{color:#a16207;font-weight:700}
+ #patrol-pdf .buildings{display:flex;flex-direction:column;gap:1.2mm;flex:1;min-height:0}
+ #patrol-pdf .building-row{display:grid;grid-template-columns:27mm 1fr;border:1px solid #cbd5e1;border-radius:1.2mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .building-label{background:#eaf0f8;padding:1.4mm;display:flex;flex-direction:column;justify-content:center}
+ #patrol-pdf .building-label b{font-size:9pt}#patrol-pdf .building-label small{font-size:6.5pt;color:#64748b}
+ #patrol-pdf .building-content{padding:1mm 1.5mm;min-width:0}
+ #patrol-pdf .counts{display:flex;gap:3mm;font-size:7pt;margin-bottom:0.6mm}
+ #patrol-pdf .point-list{font-size:6.8pt;line-height:1.2;color:#334155}
+ #patrol-pdf .issues{display:flex;flex-direction:column;gap:0.7mm;margin-top:0.7mm}
+ #patrol-pdf .issue{display:flex;align-items:center;gap:1.5mm;background:#fff7f7;border-left:0.8mm solid #dc2626;padding:0.7mm 1mm;break-inside:avoid;page-break-inside:avoid}
+ #patrol-pdf .issue-desc{flex:1;min-width:0;font-size:7pt;line-height:1.2}
+ #patrol-pdf .issue-desc small{font-size:6pt;color:#64748b}
+ #patrol-pdf .alert{float:right;color:#b91c1c;font-weight:700}
+ #patrol-pdf .proof-wrap{width:22mm;flex:0 0 22mm;text-align:center}
+ #patrol-pdf .proof{width:21mm;height:15mm;object-fit:cover;border:1px solid #cbd5e1}
+ #patrol-pdf .blocked{font-size:6.8pt;color:#92400e;background:#fffbeb;margin-top:0.7mm;padding:0.7mm}
+ #patrol-pdf footer{font-size:7pt;text-align:right;border-top:1px solid #cbd5e1;padding-top:1mm;margin-top:1mm}
+ `;
+ holder.appendChild(style);document.body.appendChild(holder);
+ try{
+  if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('ไลบรารี PDF ยังโหลดไม่ครบ');
+  await new Promise(resolve=>setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)),350));
+  await document.fonts.ready;
+  await Promise.all([...holder.querySelectorAll('img')].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  const pageEls=[...holder.querySelectorAll('.round-page')];
+  if(!pageEls.length)throw new Error('ไม่พบหน้ารายงานสำหรับสร้าง PDF');
+  for(let i=0;i<pageEls.length;i++){
+   const page=pageEls[i];
+   const rect=page.getBoundingClientRect(); const canvas=await window.html2canvas(page,{scale:2,backgroundColor:'#ffffff',useCORS:true,allowTaint:false,logging:false,scrollX:0,scrollY:0,width:Math.ceil(rect.width),height:Math.ceil(rect.height),windowWidth:Math.max(document.documentElement.clientWidth,Math.ceil(rect.width)),windowHeight:Math.max(document.documentElement.clientHeight,Math.ceil(rect.height))});
+   if(!canvas.width||!canvas.height)throw new Error('ไม่สามารถแปลงหน้ารายงาน '+(i+1)+' เป็นภาพได้');
+   const image=canvas.toDataURL('image/jpeg',0.95);
+   if(i>0)pdf.addPage('a4','portrait');
+   pdf.addImage(image,'JPEG',0,0,210,297,undefined,'FAST');
+  }
+  pdf.save('Hotel-Security-Patrol-Summary-'+d+'.pdf');
+ }catch(e){alert('สร้าง PDF ไม่สำเร็จ: '+e.message)}finally{holder.remove()}
+}
+function exportCSV(){const rows=[['เวลาบันทึก','รอบตรวจ','รหัสจุด','พื้นที่','จุดตรวจ','พนักงาน','ผล','หมายเหตุ'],...logs.map(x=>[new Date(x.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}),x.round_time,x.patrol_points?.point_code,x.patrol_points?.area_name,x.patrol_points?.point_name,x.patrol_profiles?.full_name,x.status,x.notes])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='security-patrol-'+reportdate.value+'.csv';a.click();URL.revokeObjectURL(a.href)}
+let patrolInstallPrompt=null;
+const patrolInstallButton=document.getElementById('installAppBtn');
+window.addEventListener('beforeinstallprompt',event=>{
+ event.preventDefault();
+ patrolInstallPrompt=event;
+ if(patrolInstallButton)patrolInstallButton.style.display='block';
+});
+if(patrolInstallButton)patrolInstallButton.addEventListener('click',async()=>{
+ if(!patrolInstallPrompt){
+  alert('Chrome ยังไม่พร้อมให้ติดตั้ง กรุณาเปิดหน้านี้ด้วย Chrome และตรวจสอบเมนู ติดตั้งแอป');
+  return;
+ }
+ patrolInstallPrompt.prompt();
+ const choice=await patrolInstallPrompt.userChoice;
+ if(choice?.outcome==='accepted'){
+  patrolInstallButton.textContent='กำลังติดตั้ง...';
+ }else{
+  patrolInstallButton.textContent='ติดตั้งแอป';
+ }
+ patrolInstallPrompt=null;
+});
+window.addEventListener('appinstalled',()=>{
+ if(patrolInstallButton){patrolInstallButton.style.display='none';}
+});
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+connect();
 </script></body></html>
