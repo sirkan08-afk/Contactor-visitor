@@ -14,7 +14,7 @@
 </style></head><body>
 <header><div class="brand-row"><img class="brand-logo" src="./logo.svg?v=white3" alt="Khao Chi Chan Pattaya original logo"><div class="brand-copy"><h1>U Khaochichan Pattaya Security Patrol</h1><p>Security Department · QR Patrol</p></div><button id="installAppBtn" type="button" style="display:none;flex:0 0 auto;padding:9px 11px;background:#fff;color:#790044;border-radius:9px;font-size:12px">ติดตั้งแอป</button></div></header>
 <main class="wrap">
-<section id="setup" class="card">
+<section id="setup" class="card hidden">
 <h3>เชื่อมต่อฐานข้อมูล</h3><p class="muted">กรอก Supabase Project URL และ Publishable/anon key ของโครงการ Patrol แล้วบันทึกบนอุปกรณ์นี้</p>
 <label>Supabase URL</label><input id="sburl" placeholder="https://xxxxxxxx.supabase.co">
 <label>Supabase anon / publishable key</label><input id="sbkey" placeholder="eyJ... หรือ sb_publishable_...">
@@ -72,10 +72,12 @@ const POINTS=[
 ];
 let sb=null,profile=null,selectedPoint=null,points=[],newPointsSession=[],logs=[],dayPlan=null,reportRound='10:00',patrolRealtimeChannel=null,reportRefreshBusy=false;
 const PLAN_ROUNDS={full_day:['10:00','14:00','18:00','22:00'],morning_only:['10:00','14:00'],afternoon_only:['18:00','22:00']};
-function cfg(){return {url:localStorage.getItem('patrol_url'),key:localStorage.getItem('patrol_key')}}
+const DEFAULT_PATROL_URL='https://nldoneixnuapuzpeeznl.supabase.co';
+const DEFAULT_PATROL_KEY='sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI';
+function cfg(){return {url:localStorage.getItem('patrol_url')||DEFAULT_PATROL_URL,key:localStorage.getItem('patrol_key')||DEFAULT_PATROL_KEY}}
 function editConnection(){document.getElementById('sburl').value=localStorage.getItem('patrol_url')||'';document.getElementById('sbkey').value=localStorage.getItem('patrol_key')||'';document.getElementById('login').classList.add('hidden');document.getElementById('setup').classList.remove('hidden');document.getElementById('connectionmsg').textContent='ตรวจสอบ URL และ Publishable Key แล้วกดบันทึกอีกครั้ง';}
 async function saveConfig(){const msg=document.getElementById('connectionmsg');try{const u=document.getElementById('sburl').value.trim(),k=document.getElementById('sbkey').value.trim();if(!u||!k){msg.textContent='กรุณากรอก Supabase URL และ Publishable Key ให้ครบ';return}if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(u)){msg.textContent='รูปแบบ Supabase URL ไม่ถูกต้อง';return}if(!window.supabase||!window.supabase.createClient){msg.textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บและลองใหม่';return}localStorage.setItem('patrol_url',u);localStorage.setItem('patrol_key',k);msg.textContent='กำลังตรวจสอบการเชื่อมต่อ...';await connect();}catch(e){msg.textContent='บันทึกไม่สำเร็จ: '+(e?.message||String(e));}}
-async function connect(){const c=cfg();if(!c.url||!c.key){document.getElementById('setup').classList.remove('hidden');return}if(!window.supabase||!window.supabase.createClient){document.getElementById('connectionmsg').textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';return}sb=window.supabase.createClient(c.url,c.key);document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');const {data,error}=await sb.auth.getSession();if(error)throw error;if(data.session)await loadProfile()}
+async function connect(){const c=cfg();if(!window.supabase||!window.supabase.createClient){document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');document.getElementById('loginmsg').textContent='โหลดไลบรารี Supabase ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';return}localStorage.setItem('patrol_url',c.url);localStorage.setItem('patrol_key',c.key);sb=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});document.getElementById('setup').classList.add('hidden');document.getElementById('login').classList.remove('hidden');const {data,error}=await sb.auth.getSession();if(error){document.getElementById('loginmsg').textContent='เชื่อมต่อฐานข้อมูลไม่สำเร็จ: '+error.message;return}if(data.session)await loadProfile()}
 document.getElementById('saveConnectionBtn').addEventListener('click',saveConfig);
 async function signIn(){const raw=email.value.trim();const loginEmail=raw.includes('@')?raw:`${raw.toLowerCase()}@patrol.com`;const {data,error}=await sb.auth.signInWithPassword({email:loginEmail,password:password.value});if(error){loginmsg.textContent=error.message;return}await loadProfile()}
 async function signOut(){await sb.auth.signOut();location.reload()}
