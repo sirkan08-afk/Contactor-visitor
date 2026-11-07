@@ -242,7 +242,15 @@ function renderRoundReport(rounds){
 }
 async function exportPDF(){
  const d=document.getElementById('reportdate').value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
- if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก กรุณากดค้นหาก่อน');return}
+ // Always refresh the selected day's report and current point names before exporting.
+ const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const [{data:latestLogs,error:logsError},{data:activePoints,error:pointsError}]=await Promise.all([
+  sb.from('patrol_logs').select('id,status,notes,evidence_path,round_time,created_at,patrol_points(point_code,area_name,point_name,sort_order),patrol_profiles(full_name)').gte('created_at',start).lte('created_at',end).order('created_at',{ascending:true}),
+  sb.from('patrol_points').select('*').eq('active',true).order('sort_order')
+ ]);
+ if(logsError||pointsError){alert('โหลดข้อมูลล่าสุดสำหรับ PDF ไม่สำเร็จ: '+(logsError||pointsError).message);return}
+ logs=latestLogs||[];points=activePoints||[];
+ if(!logs.length){alert('ไม่มีข้อมูล Patrol สำหรับวันที่เลือก');return}
  if(!window.html2pdf){alert('ระบบสร้าง PDF ยังโหลดไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่');return}
  const dateText=new Date(d+'T00:00:00+07:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
  const order=['10:00','14:00','18:00','22:00'];
