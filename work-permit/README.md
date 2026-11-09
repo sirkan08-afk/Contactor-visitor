@@ -18,7 +18,10 @@ This work is isolated under work-permit/ and does not modify Patrol or Contracto
 - Department approval routing: initial routing logic prepared; hotel routing rules must be confirmed.
 - Staff approval UI: prepared against department approval table.
 - Overall status sync: SQL trigger included in migration.
-- Inspection checklist, photo evidence, and final PDF: not implemented yet.
+- Inspector screen: 16-item checklist with Yes/No/Not applicable selections prepared.
+- Photo evidence UI: multiple image capture/upload with local preview and print appendix prepared.
+- Print-to-PDF layout: inspector checklist and photo appendix interface prepared; original two-page permit form integration still pending.
+- Inspection persistence: NOT connected to database yet; do not treat browser preview as saved evidence.
 
 ## Deployment safety
 Nothing in this branch has been applied to the production Supabase database. Do not enable the live QR link until the migration and Edge Function are reviewed, applied, deployed, and tested with staff accounts.
