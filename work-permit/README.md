@@ -4,14 +4,30 @@ Branch: work-permit-online
 
 This work is isolated under work-permit/ and does not modify Patrol or Contractor Registration V8.
 
-## Current implementation
-- work-permit/index.html: responsive Thai request form, status-tracking screen shell, staff sign-in, and staff list reader for the existing work_permits table.
-- work-permit/schema-audit.sql: read-only SQL to inspect current columns, foreign keys, and triggers.
-- Project URL and publishable key are configured in the HTML. Publishable keys are intended for browser use; never place a service-role/secret key in frontend code.
+## Current files
+- work-permit/index.html — responsive Thai request, tracking, and staff approval interface.
+- work-permit/migration-v1.sql — additive SQL migration for applicant/supervisor fields, tracking hash, department approvals, staff visibility, and overall status synchronization.
+- work-permit/schema-audit.sql — read-only schema audit.
+- work-permit/deployment-checklist.md — deployment prerequisites and role checks.
+- supabase/functions/work-permit-public/index.ts — public QR submit and private tracking Edge Function.
 
-## Important deployment status
-The UI has been committed to this branch, but public submission and tracking are intentionally not enabled yet. The existing work_permits.created_by column is NOT NULL and current RLS requires an authenticated CONTRACTOR or ADMIN. Public QR submission therefore needs a carefully designed Edge Function and tracking token, not a direct anonymous INSERT. Do not relax RLS or expose table SELECT to anon.
+## Current progress
+- UI shell and Supabase client integration: prepared.
+- Public QR submission: Edge Function source prepared; not deployed.
+- Tracking: secure token hash lookup source prepared; not deployed.
+- Department approval routing: initial routing logic prepared; hotel routing rules must be confirmed.
+- Staff approval UI: prepared against department approval table.
+- Overall status sync: SQL trigger included in migration.
+- Inspection checklist, photo evidence, and final PDF: not implemented yet.
 
-Before implementing the Edge Function, inspect schema-audit.sql output and confirm created_by foreign keys/defaults/triggers, permit_no generation, and any existing storage buckets/functions. Add applicant_name, supervisor_name, work_type, tools, and secure tracking-token storage only through an additive reviewed migration. Preserve existing rows and all Patrol/V8 objects.
+## Deployment safety
+Nothing in this branch has been applied to the production Supabase database. Do not enable the live QR link until the migration and Edge Function are reviewed, applied, deployed, and tested with staff accounts.
 
-Approvals currently store action/comment/actor_id. Define department-specific approval actions and enforce role checks server-side before enabling approval writes. Test using separate real staff accounts for ADMIN, SAFETY, SECURITY, ENGINEERING, and AREA_OWNER.
+Before applying migration-v1.sql:
+1. Confirm the complete existing work_permits status CHECK allows submitted, approved, rejected, and revision_requested. If not, adjust it carefully without losing existing states.
+2. Confirm exact role values in user_roles and current_user_role().
+3. Confirm routing by work type with Security, Safety, Engineering, and Area Owner.
+4. Test with real staff accounts and verify existing Work Permit records remain readable.
+5. Deploy the Edge Function with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as server-side secrets only.
+
+Never expose a service-role key in browser code or grant anon direct SELECT/INSERT on work_permits.
