@@ -75,7 +75,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   total_count integer;
   approved_count integer;
@@ -99,7 +99,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists work_permit_department_status_sync on public.work_permit_department_approvals;
 create trigger work_permit_department_status_sync
