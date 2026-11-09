@@ -1,0 +1,18 @@
+-- Work Permit audit notes and deployment checklist
+-- Existing verified schema from user's SQL output:
+-- work_permits has 18 columns; created_by is NOT NULL and references auth.users;
+-- permit_no has UNIQUE constraint; team_size > 0; status has a CHECK constraint.
+-- No user-defined triggers were returned for tables matching work_permit%.
+-- Four child tables reference work_permits(id).
+--
+-- Before running migration.sql:
+-- 1) Confirm current status CHECK allows 'submitted'. It was visible in the prior audit,
+--    but retrieve the complete expression if you want exact allowed values.
+-- 2) Confirm current_user_role() returns the exact role strings used by staff accounts.
+-- 3) Add actual staff role rows in user_roles for SECURITY, SAFETY, ENGINEERING,
+--    AREA_OWNER and ADMIN. Existing audit showed only one ADMIN row.
+-- 4) Confirm department routing rules with the hotel. Current Edge Function routing
+--    is an initial rule set and must be reviewed before production.
+--
+-- Public submit and tracking must go through the Edge Function only.
+-- Never grant anon SELECT/INSERT on work_permits or expose the service-role key.
