@@ -267,12 +267,12 @@ async function exportPDF(){
    const items=data.filter(x=>(x.patrol_points?.area_name||'ไม่ระบุอาคาร')===building).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
    if(!items.length)continue;
    const good=items.filter(x=>x.status==='normal'),bad=items.filter(x=>x.status==='abnormal'),blocked=items.filter(x=>x.status==='inaccessible');
-   const label=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b> '+esc(x.patrol_points?.point_name||'');
+   const label=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b>';
    let normalPhotos='';
    for(const x of good){
     let photo='';
     if(x.evidence_path){try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="proof" src="'+esc(data.signedUrl)+'" alt="ภาพจุดตรวจปกติ">'}catch(e){}}
-    normalPhotos+='<div class="normal-proof"><div><b>'+label(x)+'</b><span class="ok">ปกติ</span><div>'+esc(x.notes||'ไม่ได้ระบุรายละเอียด')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
+    normalPhotos+='<div class="normal-proof"><div><b>'+label(x)+'</b><span class="ok">ปกติ</span><div>'+esc(x.notes||'')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
    }
    let issues='';
    for(const x of bad){
@@ -280,7 +280,7 @@ async function exportPDF(){
     if(x.evidence_path){try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="proof" src="'+esc(data.signedUrl)+'" alt="ภาพหลักฐาน">'}catch(e){}}
     issues+='<div class="issue"><div class="issue-desc"><b>'+label(x)+'</b><span class="alert">ผิดปกติ</span><div>'+esc(x.notes||'ไม่ได้ระบุรายละเอียด')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
    }
-   const blockedText=blocked.map(x=>label(x)+' — '+esc(x.notes||'เข้าตรวจไม่ได้')).join(' / ');
+   const blockedText=blocked.map(x=>label(x)+(x.notes?' — '+esc(x.notes):'')).join(' / ');
    rows.push('<div class="building-row"><div class="building-label"><b>'+esc(building)+'</b><small>'+items.length+' จุด</small></div><div class="building-content"><div class="counts"><span class="ok">ปกติ '+good.length+'</span><span class="ng">ผิดปกติ '+bad.length+'</span><span class="na">เข้าตรวจไม่ได้ '+blocked.length+'</span></div><div class="point-list">'+(good.length?good.map(label).join('　/　'):'—')+'</div>'+(normalPhotos?'<div class="normal-photos"><b>รายละเอียดจุดตรวจปกติ</b>'+normalPhotos+'</div>':'')+(issues?'<div class="issues"><b>รายการที่พบความผิดปกติ</b>'+issues+'</div>':'')+(blockedText?'<div class="blocked">'+blockedText+'</div>':'')+'</div></div>');
   }
   const good=data.filter(x=>x.status==='normal').length,bad=data.filter(x=>x.status==='abnormal').length,blocked=data.filter(x=>x.status==='inaccessible').length;
@@ -292,7 +292,7 @@ async function exportPDF(){
  holder.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:2147483647;display:block;visibility:visible;opacity:1;pointer-events:none;';
  const style=document.createElement('style');style.textContent=`
  #patrol-pdf{font-family:Sarabun,Arial,sans-serif;color:#172033;background:#fff}
- #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:6mm 7mm 5mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
+ #patrol-pdf .round-page{box-sizing:border-box;width:210mm;height:297mm;padding:7mm 8mm 6mm;background:#fff;display:flex;flex-direction:column;overflow:hidden;page-break-after:always;break-after:page}
  #patrol-pdf .round-page:last-child{page-break-after:auto;break-after:auto}
  #patrol-pdf header{background:#790044;color:#fff;position:static;z-index:auto;border-bottom:0;border-radius:1.5mm;padding:1.5mm 3mm;margin-bottom:1mm;display:flex;align-items:center;justify-content:space-between;gap:3mm;min-height:17mm}
  #patrol-pdf .pdf-brand{display:flex;align-items:center;gap:3mm;min-width:0}
@@ -304,17 +304,17 @@ async function exportPDF(){
  #patrol-pdf .summary{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1.5mm;background:#f9edf3;border-radius:1.5mm;padding:1.8mm;margin:1.5mm 0;font-size:7.5pt}
  #patrol-pdf .summary b{font-size:10pt;margin-left:1mm}
  #patrol-pdf .ok{color:#15803d;font-weight:700}#patrol-pdf .ng{color:#b91c1c;font-weight:700}#patrol-pdf .na{color:#a16207;font-weight:700}
- #patrol-pdf .buildings{display:flex;flex-direction:column;gap:1.2mm;flex:1;min-height:0}
- #patrol-pdf .building-row{display:grid;grid-template-columns:27mm 1fr;border:1px solid #cbd5e1;border-radius:1.2mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
- #patrol-pdf .building-label{background:#eaf0f8;padding:1.4mm;display:flex;flex-direction:column;justify-content:center}
- #patrol-pdf .building-label b{font-size:9pt}#patrol-pdf .building-label small{font-size:6.5pt;color:#64748b}
- #patrol-pdf .building-content{padding:1mm 1.5mm;min-width:0}
- #patrol-pdf .counts{display:flex;gap:3mm;font-size:7pt;margin-bottom:0.6mm}
- #patrol-pdf .point-list{font-size:6.8pt;line-height:1.2;color:#334155}
+ #patrol-pdf .buildings{display:flex;flex-direction:column;gap:2.2mm;flex:1;min-height:0;overflow:hidden}
+ #patrol-pdf .building-row{display:grid;grid-template-columns:34mm 1fr;border:1px solid #94a3b8;border-radius:1.5mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;flex:0 0 auto}
+ #patrol-pdf .building-label{background:#eaf0f8;padding:2.5mm;display:flex;flex-direction:column;justify-content:center}
+ #patrol-pdf .building-label b{font-size:11pt}#patrol-pdf .building-label small{font-size:8pt;color:#64748b}
+ #patrol-pdf .building-content{padding:2mm 2.5mm;min-width:0}
+ #patrol-pdf .counts{display:flex;gap:4mm;font-size:8.5pt;margin-bottom:1mm}
+ #patrol-pdf .point-list{font-size:8pt;line-height:1.35;color:#334155}
  #patrol-pdf .issues{display:flex;flex-direction:column;gap:0.7mm;margin-top:0.7mm}
  #patrol-pdf .normal-photos{display:flex;flex-wrap:wrap;gap:1.5mm;margin-top:1mm;padding-top:1mm;border-top:1px dashed #cbd5e1;font-size:6.8pt}#patrol-pdf .normal-photos>b{width:100%;color:#15803d}#patrol-pdf .normal-proof{display:flex;align-items:center;gap:1mm;padding:0.5mm;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:1mm}#patrol-pdf .normal-proof .proof{width:18mm;height:13mm;object-fit:cover}
  #patrol-pdf .issue{display:flex;align-items:center;gap:1.5mm;background:#fff7f7;border-left:0.8mm solid #dc2626;padding:0.7mm 1mm;break-inside:avoid;page-break-inside:avoid}
- #patrol-pdf .issue-desc{flex:1;min-width:0;font-size:7pt;line-height:1.2}
+ #patrol-pdf .issue-desc{flex:1;min-width:0;font-size:8.5pt;line-height:1.35}
  #patrol-pdf .issue-desc small{font-size:6pt;color:#64748b}
  #patrol-pdf .alert{float:right;color:#b91c1c;font-weight:700}
  #patrol-pdf .proof-wrap{width:22mm;flex:0 0 22mm;text-align:center}
@@ -323,6 +323,25 @@ async function exportPDF(){
  #patrol-pdf footer{font-size:7pt;text-align:right;border-top:1px solid #cbd5e1;padding-top:1mm;margin-top:1mm}
  `;
  holder.appendChild(style);document.body.appendChild(holder);
+ // Paginate overflowing buildings while keeping each patrol round separate.
+ await document.fonts.ready;
+ const roundPages=[...holder.querySelectorAll('.round-page')];
+ for(const original of roundPages){
+  const main=original.querySelector('.buildings'), buildingRows=[...main.children];
+  if(!buildingRows.length)continue;
+  const shell=original.cloneNode(true);shell.querySelector('.buildings').innerHTML='';
+  main.innerHTML='';
+  let current=original,currentMain=main;const generated=[original];
+  for(const row of buildingRows){
+   currentMain.appendChild(row);
+   if(currentMain.scrollHeight>currentMain.clientHeight+1&&currentMain.children.length>1){
+    currentMain.removeChild(row);
+    const next=shell.cloneNode(true);next.querySelector('.buildings').appendChild(row);
+    current.after(next);current=next;currentMain=next.querySelector('.buildings');generated.push(next);
+   }
+  }
+  generated.forEach((pg,index)=>{const small=pg.querySelector('.round small');if(small)small.textContent='หน้า '+(index+1)+'/'+generated.length+' ของรอบนี้';});
+ }
  try{
   if(!window.html2canvas||!window.jspdf?.jsPDF)throw new Error('ไลบรารี PDF ยังโหลดไม่ครบ');
   await new Promise(resolve=>setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)),350));
