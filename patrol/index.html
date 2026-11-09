@@ -216,12 +216,12 @@ async function loadReport(){
 }
 async function markPointInaccessible(pointId){
  const p=points.find(x=>x.id===pointId);if(!p)return;
- const rt=activePatrolRound();
- if(!rt){const next=nextPatrolRound();alert(next?'ขณะนี้ไม่อยู่ในเวลารอบตรวจ กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}
- const reason=prompt('ระบุเหตุผลที่ไม่สามารถเข้าตรวจได้\\nจุดตรวจ: '+p.point_code+' · '+p.point_name+'\\n\\nตัวอย่าง: มีงานซ่อมกั้นพื้นที่ / ห้องล็อก / มีเหตุฉุกเฉิน');
+ const rt=reportRound||'10:00';
+ const d=document.getElementById('reportdate')?.value||new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ const reason=prompt('ระบุเหตุผลที่ไม่สามารถเข้าตรวจได้\\nจุดตรวจ: '+p.point_code+' · '+p.point_name+'\\nวันที่: '+d+' · รอบ: '+rt+' น.\\n\\nตัวอย่าง: มีงานซ่อมกั้นพื้นที่ / ห้องล็อก / มีเหตุฉุกเฉิน');
  if(reason===null)return;
  if(!reason.trim()){alert('กรุณาระบุเหตุผลก่อนบันทึก');return}
- const d=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
  const {data:existing,error:checkError}=await sb.from('patrol_logs').select('id').eq('point_id',p.id).eq('round_time',rt).gte('created_at',start).lte('created_at',end).limit(1);
  if(checkError){alert('ตรวจสอบรายการเดิมไม่สำเร็จ: '+checkError.message);return}
  if(existing&&existing.length){alert('จุดนี้มีรายการในรอบ '+rt+' แล้ว สามารถกดแก้ไขรายการเพื่อเพิ่มหมายเหตุได้');return}
