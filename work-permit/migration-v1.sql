@@ -35,6 +35,20 @@ create index if not exists work_permit_department_approvals_permit_idx
 
 alter table public.work_permit_department_approvals enable row level security;
 
+-- Allow assigned departments to read permits routed to their role.
+drop policy if exists "Assigned departments view permits" on public.work_permits;
+create policy "Assigned departments view permits"
+on public.work_permits for select to authenticated
+using (
+  public.current_user_role() = 'ADMIN'
+  or public.current_user_role() = 'SAFETY'
+  or exists (
+    select 1 from public.work_permit_department_approvals a
+    where a.permit_id = work_permits.id
+      and a.department = public.current_user_role()
+  )
+);
+
 drop policy if exists "Staff view department approvals" on public.work_permit_department_approvals;
 create policy "Staff view department approvals"
 on public.work_permit_department_approvals for select to authenticated
@@ -54,5 +68,42 @@ with check (
   public.current_user_role() = 'ADMIN'
   or public.current_user_role() = department
 );
+
+-- Recalculate overall permit status after each department decision.
+create or replace function public.refresh_work_permit_overall_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  total_count integer;
+  approved_count integer;
+  rejected_count integer;
+  revision_count integer;
+begin
+  select count(*),
+         count(*) filter (where status = 'approved'),
+         count(*) filter (where status = 'rejected'),
+         count(*) filter (where status = 'revision_requested')
+    into total_count, approved_count, rejected_count, revision_count
+  from public.work_permit_department_approvals
+  where permit_id = new.permit_id;
+
+  if rejected_count > 0 then
+    update public.work_permits set status = 'rejected', updated_at = now() where id = new.permit_id;
+  elsif revision_count > 0 then
+    update public.work_permits set status = 'revision_requested', updated_at = now() where id = new.permit_id;
+  elsif total_count > 0 and approved_count = total_count then
+    update public.work_permits set status = 'approved', updated_at = now() where id = new.permit_id;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists work_permit_department_status_sync on public.work_permit_department_approvals;
+create trigger work_permit_department_status_sync
+after insert or update of status on public.work_permit_department_approvals
+for each row execute function public.refresh_work_permit_overall_status();
 
 commit;
