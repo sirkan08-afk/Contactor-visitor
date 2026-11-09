@@ -267,12 +267,12 @@ async function exportPDF(){
    const items=data.filter(x=>(x.patrol_points?.area_name||'ไม่ระบุอาคาร')===building).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
    if(!items.length)continue;
    const good=items.filter(x=>x.status==='normal'),bad=items.filter(x=>x.status==='abnormal'),blocked=items.filter(x=>x.status==='inaccessible');
-   const label=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b>';
+   const label=x=>'<b>'+esc(x.patrol_points?.point_code||'-')+'</b> '+esc(x.patrol_points?.point_name||'');
    let normalPhotos='';
    for(const x of good){
     let photo='';
     if(x.evidence_path){try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="proof" src="'+esc(data.signedUrl)+'" alt="ภาพจุดตรวจปกติ">'}catch(e){}}
-    normalPhotos+='<div class="normal-proof"><div><b>'+label(x)+'</b><span class="ok">ปกติ</span><div>'+esc(x.notes||'')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
+    normalPhotos+='<div class="normal-proof"><div><b>'+label(x)+'</b><span class="ok">ปกติ</span><div>'+esc(x.notes||'')+'</div></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
    }
    let issues='';
    for(const x of bad){
