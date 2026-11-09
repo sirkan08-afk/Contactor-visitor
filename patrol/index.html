@@ -278,7 +278,7 @@ async function exportPDF(){
    for(const x of bad){
     let photo='';
     if(x.evidence_path){try{const {data,error}=await sb.storage.from('patrol-evidence').createSignedUrl(x.evidence_path,600);if(!error&&data?.signedUrl)photo='<img class="proof" src="'+esc(data.signedUrl)+'" alt="ภาพหลักฐาน">'}catch(e){}}
-    issues+='<div class="issue"><div class="issue-desc"><b>'+label(x)+'</b><span class="alert">ผิดปกติ</span><div>'+esc(x.notes||'ไม่ได้ระบุรายละเอียด')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
+    issues+='<div class="issue"><div class="issue-desc"><b>'+label(x)+'</b><span class="alert">ผิดปกติ</span><div>'+esc(x.notes||'')+'</div><small>ผู้ตรวจ '+esc(x.patrol_profiles?.full_name||'-')+'</small></div>'+(photo?'<div class="proof-wrap">'+photo+'</div>':'')+'</div>';
    }
    const blockedText=blocked.map(x=>label(x)+(x.notes?' — '+esc(x.notes):'')).join(' / ');
    rows.push('<div class="building-row"><div class="building-label"><b>'+esc(building)+'</b><small>'+items.length+' จุด</small></div><div class="building-content"><div class="counts"><span class="ok">ปกติ '+good.length+'</span><span class="ng">ผิดปกติ '+bad.length+'</span><span class="na">เข้าตรวจไม่ได้ '+blocked.length+'</span></div><div class="point-list">'+(good.length?good.map(label).join('　/　'):'—')+'</div>'+(normalPhotos?'<div class="normal-photos"><b>รายละเอียดจุดตรวจปกติ</b>'+normalPhotos+'</div>':'')+(issues?'<div class="issues"><b>รายการที่พบความผิดปกติ</b>'+issues+'</div>':'')+(blockedText?'<div class="blocked">'+blockedText+'</div>':'')+'</div></div>');
