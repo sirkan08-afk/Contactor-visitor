@@ -54,7 +54,7 @@
 </div>
 </section>
 <div id="tab-scan" class="card"><h3>สแกนจุดตรวจ</h3><p class="muted">สแกน QR ประจำจุดเพื่อบันทึกเวลาและผลตรวจ</p><div id="reader"></div><button style="width:100%;margin-top:10px" onclick="startScan()">เปิดกล้องสแกน QR</button><div id="photoMsg" class="muted">สแกน QR เพื่อเลือกจุดตรวจ แล้วแนบภาพได้ในแบบฟอร์มผลตรวจ</div><div id="scanmsg" class="muted"></div></div>
-<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
+<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="unvisitedNotePanel" class="card" style="margin:12px 0;border:2px solid #d97706;background:#fffbeb"><h4 style="margin:0 0 8px;color:#92400e">บันทึกเหตุผลจุดที่ไม่ได้ตรวจ</h4><p class="muted" style="margin:0 0 8px">เลือกจุดที่ยังไม่ได้ตรวจ แล้วระบุเหตุผล เช่น ห้องล็อก / มีงานซ่อม / พื้นที่ปิด</p><select id="unvisitedPointSelect" style="width:100%;padding:11px;border:1px solid #d97706;border-radius:8px;margin-bottom:8px"><option value="">กำลังโหลดจุดที่ยังไม่ได้ตรวจ...</option></select><button type="button" style="width:100%;background:#d97706;color:#fff;padding:12px;border-radius:8px;font-weight:700" onclick="markSelectedPointInaccessible()">+ บันทึกเหตุผลที่ไม่ได้ตรวจ</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
 <div id="checkform" class="card hidden"><h3 id="pointtitle">บันทึกผลตรวจ</h3><p id="pointcode" class="muted"></p><label>รอบตรวจ</label><select id="roundtime"></select><label>ผลการตรวจ</label><select id="status"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="notes" rows="3" placeholder="รายละเอียดที่พบ (ถ้ามี)"></textarea><label>ภาพถ่ายจุดตรวจ (แนบได้ 1 รูปต่อจุด)</label><input id="patrolCamera" type="file" accept="image/*" capture="environment" onchange="capturePatrolPhoto(this)"><p id="photoMsg" class="muted">ถ่ายภาพประกอบผลตรวจได้ทั้งสถานะปกติและผิดปกติ</p><button style="width:100%;margin-top:12px" onclick="savePatrol()">บันทึกผลตรวจ</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('checkform').classList.add('hidden')">ยกเลิก</button></div><div id="editLogForm" class="card hidden"><h3>แก้ไขผลตรวจ</h3><p id="editLogTitle" class="muted"></p><label>ผลการตรวจ</label><select id="editLogStatus"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="editLogNotes" rows="3"></textarea><label>ถ่ายรูปหลักฐานใหม่ (ถ้ามี)</label><input id="editLogPhoto" type="file" accept="image/*" capture="environment"><button style="width:100%;margin-top:12px" onclick="saveEditedLog()">บันทึกการแก้ไข</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('editLogForm').classList.add('hidden')">ยกเลิก</button></div>
 </section></main><footer>HOTEL SECURITY PATROL SYSTEM · เวลาบันทึกใช้ Asia/Bangkok</footer>
 <script>
@@ -259,10 +259,22 @@ async function saveEditedLog(){
  if(error){alert('แก้ไขรายการไม่สำเร็จ: '+error.message+' (ตรวจสอบสิทธิ์ UPDATE ใน Supabase RLS)');return}
  alert('แก้ไขรายการเรียบร้อย');form.classList.add('hidden');await loadReport();
 }
+function refreshUnvisitedPointSelect(latestByCode){
+ const sel=document.getElementById('unvisitedPointSelect');if(!sel)return;
+ const missing=[...points].filter(p=>!latestByCode[p.point_code]).sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999));
+ sel.innerHTML='<option value="">-- เลือกจุดที่ยังไม่ได้ตรวจ --</option>'+missing.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.point_code)+' · '+esc(p.area_name)+' · '+esc(p.point_name)+'</option>').join('');
+ if(!missing.length)sel.innerHTML='<option value="">ไม่มีจุดที่ยังไม่ได้ตรวจในรอบนี้</option>';
+}
+function markSelectedPointInaccessible(){
+ const sel=document.getElementById('unvisitedPointSelect');
+ if(!sel||!sel.value){alert('กรุณาเลือกจุดที่ยังไม่ได้ตรวจก่อน');return}
+ markPointInaccessible(sel.value);
+}
 function renderRoundReport(rounds){
  const selected=logs.filter(x=>(x.round_time||'')===reportRound);
  const latestByCode={};
  selected.forEach(x=>{const code=x.patrol_points?.point_code;if(code)latestByCode[code]=x});
+ refreshUnvisitedPointSelect(latestByCode);
  const orderPoints=[...points].sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999)||String(a.point_code).localeCompare(String(b.point_code),'th'));
  const grouped={};
  orderPoints.forEach(p=>(grouped[p.area_name]??=[]).push(p));
