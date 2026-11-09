@@ -214,6 +214,22 @@ async function loadReport(){
  if(!availableRounds.includes(reportRound))reportRound=availableRounds[0]||'10:00';
  renderRoundReport(availableRounds);
 }
+async function markPointInaccessible(pointId){
+ const p=points.find(x=>x.id===pointId);if(!p)return;
+ const rt=activePatrolRound();
+ if(!rt){const next=nextPatrolRound();alert(next?'ขณะนี้ไม่อยู่ในเวลารอบตรวจ กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}
+ const reason=prompt('ระบุเหตุผลที่ไม่สามารถเข้าตรวจได้\\nจุดตรวจ: '+p.point_code+' · '+p.point_name+'\\n\\nตัวอย่าง: มีงานซ่อมกั้นพื้นที่ / ห้องล็อก / มีเหตุฉุกเฉิน');
+ if(reason===null)return;
+ if(!reason.trim()){alert('กรุณาระบุเหตุผลก่อนบันทึก');return}
+ const d=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const {data:existing,error:checkError}=await sb.from('patrol_logs').select('id').eq('point_id',p.id).eq('round_time',rt).gte('created_at',start).lte('created_at',end).limit(1);
+ if(checkError){alert('ตรวจสอบรายการเดิมไม่สำเร็จ: '+checkError.message);return}
+ if(existing&&existing.length){alert('จุดนี้มีรายการในรอบ '+rt+' แล้ว สามารถกดแก้ไขรายการเพื่อเพิ่มหมายเหตุได้');return}
+ const {error}=await sb.from('patrol_logs').insert({point_id:p.id,guard_id:profile.id,status:'inaccessible',round_time:rt,notes:reason.trim(),evidence_path:null});
+ if(error){alert('บันทึกเหตุผลไม่สำเร็จ: '+error.message);return}
+ alert('บันทึกเหตุผลที่ไม่ได้ตรวจเรียบร้อย');
+ await loadReport();
+}
 function selectReportRound(t){
  reportRound=t;
  const availableRounds=['10:00','14:00','18:00','22:00'];
@@ -265,7 +281,7 @@ function renderRoundReport(rounds){
    const label=x?(x.status==='normal'?'ปกติ':x.status==='abnormal'?'ผิดปกติ':'เข้าตรวจไม่ได้'):'ยังไม่ได้ตรวจ';
    const bg=x?(x.status==='normal'?'#dcfce7':x.status==='abnormal'?'#fee2e2':'#fef3c7'):'#f1f5f9';
    const color=x?(x.status==='normal'?'#166534':x.status==='abnormal'?'#991b1b':'#92400e'):'#64748b';
-   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+(x?'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px"><button type="button" style="padding:5px 8px;background:#eaf0f8;color:#172033;font-size:11px" onclick="editPatrolLog(\''+esc(x.id)+'\')">แก้ไขรายการ</button></div>':'')+'</td></tr>';
+   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+(x?'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px"><button type="button" style="padding:5px 8px;background:#eaf0f8;color:#172033;font-size:11px" onclick="editPatrolLog(\\''+esc(x.id)+'\\')">แก้ไขรายการ</button></div>':'<div style="margin-top:6px"><button type="button" style="padding:6px 9px;background:#fef3c7;color:#92400e;font-size:11px" onclick="markPointInaccessible(\\''+esc(p.id)+'\\')">บันทึกเหตุผลที่ไม่ได้ตรวจ</button></div>')+'</td></tr>';
   });
  });
  html+='</tbody></table></div>';
