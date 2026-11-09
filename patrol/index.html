@@ -54,7 +54,7 @@
 </div>
 </section>
 <div id="tab-scan" class="card"><h3>สแกนจุดตรวจ</h3><p class="muted">สแกน QR ประจำจุดเพื่อบันทึกเวลาและผลตรวจ</p><div id="reader"></div><button style="width:100%;margin-top:10px" onclick="startScan()">เปิดกล้องสแกน QR</button><div id="photoMsg" class="muted">สแกน QR เพื่อเลือกจุดตรวจ แล้วแนบภาพได้ในแบบฟอร์มผลตรวจ</div><div id="scanmsg" class="muted"></div></div>
-<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
+<div id="tab-report" class="card hidden"><h3>รายงาน Patrol ประจำวัน</h3><p id="liveStatus" class="muted" style="margin:0 0 10px">กำลังเชื่อมต่อข้อมูลเรียลไทม์...</p><div class="row"><input type="date" id="reportdate"><button onclick="loadReport()">ค้นหา</button></div><div id="unvisitedNotePanel" class="card" style="margin:12px 0;border:2px solid #d97706;background:#fffbeb"><h4 style="margin:0 0 8px;color:#92400e">บันทึกเหตุผลจุดที่ไม่ได้ตรวจ</h4><p class="muted" style="margin:0 0 8px">เลือกจุดที่ยังไม่ได้ตรวจ แล้วระบุเหตุผล เช่น ห้องล็อก / มีงานซ่อม / พื้นที่ปิด</p><select id="unvisitedPointSelect" style="width:100%;padding:11px;border:1px solid #d97706;border-radius:8px;margin-bottom:8px"><option value="">กำลังโหลดจุดที่ยังไม่ได้ตรวจ...</option></select><button type="button" style="width:100%;background:#d97706;color:#fff;padding:12px;border-radius:8px;font-weight:700" onclick="markSelectedPointInaccessible()">+ บันทึกเหตุผลที่ไม่ได้ตรวจ</button></div><div id="reportlist"></div><div class="row" style="margin-top:10px"><button class="btn2" onclick="exportCSV()">ส่งออก CSV</button><button onclick="exportPDF()">ดาวน์โหลด PDF</button></div></div>
 <div id="checkform" class="card hidden"><h3 id="pointtitle">บันทึกผลตรวจ</h3><p id="pointcode" class="muted"></p><label>รอบตรวจ</label><select id="roundtime"></select><label>ผลการตรวจ</label><select id="status"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="notes" rows="3" placeholder="รายละเอียดที่พบ (ถ้ามี)"></textarea><label>ภาพถ่ายจุดตรวจ (แนบได้ 1 รูปต่อจุด)</label><input id="patrolCamera" type="file" accept="image/*" capture="environment" onchange="capturePatrolPhoto(this)"><p id="photoMsg" class="muted">ถ่ายภาพประกอบผลตรวจได้ทั้งสถานะปกติและผิดปกติ</p><button style="width:100%;margin-top:12px" onclick="savePatrol()">บันทึกผลตรวจ</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('checkform').classList.add('hidden')">ยกเลิก</button></div><div id="editLogForm" class="card hidden"><h3>แก้ไขผลตรวจ</h3><p id="editLogTitle" class="muted"></p><label>ผลการตรวจ</label><select id="editLogStatus"><option value="normal">ปกติ (Normal)</option><option value="abnormal">พบความผิดปกติ (Abnormal)</option><option value="inaccessible">ไม่สามารถเข้าตรวจได้</option></select><label>รายละเอียด / หมายเหตุ</label><textarea id="editLogNotes" rows="3"></textarea><label>ถ่ายรูปหลักฐานใหม่ (ถ้ามี)</label><input id="editLogPhoto" type="file" accept="image/*" capture="environment"><button style="width:100%;margin-top:12px" onclick="saveEditedLog()">บันทึกการแก้ไข</button><button class="btn2" style="width:100%;margin-top:8px" onclick="document.getElementById('editLogForm').classList.add('hidden')">ยกเลิก</button></div>
 </section></main><footer>HOTEL SECURITY PATROL SYSTEM · เวลาบันทึกใช้ Asia/Bangkok</footer>
 <script>
@@ -137,7 +137,37 @@ function showTab(t){if(t==='adminQr'&&!isAdmin001()){alert('เฉพาะ ADMI
 let scanner=null,pendingPatrolPhoto=null;
 async function startScan(){try{if(!scanner)scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},async text=>{await scanner.stop();await handleQR(text)},()=>{});scanmsg.textContent='กำลังสแกน...'}catch(e){scanmsg.textContent='เปิดกล้องไม่ได้: '+e}}
 async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).trim():raw.trim();const {data,error}=await sb.from('patrol_points').select('*').eq('qr_token',token).eq('active',true).single();if(error||!data){scanmsg.textContent='QR ไม่ถูกต้องหรือจุดตรวจถูกปิดใช้งาน';return}const active=activePatrolRound();if(!active){const next=nextPatrolRound();alert(next?'หมดเวลารอบก่อนแล้ว กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}selectedPoint=data;fillRoundOptions();pointtitle.textContent=data.area_name+' – '+data.point_name;pointcode.textContent='รหัส '+data.point_code;notes.value='';document.getElementById('status').value='normal';document.getElementById('photoMsg').textContent='เลือกจุด '+data.point_code+' แล้ว · กดถ่ายรูปจุดตรวจได้';checkform.classList.remove('hidden');checkform.scrollIntoView({behavior:'smooth'})}
-function capturePatrolPhoto(input){const f=input.files&&input.files[0];if(!f)return;if(!selectedPoint){alert('กรุณาสแกน QR เลือกจุดตรวจก่อนถ่ายรูป');input.value='';return}pendingPatrolPhoto=f;document.getElementById('photoMsg').textContent='แนบรูปจุด '+selectedPoint.point_code+' แล้ว: '+f.name}
+async function compressPatrolImage(file){
+ if(!file||!file.type.startsWith('image/'))throw new Error('ไฟล์ที่เลือกไม่ใช่รูปภาพ');
+ const targetBytes=100*1024;
+ let bitmap;
+ try{bitmap=await createImageBitmap(file)}catch(e){
+  bitmap=await new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('เปิดไฟล์รูปภาพไม่สำเร็จ'))};img.src=url});
+ }
+ const sourceW=bitmap.width||bitmap.naturalWidth,sourceH=bitmap.height||bitmap.naturalHeight;
+ if(!sourceW||!sourceH)throw new Error('ไม่สามารถอ่านขนาดรูปภาพได้');
+ let blob=null;
+ // ลดทั้งความละเอียดและคุณภาพเป็นลำดับ จนไฟล์เหลือไม่เกิน 100 KB
+ for(const maxSide of [960,800,720,640,560,480,400,360]){
+  const scale=Math.min(1,maxSide/Math.max(sourceW,sourceH));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(sourceW*scale));canvas.height=Math.max(1,Math.round(sourceH*scale));
+  const ctx=canvas.getContext('2d',{alpha:false});
+  if(!ctx)throw new Error('เบราว์เซอร์ไม่รองรับการบีบอัดรูปภาพ');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  for(const quality of [.58,.48,.38,.30,.24]){
+   blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
+   if(blob&&blob.size<=targetBytes)break;
+  }
+  if(blob&&blob.size<=targetBytes)break;
+ }
+ if(bitmap.close)bitmap.close();
+ if(!blob)throw new Error('บีบอัดรูปภาพไม่สำเร็จ');
+ if(blob.size>targetBytes)throw new Error('รูปยังมีขนาดเกิน 100 KB กรุณาลองเลือกรูปอื่น');
+ return new File([blob],(file.name||'patrol-photo').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg',lastModified:Date.now()});
+}
+async function capturePatrolPhoto(input){const f=input.files&&input.files[0];if(!f)return;if(!selectedPoint){alert('กรุณาสแกน QR เลือกจุดตรวจก่อนถ่ายรูป');input.value='';return}const msg=document.getElementById('photoMsg');msg.textContent='กำลังย่อขนาดรูปภาพ...';try{pendingPatrolPhoto=await compressPatrolImage(f);msg.textContent='แนบรูปจุด '+selectedPoint.point_code+' เรียบร้อย · '+(pendingPatrolPhoto.size/1024/1024).toFixed(2)+' MB (หลังบีบอัด)'}catch(e){pendingPatrolPhoto=null;input.value='';msg.textContent='';alert('เตรียมรูปภาพไม่สำเร็จ: '+e.message)}}
 async function savePatrol(){
  if(!selectedPoint)return;
  const st=document.getElementById('status').value,rt=activePatrolRound();
@@ -147,7 +177,7 @@ async function savePatrol(){
  if(checkError){alert('ตรวจสอบรายการซ้ำไม่สำเร็จ: '+checkError.message);return}
  if(existing&&existing.length){alert('จุดตรวจนี้ถูกบันทึกในรอบ '+rt+' แล้ว ไม่สามารถบันทึกซ้ำได้ หากข้อมูลเดิมผิด ให้ใช้ปุ่มแก้ไขในรายงาน');return}
  let evidenceUrl=null;
- if(pendingPatrolPhoto){const f=pendingPatrolPhoto,path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
+ if(pendingPatrolPhoto){const f=pendingPatrolPhoto,path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false,contentType:'image/jpeg',cacheControl:'3600'});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
  const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});
  if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}
  alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');selectedPoint=null;pendingPatrolPhoto=null;document.getElementById('patrolCamera').value='';document.getElementById('photoMsg').textContent='สแกน QR เพื่อเลือกจุดตรวจ แล้วถ่ายภาพหลักฐานได้';await loadReport();
@@ -184,6 +214,22 @@ async function loadReport(){
  if(!availableRounds.includes(reportRound))reportRound=availableRounds[0]||'10:00';
  renderRoundReport(availableRounds);
 }
+async function markPointInaccessible(pointId){
+ const p=points.find(x=>x.id===pointId);if(!p)return;
+ const rt=activePatrolRound();
+ if(!rt){const next=nextPatrolRound();alert(next?'ขณะนี้ไม่อยู่ในเวลารอบตรวจ กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}
+ const reason=prompt('ระบุเหตุผลที่ไม่สามารถเข้าตรวจได้\\nจุดตรวจ: '+p.point_code+' · '+p.point_name+'\\n\\nตัวอย่าง: มีงานซ่อมกั้นพื้นที่ / ห้องล็อก / มีเหตุฉุกเฉิน');
+ if(reason===null)return;
+ if(!reason.trim()){alert('กรุณาระบุเหตุผลก่อนบันทึก');return}
+ const d=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),start=d+'T00:00:00+07:00',end=d+'T23:59:59+07:00';
+ const {data:existing,error:checkError}=await sb.from('patrol_logs').select('id').eq('point_id',p.id).eq('round_time',rt).gte('created_at',start).lte('created_at',end).limit(1);
+ if(checkError){alert('ตรวจสอบรายการเดิมไม่สำเร็จ: '+checkError.message);return}
+ if(existing&&existing.length){alert('จุดนี้มีรายการในรอบ '+rt+' แล้ว สามารถกดแก้ไขรายการเพื่อเพิ่มหมายเหตุได้');return}
+ const {error}=await sb.from('patrol_logs').insert({point_id:p.id,guard_id:profile.id,status:'inaccessible',round_time:rt,notes:reason.trim(),evidence_path:null});
+ if(error){alert('บันทึกเหตุผลไม่สำเร็จ: '+error.message);return}
+ alert('บันทึกเหตุผลที่ไม่ได้ตรวจเรียบร้อย');
+ await loadReport();
+}
 function selectReportRound(t){
  reportRound=t;
  const availableRounds=['10:00','14:00','18:00','22:00'];
@@ -202,20 +248,33 @@ async function editPatrolLog(logId){
 async function saveEditedLog(){
  const form=document.getElementById('editLogForm'),logId=form.dataset.logId;if(!logId)return;
  const patch={status:document.getElementById('editLogStatus').value,notes:document.getElementById('editLogNotes').value.trim()};
- const file=document.getElementById('editLogPhoto').files?.[0];
- if(file){if(!file.type.startsWith('image/')){alert('กรุณาเลือกไฟล์รูปภาพ');return}
+ const originalFile=document.getElementById('editLogPhoto').files?.[0];
+ if(originalFile){try{const file=await compressPatrolImage(originalFile);
   const path=profile.id+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,file,{upsert:false});
+  const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,file,{upsert:false,contentType:'image/jpeg',cacheControl:'3600'});
   if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}patch.evidence_path=path;
- }
+ }catch(e){alert('เตรียมรูปภาพไม่สำเร็จ: '+e.message);return}}
+
  const {error}=await sb.from('patrol_logs').update(patch).eq('id',logId);
  if(error){alert('แก้ไขรายการไม่สำเร็จ: '+error.message+' (ตรวจสอบสิทธิ์ UPDATE ใน Supabase RLS)');return}
  alert('แก้ไขรายการเรียบร้อย');form.classList.add('hidden');await loadReport();
+}
+function refreshUnvisitedPointSelect(latestByCode){
+ const sel=document.getElementById('unvisitedPointSelect');if(!sel)return;
+ const missing=[...points].filter(p=>!latestByCode[p.point_code]).sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999));
+ sel.innerHTML='<option value="">-- เลือกจุดที่ยังไม่ได้ตรวจ --</option>'+missing.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.point_code)+' · '+esc(p.area_name)+' · '+esc(p.point_name)+'</option>').join('');
+ if(!missing.length)sel.innerHTML='<option value="">ไม่มีจุดที่ยังไม่ได้ตรวจในรอบนี้</option>';
+}
+function markSelectedPointInaccessible(){
+ const sel=document.getElementById('unvisitedPointSelect');
+ if(!sel||!sel.value){alert('กรุณาเลือกจุดที่ยังไม่ได้ตรวจก่อน');return}
+ markPointInaccessible(sel.value);
 }
 function renderRoundReport(rounds){
  const selected=logs.filter(x=>(x.round_time||'')===reportRound);
  const latestByCode={};
  selected.forEach(x=>{const code=x.patrol_points?.point_code;if(code)latestByCode[code]=x});
+ refreshUnvisitedPointSelect(latestByCode);
  const orderPoints=[...points].sort((a,b)=>(a.sort_order??9999)-(b.sort_order??9999)||String(a.point_code).localeCompare(String(b.point_code),'th'));
  const grouped={};
  orderPoints.forEach(p=>(grouped[p.area_name]??=[]).push(p));
@@ -234,7 +293,7 @@ function renderRoundReport(rounds){
    const label=x?(x.status==='normal'?'ปกติ':x.status==='abnormal'?'ผิดปกติ':'เข้าตรวจไม่ได้'):'ยังไม่ได้ตรวจ';
    const bg=x?(x.status==='normal'?'#dcfce7':x.status==='abnormal'?'#fee2e2':'#fef3c7'):'#f1f5f9';
    const color=x?(x.status==='normal'?'#166534':x.status==='abnormal'?'#991b1b':'#92400e'):'#64748b';
-   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+(x?'<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px"><button type="button" style="padding:5px 8px;background:#eaf0f8;color:#172033;font-size:11px" onclick="editPatrolLog(\''+esc(x.id)+'\')">แก้ไขรายการ</button></div>':'')+'</td></tr>';
+   html+='<tr><td style="padding:9px 8px;border-bottom:1px solid #e2e8f0"><b>'+esc(p.point_code)+'</b> · '+esc(p.point_name)+(x?'':'<div style="margin-top:7px"><button type="button" data-point-id="'+esc(p.id)+'" style="display:inline-block;padding:8px 11px;background:#fef3c7;color:#92400e;font-size:12px;font-weight:700;border:1px solid #d97706;border-radius:8px" onclick="markPointInaccessible(this.dataset.pointId)">+ บันทึกเหตุผลที่ไม่ได้ตรวจ</button></div>')+'</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e2e8f0"><span style="display:inline-block;background:'+bg+';color:'+color+';border-radius:20px;padding:5px 9px;font-size:12px;font-weight:700">'+label+'</span>'+(x&&x.notes?'<div style="font-size:11px;color:#64748b;margin-top:3px">'+esc(x.notes)+'</div>':'')+'</td></tr>';
   });
  });
  html+='</tbody></table></div>';
@@ -387,6 +446,6 @@ if(patrolInstallButton)patrolInstallButton.addEventListener('click',async()=>{
 window.addEventListener('appinstalled',()=>{
  if(patrolInstallButton){patrolInstallButton.style.display='none';}
 });
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',async()=>{try{const reg=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await reg.update();}catch(e){console.warn('Service worker update failed',e);}});
 connect();
 </script></body></html>
