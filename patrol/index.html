@@ -137,7 +137,23 @@ function showTab(t){if(t==='adminQr'&&!isAdmin001()){alert('เฉพาะ ADMI
 let scanner=null,pendingPatrolPhoto=null;
 async function startScan(){try{if(!scanner)scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},async text=>{await scanner.stop();await handleQR(text)},()=>{});scanmsg.textContent='กำลังสแกน...'}catch(e){scanmsg.textContent='เปิดกล้องไม่ได้: '+e}}
 async function handleQR(raw){const token=raw.startsWith('PATROL:')?raw.slice(7).trim():raw.trim();const {data,error}=await sb.from('patrol_points').select('*').eq('qr_token',token).eq('active',true).single();if(error||!data){scanmsg.textContent='QR ไม่ถูกต้องหรือจุดตรวจถูกปิดใช้งาน';return}const active=activePatrolRound();if(!active){const next=nextPatrolRound();alert(next?'หมดเวลารอบก่อนแล้ว กรุณารอรอบ '+next+' น.':'ขณะนี้ไม่มีรอบตรวจที่เปิดอยู่ตามแผนวันนี้');return}selectedPoint=data;fillRoundOptions();pointtitle.textContent=data.area_name+' – '+data.point_name;pointcode.textContent='รหัส '+data.point_code;notes.value='';document.getElementById('status').value='normal';document.getElementById('photoMsg').textContent='เลือกจุด '+data.point_code+' แล้ว · กดถ่ายรูปจุดตรวจได้';checkform.classList.remove('hidden');checkform.scrollIntoView({behavior:'smooth'})}
-function capturePatrolPhoto(input){const f=input.files&&input.files[0];if(!f)return;if(!selectedPoint){alert('กรุณาสแกน QR เลือกจุดตรวจก่อนถ่ายรูป');input.value='';return}pendingPatrolPhoto=f;document.getElementById('photoMsg').textContent='แนบรูปจุด '+selectedPoint.point_code+' แล้ว: '+f.name}
+async function compressPatrolImage(file){
+ if(!file||!file.type.startsWith('image/'))throw new Error('ไฟล์ที่เลือกไม่ใช่รูปภาพ');
+ const maxSide=1600,targetBytes=1.5*1024*1024;
+ let bitmap;
+ try{bitmap=await createImageBitmap(file)}catch(e){
+  bitmap=await new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('เปิดไฟล์รูปภาพไม่สำเร็จ'))};img.src=url});
+ }
+ const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+ const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+ if(bitmap.close)bitmap.close();
+ let quality=.82,blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
+ while(blob&&blob.size>targetBytes&&quality>.48){quality-=.1;blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality))}
+ if(!blob)throw new Error('แปลงรูปภาพไม่สำเร็จ');
+ return new File([blob],(file.name||'patrol-photo').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg',lastModified:Date.now()});
+}
+async function capturePatrolPhoto(input){const f=input.files&&input.files[0];if(!f)return;if(!selectedPoint){alert('กรุณาสแกน QR เลือกจุดตรวจก่อนถ่ายรูป');input.value='';return}const msg=document.getElementById('photoMsg');msg.textContent='กำลังย่อขนาดรูปภาพ...';try{pendingPatrolPhoto=await compressPatrolImage(f);msg.textContent='แนบรูปจุด '+selectedPoint.point_code+' เรียบร้อย · '+(pendingPatrolPhoto.size/1024/1024).toFixed(2)+' MB (หลังบีบอัด)'}catch(e){pendingPatrolPhoto=null;input.value='';msg.textContent='';alert('เตรียมรูปภาพไม่สำเร็จ: '+e.message)}}
 async function savePatrol(){
  if(!selectedPoint)return;
  const st=document.getElementById('status').value,rt=activePatrolRound();
@@ -147,7 +163,7 @@ async function savePatrol(){
  if(checkError){alert('ตรวจสอบรายการซ้ำไม่สำเร็จ: '+checkError.message);return}
  if(existing&&existing.length){alert('จุดตรวจนี้ถูกบันทึกในรอบ '+rt+' แล้ว ไม่สามารถบันทึกซ้ำได้ หากข้อมูลเดิมผิด ให้ใช้ปุ่มแก้ไขในรายงาน');return}
  let evidenceUrl=null;
- if(pendingPatrolPhoto){const f=pendingPatrolPhoto,path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
+ if(pendingPatrolPhoto){const f=pendingPatrolPhoto,path=profile.id+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,f,{upsert:false,contentType:'image/jpeg',cacheControl:'3600'});if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}evidenceUrl=path}
  const {error}=await sb.from('patrol_logs').insert({point_id:selectedPoint.id,guard_id:profile.id,status:st,round_time:rt,notes:notes.value.trim(),evidence_path:evidenceUrl});
  if(error){alert('บันทึกไม่สำเร็จ: '+error.message);return}
  alert('บันทึกผลตรวจเรียบร้อย');checkform.classList.add('hidden');selectedPoint=null;pendingPatrolPhoto=null;document.getElementById('patrolCamera').value='';document.getElementById('photoMsg').textContent='สแกน QR เพื่อเลือกจุดตรวจ แล้วถ่ายภาพหลักฐานได้';await loadReport();
@@ -202,12 +218,13 @@ async function editPatrolLog(logId){
 async function saveEditedLog(){
  const form=document.getElementById('editLogForm'),logId=form.dataset.logId;if(!logId)return;
  const patch={status:document.getElementById('editLogStatus').value,notes:document.getElementById('editLogNotes').value.trim()};
- const file=document.getElementById('editLogPhoto').files?.[0];
- if(file){if(!file.type.startsWith('image/')){alert('กรุณาเลือกไฟล์รูปภาพ');return}
+ const originalFile=document.getElementById('editLogPhoto').files?.[0];
+ if(originalFile){try{const file=await compressPatrolImage(originalFile);
   const path=profile.id+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,file,{upsert:false});
+  const {error:upErr}=await sb.storage.from('patrol-evidence').upload(path,file,{upsert:false,contentType:'image/jpeg',cacheControl:'3600'});
   if(upErr){alert('อัปโหลดรูปไม่สำเร็จ: '+upErr.message);return}patch.evidence_path=path;
- }
+ }catch(e){alert('เตรียมรูปภาพไม่สำเร็จ: '+e.message);return}}
+
  const {error}=await sb.from('patrol_logs').update(patch).eq('id',logId);
  if(error){alert('แก้ไขรายการไม่สำเร็จ: '+error.message+' (ตรวจสอบสิทธิ์ UPDATE ใน Supabase RLS)');return}
  alert('แก้ไขรายการเรียบร้อย');form.classList.add('hidden');await loadReport();
