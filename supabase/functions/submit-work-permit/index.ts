@@ -1,7 +1,7 @@
 // Public QR submission + private tracking lookup for Work Permit.
 // Public callers can submit/track only; privileged database access stays server-side.
 // Configure [functions.submit-work-permit] verify_jwt = false in supabase/config.toml.
-import { withSupabase } from "npm:@supabase/server@1";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const clean = (v: unknown, max = 500) => String(v ?? "").trim().slice(0, max);
 const json = (body: unknown, status = 200) =>
@@ -12,11 +12,17 @@ async function sha256(value: string) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-Deno.serve(withSupabase({ auth: "none" }, async (req, ctx) => {
+const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+const supabaseUrl = Deno.env.get("SUPABASE_URL");
+const secretKey = secretKeys.default;
+if (!supabaseUrl || !secretKey) throw new Error("Missing Supabase URL or default secret key");
+const admin = createClient(supabaseUrl, secretKey, { auth: { persistSession: false } });
+
+Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   try {
     const body = await req.json();
-    const db = ctx.supabaseAdmin;
+    const db = admin;
 
     if (body.action === "track") {
       const permitNo = clean(body.permit_no, 60);
@@ -89,7 +95,7 @@ Deno.serve(withSupabase({ auth: "none" }, async (req, ctx) => {
 
     const approvalRows = [...departments].map((department) => ({
       permit_id: permit.id, department, status: "pending",
-    }));
+    });
     const { error: routeError } = await db.from("work_permit_department_approvals").insert(approvalRows);
     if (routeError) {
       await db.from("work_permits").delete().eq("id", permit.id);
