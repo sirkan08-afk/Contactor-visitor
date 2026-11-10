@@ -321,7 +321,7 @@ async function loadStaff(){
  const permitIds=[...new Set((items||[]).map(x=>x.permit_id).filter(Boolean))];
  let permitMap={};
  if(permitIds.length){
-   const {data:permits,error:permitError}=await db.from("work_permits").select("id,permit_no,company_name,work_title,work_location,start_date,status").in("id",permitIds);
+   const {data:permits,error:permitError}=await db.from("work_permits").select("*").in("id",permitIds);
    if(permitError){list.textContent="พบรายการอนุมัติ "+items.length+" รายการ แต่โหลดรายละเอียดใบอนุญาตไม่ได้: "+permitError.message;return;}
    permitMap=Object.fromEntries((permits||[]).map(p=>[p.id,p]));
  }
