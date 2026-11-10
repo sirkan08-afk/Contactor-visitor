@@ -68,7 +68,7 @@ $("downloadInspectionPdf").onclick=async()=>{
   const notes=$("inspectionNotes").value.trim()||"-";
   const photoImgs=[];
   for(const photo of selectedPhotos){const img=new Image();img.src=photo.url;try{await img.decode();}catch{}photoImgs.push(img);}
-  const estimated=pad*2+250+5*lineH+110+16*lineH+180+Math.ceil(photoImgs.length/2)*520;
+  const estimated=pad*2+250+5*lineH+110+16*lineH+180+Math.max(200,notes.length*38)+Math.ceil(photoImgs.length/2)*520;
   c.height=Math.max(1800,estimated+200);
   const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,c.height);
   let y=pad;
@@ -94,7 +94,6 @@ $("downloadInspectionPdf").onclick=async()=>{
    }
    y+=Math.ceil(photoImgs.length/2)*510;
   }
-  c.height=Math.max(y+pad,1200);
   const pdf=new JsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
   const pagePx=Math.floor(c.width*297/210);
   let page=0;
