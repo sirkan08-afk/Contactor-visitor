@@ -14,5 +14,8 @@
 -- 4) Confirm department routing rules with the hotel. Current Edge Function routing
 --    is an initial rule set and must be reviewed before production.
 --
+-- Deploy supabase/functions/submit-work-permit/index.ts; supabase/config.toml disables JWT verification for this public QR function.
+-- Configure SUPABASE_URL, SUPABASE_SECRET_KEYS, and TURNSTILE_SECRET_KEY as server-side Edge Function secrets.
+-- Turnstile verification is restricted to sirkan08-afk.github.io.
 -- Public submit and tracking must go through the Edge Function only.
--- Never grant anon SELECT/INSERT on work_permits or expose the service-role key.
+-- Never grant anon SELECT/INSERT on work_permits or expose Supabase secret/service-role keys.
