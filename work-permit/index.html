@@ -203,14 +203,14 @@ function buildPdfPages(){
  [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ชื่อเครื่องจักร (Machine, Equipment)",p.machine_equipment],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.supervisor_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
  sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
  const desc=p.work_description||"";
- const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\\s*([\\s\\S]*)$/);
- const workerNames=workerMatch?workerMatch[1].split(/\\n/).map(x=>x.replace(/^\\d+\\.\\s*/,"").trim()).filter(Boolean):[];
+ const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\s*([\s\S]*)$/);
+ const workerNames=workerMatch?workerMatch[1].split(/\n/).map(x=>x.replace(/^\d+\.\s*/,"").trim()).filter(Boolean):[];
  const names=pdfEl("div","pdf-grid");workerNames.forEach((name,i)=>addField(names,"ชื่อผู้ปฏิบัติงาน "+(i+1),name));if(!workerNames.length)addField(names,"รายชื่อผู้ปฏิบัติงาน","ไม่ได้ระบุชื่อ");page1.append(names);
  sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
  const chosenTypes=(p.work_type||"").split(" / ").filter(Boolean);
  const checks=pdfEl("div","pdf-checks");chosenTypes.forEach(t=>checks.append(pdfEl("div","pdf-check","☑ "+t)));page1.append(checks);
  const toolText=p.tools||"";
- const eqMatch=toolText.match(/อุปกรณ์ที่นำเข้าทำงาน:\\s*([^\\n]*)/),ppeMatch=toolText.match(/PPE:\\s*([^\\n]*)/),otherMatch=toolText.match(/เพิ่มเติม:\\s*([\\s\\S]*)/);
+ const eqMatch=toolText.match(/อุปกรณ์ที่นำเข้าทำงาน:\s*([^\n]*)/),ppeMatch=toolText.match(/PPE:\s*([^\n]*)/),otherMatch=toolText.match(/เพิ่มเติม:\s*([\s\S]*)/);
  sec("รายการอุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
  const eq=pdfEl("div","pdf-checks");(eqMatch?.[1]||"-").split(",").map(x=>x.trim()).filter(Boolean).forEach(t=>eq.append(pdfEl("div","pdf-check","☑ "+t)));page1.append(eq);
  sec("อุปกรณ์ป้องกันอันตรายส่วนบุคคล (Personal Protective Equipment)");
