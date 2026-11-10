@@ -1,8 +1,27 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>U Khaochichan | Work Permit</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+window.__html2pdfReady=(async()=>{
+ if(typeof window.html2pdf==="function")return true;
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js",
+  "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=()=>reject(new Error("โหลด "+url+" ไม่สำเร็จ"));
+    document.head.appendChild(script);
+   });
+   if(typeof window.html2pdf==="function")return true;
+  }catch(error){console.warn(error.message);}
+ }
+ throw new Error("ไม่สามารถโหลด html2pdf จาก CDN ทั้งสองแหล่งได้");
+})();
+</script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 :root{--green:#174d40;--green2:#23745c;--ink:#20332d;--muted:#65766f;--line:#dce6e0;--bg:#f2f6f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,sans-serif}.hero{background:linear-gradient(120deg,#123a32,#246a53);color:#fff;padding:24px max(18px,calc((100% - 980px)/2))}.hero small{letter-spacing:.08em}.hero h1{margin:8px 0 4px;font-size:28px}.wrap{max-width:980px;margin:20px auto;padding:0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button,.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--green2);color:#fff;font-weight:700;font-size:15px;cursor:pointer}.tabs button{background:#e1ece6;color:#285044}.tabs button.active{background:var(--green);color:#fff}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px;box-shadow:0 3px 12px #183c2b0a}.hidden{display:none}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.full{grid-column:1/-1}input,select,textarea{width:100%;padding:12px;border:1px solid #cbd8d1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:85px}.notice{padding:12px;background:#edf6f0;border-radius:10px;margin:10px 0}.muted{color:var(--muted);font-size:13px}.card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0}.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.pill{display:inline-block;border-radius:30px;padding:4px 10px;background:#e7f2ec;color:#1d654a;font-size:12px;font-weight:700}.pill.warn{background:#fff3d9;color:#875d00}.pill.bad{background:#fbe7e5;color:#a32c24}.btn.secondary{background:#e8efeb;color:#23483c}.btn.danger{background:#a9342d}.progress{height:8px;border-radius:10px;background:#e6eee9;overflow:hidden}.progress span{display:block;height:100%;background:#27946c;width:30%}#msg{white-space:pre-wrap}.demo{background:#fff6df;border:1px solid #f0d89a;color:#77530a;padding:10px;border-radius:10px;margin-top:12px}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero h1{font-size:24px}}
@@ -161,10 +180,12 @@ function buildPdfPages(){
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- if(typeof window.html2pdf!=="function"){msg.textContent="โหลดตัวสร้าง PDF ไม่สำเร็จ (html2pdf) กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่";return;}
- button.disabled=true;msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
+ button.disabled=true;msg.textContent="กำลังโหลดเครื่องมือ PDF...";
  let root;
  try{
+  await window.__html2pdfReady;
+  if(typeof window.html2pdf!=="function")throw new Error("โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ต");
+  msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
   root=buildPdfPages();await document.fonts.ready;
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const pages=[...root.querySelectorAll(".pdf-page")];
