@@ -2,6 +2,7 @@
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>U Khaochichan | Work Permit</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 :root{--green:#174d40;--green2:#23745c;--ink:#20332d;--muted:#65766f;--line:#dce6e0;--bg:#f2f6f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,sans-serif}.hero{background:linear-gradient(120deg,#123a32,#246a53);color:#fff;padding:24px max(18px,calc((100% - 980px)/2))}.hero small{letter-spacing:.08em}.hero h1{margin:8px 0 4px;font-size:28px}.wrap{max-width:980px;margin:20px auto;padding:0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button,.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--green2);color:#fff;font-weight:700;font-size:15px;cursor:pointer}.tabs button{background:#e1ece6;color:#285044}.tabs button.active{background:var(--green);color:#fff}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px;box-shadow:0 3px 12px #183c2b0a}.hidden{display:none}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.full{grid-column:1/-1}input,select,textarea{width:100%;padding:12px;border:1px solid #cbd8d1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:85px}.notice{padding:12px;background:#edf6f0;border-radius:10px;margin:10px 0}.muted{color:var(--muted);font-size:13px}.card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0}.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.pill{display:inline-block;border-radius:30px;padding:4px 10px;background:#e7f2ec;color:#1d654a;font-size:12px;font-weight:700}.pill.warn{background:#fff3d9;color:#875d00}.pill.bad{background:#fbe7e5;color:#a32c24}.btn.secondary{background:#e8efeb;color:#23483c}.btn.danger{background:#a9342d}.progress{height:8px;border-radius:10px;background:#e6eee9;overflow:hidden}.progress span{display:block;height:100%;background:#27946c;width:30%}#msg{white-space:pre-wrap}.demo{background:#fff6df;border:1px solid #f0d89a;color:#77530a;padding:10px;border-radius:10px;margin-top:12px}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero h1{font-size:24px}}
@@ -52,49 +53,63 @@ function renderPhotos(){const box=$("photoPreview");box.innerHTML="";selectedPho
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- if(typeof html2pdf==="undefined"){msg.textContent="โหลดเครื่องมือสร้าง PDF ไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่";return;}
- button.disabled=true;msg.textContent="กำลังจัดทำ PDF...";
- let root=null;
+ const JsPDF=window.jspdf?.jsPDF;
+ if(!JsPDF){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
+ button.disabled=true;msg.textContent="กำลังวาดเอกสาร PDF...";
  try{
   const p=activePermit.work_permits||{};
-  root=document.createElement("div");
-  root.style.cssText="display:block;position:relative;width:794px;min-height:1123px;margin:0 auto;padding:34px;background:#fff;color:#172b24;z-index:1;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;box-sizing:border-box;";
-  const heading=document.createElement("h1");heading.textContent="U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT";heading.style.cssText="font-size:19px;margin:0 0 4px;color:#174d40";
-  const sub=document.createElement("h2");sub.textContent="WORK PERMIT – INSPECTION REPORT";sub.style.cssText="font-size:17px;margin:0 0 18px";
-  const summary=document.createElement("div");summary.style.cssText="border:1px solid #cbd8d1;padding:12px;margin-bottom:16px;border-radius:8px";
-  [["เลขใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["ชื่องาน",p.work_title],["สถานที่",p.work_location],["วันที่เริ่ม",p.start_date]].forEach(([k,v])=>{const line=document.createElement("p");line.style.margin="3px 0";line.textContent=k+": "+(v||"-");summary.append(line);});
-  const h=document.createElement("h3");h.textContent="Checklist ตรวจความปลอดภัย 16 ข้อ";h.style.cssText="margin:14px 0 8px";
-  const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse";
-  checklistItems.forEach((label,i)=>{const tr=document.createElement("tr");[String(i+1)+". "+label,({yes:"ผ่าน",no:"ไม่ผ่าน",na:"ไม่เกี่ยวข้อง"})[$("checklist").querySelector('select[data-item="'+(i+1)+'"]')?.value]||"-"].forEach((value,j)=>{const td=document.createElement("td");td.textContent=value;td.style.cssText="border:1px solid #b9c9c0;padding:7px;"+(j===1?"width:105px;text-align:center;font-weight:bold":"");tr.append(td);});table.append(tr);});
-  const notesTitle=document.createElement("h3");notesTitle.textContent="ปัญหาที่พบ / การแก้ไข";notesTitle.style.margin="16px 0 5px";
-  const notes=document.createElement("p");notes.textContent=$("inspectionNotes").value.trim()||"-";notes.style.cssText="white-space:pre-wrap;border:1px solid #cbd8d1;padding:10px;min-height:35px";
-  root.append(heading,sub,summary,h,table,notesTitle,notes);
-  if(selectedPhotos.length){
-   const page=document.createElement("div");page.style.cssText="page-break-before:always;padding-top:8px";
-   const ph=document.createElement("h2");ph.textContent="ภาคผนวก: ภาพถ่ายหลักฐาน";page.append(ph);
-   const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:14px";
-   selectedPhotos.forEach((photo,i)=>{const card=document.createElement("div");card.style.cssText="border:1px solid #ccd8d1;padding:8px;break-inside:avoid";
-    const img=document.createElement("img");img.src=photo.url;img.style.cssText="width:100%;height:230px;object-fit:contain";
-    const cap=document.createElement("p");cap.textContent=$("photoPreview").querySelector('input[data-caption="'+i+'"]')?.value?.trim()||("ภาพที่ "+(i+1));card.append(img,cap);grid.append(card);});
-   page.append(grid);root.append(page);
+  await document.fonts.ready;
+  const W=1240, pad=70, lineH=48;
+  const c=document.createElement("canvas");c.width=W;
+  const ctx=c.getContext("2d");
+  ctx.font='30px Tahoma, "Noto Sans Thai", Arial, sans-serif';
+  const wrap=(text,max)=>{const words=String(text??"-").split("");const lines=[];let line="";for(const ch of words){if(ctx.measureText(line+ch).width>max&&line){lines.push(line);line=ch;}else line+=ch;}if(line)lines.push(line);return lines;};
+  const answers=[...$("checklist").querySelectorAll("select[data-item]")];
+  const notes=$("inspectionNotes").value.trim()||"-";
+  const photoImgs=[];
+  for(const photo of selectedPhotos){const img=new Image();img.src=photo.url;try{await img.decode();}catch{}photoImgs.push(img);}
+  const estimated=pad*2+250+5*lineH+110+16*lineH+180+Math.ceil(photoImgs.length/2)*520;
+  c.height=Math.max(1800,estimated+200);
+  const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,c.height);
+  let y=pad;
+  const text=(t,x,yy,size=30,color="#20332d",bold=false)=>{g.font=(bold?"bold ":"")+size+'px Tahoma, "Noto Sans Thai", Arial, sans-serif';g.fillStyle=color;g.fillText(String(t??"-"),x,yy);};
+  const line=(x1,yy,x2,color="#b9c9c0")=>{g.strokeStyle=color;g.lineWidth=2;g.beginPath();g.moveTo(x1,yy);g.lineTo(x2,yy);g.stroke();};
+  text("U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT",pad,y,34,"#174d40",true);y+=58;
+  text("WORK PERMIT – INSPECTION REPORT",pad,y,32,"#20332d",true);y+=54;
+  const fields=[["เลขใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["ชื่องาน",p.work_title],["สถานที่",p.work_location],["วันที่เริ่ม",p.start_date]];
+  for(const [k,v] of fields){text(k+": "+(v||"-"),pad+10,y,27);y+=lineH;}
+  y+=18;line(pad,y,W-pad);y+=55;
+  text("Checklist ตรวจความปลอดภัย 16 ข้อ",pad,y,32,"#174d40",true);y+=55;
+  answers.forEach((sel,i)=>{const label=checklistItems[i]||("รายการตรวจ "+(i+1));const status=({yes:"ผ่าน",no:"ไม่ผ่าน",na:"ไม่เกี่ยวข้อง"})[sel.value]||"-";const lines=wrap((i+1)+". "+label,W-360);lines.forEach((part,j)=>text(part,pad+8,y+j*34,25));text(status,W-pad-250,y,25,status==="ไม่ผ่าน"?"#a9342d":"#174d40",true);y+=Math.max(lineH,lines.length*34+12);line(pad,y,W-pad,"#dce6e0");y+=8;});
+  y+=25;text("ปัญหาที่พบ / การแก้ไข",pad,y,30,"#174d40",true);y+=48;
+  const noteLines=wrap(notes,W-pad*2-30);noteLines.forEach(part=>{text(part,pad+10,y,25);y+=36;});
+  if(photoImgs.length){
+   y+=35;text("ภาคผนวก: ภาพถ่ายหลักฐาน",pad,y,32,"#174d40",true);y+=45;
+   for(let i=0;i<photoImgs.length;i++){
+    const img=photoImgs[i],col=i%2,row=Math.floor(i/2),x=pad+col*550,top=y+row*510;
+    g.strokeStyle="#cbd8d1";g.strokeRect(x,top,510,430);
+    if(img.complete&&img.naturalWidth){const scale=Math.min(480/img.naturalWidth,350/img.naturalHeight);const iw=img.naturalWidth*scale,ih=img.naturalHeight*scale;g.drawImage(img,x+(510-iw)/2,top+12+(350-ih)/2,iw,ih);}
+    const cap=$("photoPreview").querySelector('input[data-caption="'+i+'"]')?.value?.trim()||("ภาพที่ "+(i+1));
+    text(cap,x+12,top+395,22);
+   }
+   y+=Math.ceil(photoImgs.length/2)*510;
   }
-  document.body.append(root);
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  if(document.fonts?.ready)await document.fonts.ready;
-  await Promise.all([...root.querySelectorAll("img")].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
-  if(!root.textContent.trim())throw new Error("ไม่พบเนื้อหาเอกสารสำหรับสร้าง PDF");
-  const worker=html2pdf().set({margin:8,filename:(p.permit_no||"Work-Permit")+"_Inspection_"+Date.now()+".pdf",image:{type:"jpeg",quality:1},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:850,logging:false},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(root).toCanvas();
-  const canvas=await worker.get("canvas");
-  if(!canvas||canvas.width<100||canvas.height<100)throw new Error("ระบบจับภาพเอกสารไม่ได้ จึงยกเลิกการสร้างไฟล์ PDF เปล่า");
-  const ctx=canvas.getContext("2d",{willReadFrequently:true});
-  const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  let visiblePixels=0;
-  for(let i=0;i<pixels.length;i+=4){if(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245){visiblePixels++;if(visiblePixels>30)break;}}
-  if(visiblePixels<30)throw new Error("ตรวจพบว่าภาพเอกสารว่าง ระบบยกเลิกการบันทึก PDF");
-  await worker.toPdf().save();
-  msg.textContent="สร้างไฟล์ PDF เรียบร้อยแล้ว";
+  c.height=Math.max(y+pad,1200);
+  const pdf=new JsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
+  const pagePx=Math.floor(c.width*297/210);
+  let page=0;
+  for(let top=0;top<c.height;top+=pagePx){
+   const slice=document.createElement("canvas");slice.width=c.width;slice.height=Math.min(pagePx,c.height-top);
+   slice.getContext("2d").drawImage(c,0,top,c.width,slice.height,0,0,c.width,slice.height);
+   if(page>0)pdf.addPage();
+   pdf.addImage(slice.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   page++;
+  }
+  if(page===0)throw new Error("ไม่พบเนื้อหาเอกสาร");
+  pdf.save((p.permit_no||"Work-Permit")+"_Inspection_"+Date.now()+".pdf");
+  msg.textContent="บันทึก PDF เรียบร้อย ("+page+" หน้า)";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
- finally{if(root?.parentNode)root.parentNode.removeChild(root);button.disabled=false;}
+ finally{button.disabled=false;}
 };
 $("saveInspection").onclick=async()=>{
  const msg=$("inspectionMsg"),button=$("saveInspection");
