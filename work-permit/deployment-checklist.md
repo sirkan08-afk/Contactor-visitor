@@ -9,10 +9,12 @@
 -- 1) Confirm current status CHECK allows 'submitted'. It was visible in the prior audit,
 --    but retrieve the complete expression if you want exact allowed values.
 -- 2) Confirm current_user_role() returns the exact role strings used by staff accounts.
--- 3) Add actual staff role rows in user_roles for SECURITY, SAFETY, ENGINEERING,
---    AREA_OWNER and ADMIN. Existing audit showed only one ADMIN row.
--- 4) Confirm department routing rules with the hotel. Current Edge Function routing
---    is an initial rule set and must be reviewed before production.
+-- 3) Add/verify actual staff role rows in user_roles for SECURITY, SAFETY, ENGINEERING,
+--    AREA_OWNER and ADMIN. Existing audit showed only one ADMIN row. Owner approvals use AREA_OWNER.
+-- 4) Confirm routing by work type with the hotel: SECURITY is always required; SAFETY is added
+--    for hot work, electrical, work at height, and confined-space work; ENGINEERING is added
+--    for repair, electrical, welding, and equipment-related work; AREA_OWNER is added when
+--    an owner department is selected.
 --
 -- Deploy supabase/functions/submit-work-permit/index.ts; supabase/config.toml disables JWT verification for this public QR function.
 -- Configure SUPABASE_URL, SUPABASE_SECRET_KEYS, and TURNSTILE_SECRET_KEY as server-side Edge Function secrets.
