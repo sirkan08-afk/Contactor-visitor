@@ -301,12 +301,16 @@ $("downloadInspectionPdf").onclick=async()=>{
   await window.__html2pdfReady;
   if(typeof window.html2pdf!=="function")throw new Error("โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ต");
   msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
-  root=buildPdfPages();await document.fonts.ready;
+  const previousScrollY=window.scrollY;
+  window.scrollTo(0,0);
+  root=buildPdfPages();
+  root.style.position="fixed";root.style.left="0";root.style.top="0";root.style.margin="0";root.style.transform="none";
+  await document.fonts.ready;
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const pages=[...root.querySelectorAll(".pdf-page")];
   if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
   const JsPDF=await window.__jsPdfReady;
-  const opt={margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:document.documentElement.scrollWidth,windowHeight:document.documentElement.scrollHeight}};
+  const opt={margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(794,root.offsetWidth),windowHeight:Math.max(1123,root.offsetHeight)}};
   let pdf=null;
   for(let i=0;i<pages.length;i++){
    const canvas=await window.html2pdf().set(opt).from(pages[i]).toCanvas().get("canvas");
