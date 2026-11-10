@@ -126,6 +126,21 @@ Deno.serve(async (req) => {
     }).select("id,permit_no").single();
     if (error) throw error;
 
+    const workerNames = Array.isArray(body.worker_names)
+      ? body.worker_names.map((name: unknown) => clean(name, 160)).filter(Boolean).slice(0, teamSize)
+      : [];
+    if (workerNames.length) {
+      const workerRows = workerNames.map((full_name: string) => ({
+        permit_id: permit.id,
+        full_name,
+      }));
+      const { error: workerError } = await db.from("work_permit_workers").insert(workerRows);
+      if (workerError) {
+        await db.from("work_permits").delete().eq("id", permit.id);
+        throw workerError;
+      }
+    }
+
     const approvalRows = [...departments].map((department) => ({
       permit_id: permit.id,
       department,
