@@ -90,7 +90,7 @@ window.__jsPdfReady=(async()=>{
 <div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div>
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
-<section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">ใช้เลข Work Permit และรหัสติดตามที่ได้รับหลังส่งคำขอสำเร็จ</p><form id="trackForm" class="grid"><div class="field"><label>เลข Work Permit</label><input name="permit_no" required></div><div class="field"><label>รหัสติดตามส่วนตัว</label><input name="tracking_code" required></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
+<section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
 <section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div><section id="inspection" class="hidden panel">
 <div class="row"><h2>ตรวจหน้างาน / Inspection</h2><button class="btn secondary no-print" id="backToList">กลับรายการ</button></div>
 <div id="permitSummary" class="card"></div>
@@ -149,21 +149,10 @@ $("trackForm").addEventListener("submit",async e=>{
   msg.innerHTML="";
   const card=document.createElement("div");card.className="card";
   const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);
-  const approvals=data.approvals||[];
-  const statuses=approvals.map(a=>a.status);
-  let overall;
-  if(statuses.includes("rejected"))overall="ไม่อนุญาต";
-  else if(statuses.includes("revision_requested"))overall="รอการแก้ไขข้อมูล";
-  else if(statuses.length>0&&statuses.every(s=>s==="approved"))overall="อนุมัติครบทุกฝ่าย";
-  else if(statuses.some(s=>s==="approved"))overall="อยู่ระหว่างการอนุมัติ";
-  else if(statuses.some(s=>s==="pending"))overall="รออนุมัติ";
-  else overall=permitStatusLabel[data.permit.status]||data.permit.status;
+  const approval=(data.approvals||[]).find(a=>a.department==="SECURITY");
+  const overall=approval?.status==="approved"?"อนุมัติแล้ว":approval?.status==="rejected"?"ไม่อนุญาต":approval?.status==="revision_requested"?"รอแก้ไขข้อมูล":"รอ Security อนุมัติ";
   const status=document.createElement("p");status.textContent="สถานะรวม: "+overall;card.append(status);
-  approvals.forEach(a=>{
-   const p=document.createElement("p");
-   p.textContent=a.department+": "+(approvalStatusLabel[a.status]||a.status)+(a.comment?" — "+a.comment:"");
-   card.append(p);
-  });
+  const detail=document.createElement("p");detail.textContent="SECURITY: "+(approvalStatusLabel[approval?.status]||"รออนุมัติ");card.append(detail);
   msg.append(card);
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
 });
