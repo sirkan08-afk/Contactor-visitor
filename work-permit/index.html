@@ -207,7 +207,7 @@ function buildPdfPages(){
  sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
  const desc=p.work_description||"";
  const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\s*([\s\S]*)$/);
- const legacyWorkerNames=workerMatch?workerMatch[1].split(/\n/).map(x=>x.replace(/^\d+\.\s*/,"").trim()).filter(Boolean):[];
+ const legacyWorkerNames=workerMatch?workerMatch[1].split(/\r?\n|(?=\s*\d+\.\s*)/).map(x=>x.replace(/^\s*\d+\.\s*/,"").trim()).filter(Boolean):[];
  const workerNames=Array.isArray(p.workers)&&p.workers.length?p.workers:legacyWorkerNames;
  const names=pdfEl("div","pdf-worker-grid");workerNames.forEach((name,i)=>{const cell=pdfEl("div","pdf-worker-cell");cell.textContent=(i+1)+". "+name;names.append(cell);});if(!workerNames.length){const cell=pdfEl("div","pdf-worker-cell","ไม่ได้ระบุชื่อผู้ปฏิบัติงาน");names.append(cell);}page1.append(names);
  sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
