@@ -376,7 +376,8 @@ async function loadReport(){
   let approvals=[];
   if(ids.length){const result=await db.from("work_permit_department_approvals").select("permit_id,department,status,comment,acted_at").in("permit_id",ids);if(result.error)throw result.error;approvals=result.data||[];}
   const byPermit=new Map(approvals.map(a=>[a.permit_id,a]));
-  reportPermitRows=permits||[];\n  reportRows=(permits||[]).map(p=>{const a=byPermit.get(p.id)||{};return {
+  reportPermitRows=permits||[];
+  reportRows=(permits||[]).map(p=>{const a=byPermit.get(p.id)||{};return {
    "เลข Work Permit":p.permit_no||"",
    "วันที่ยื่น":p.created_at?new Date(p.created_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):"",
    "บริษัท":p.company_name||"",
