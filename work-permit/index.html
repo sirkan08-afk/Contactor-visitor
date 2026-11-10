@@ -328,8 +328,14 @@ async function loadStaff(){
  const {data:roleRow,error:roleError}=await db.from("user_roles").select("role").eq("user_id",auth.user.id).maybeSingle();
  if(roleError||!roleRow){list.textContent="ไม่พบสิทธิ์เจ้าหน้าที่ใน user_roles";return;}
  const role=roleRow.role;
- let query=db.from("work_permit_department_approvals").select("id,department,status,permit_id,created_at").eq("status","pending").order("created_at",{ascending:true});
- if(role!=="ADMIN")query=query.eq("department",role);
+ let query=db.from("work_permit_department_approvals")
+   .select("id,department,status,permit_id,created_at")
+   .order("created_at",{ascending:true});
+ if(role==="ADMIN"){
+   // Admin sees all approval departments, grouped into one card per permit.
+ }else{
+   query=query.eq("department",role).eq("status","pending");
+ }
  const {data:items,error}=await query;
  if(error){list.textContent="โหลดรายการไม่ได้: "+error.message;return;}
  const permitIds=[...new Set((items||[]).map(x=>x.permit_id).filter(Boolean))];
@@ -339,7 +345,6 @@ async function loadStaff(){
    if(permitError){list.textContent="พบรายการอนุมัติ "+items.length+" รายการ แต่โหลดรายละเอียดใบอนุญาตไม่ได้: "+permitError.message;return;}
    permitMap=Object.fromEntries((permits||[]).map(p=>[p.id,p]));
  }
- // Load worker names from the existing normalized worker table for these saved permits.
  let workerMap={};
  if(permitIds.length){
    const {data:workers,error:workerError}=await db.from("work_permit_workers")
@@ -352,17 +357,43 @@ async function loadStaff(){
      if(w.full_name)workerMap[w.permit_id].push(w.full_name);
    }
  }
- list.innerHTML="<h3>รายการรอตรวจอนุมัติ ("+items.length+")</h3>";
- items.forEach(item=>{
-   const p=permitMap[item.permit_id]||{};p.workers=workerMap[item.permit_id]||[];
+ const grouped=new Map();
+ for(const item of (items||[])){
+   if(!grouped.has(item.permit_id))grouped.set(item.permit_id,[]);
+   grouped.get(item.permit_id).push(item);
+ }
+ const pendingCount=(items||[]).filter(x=>x.status==="pending").length;
+ list.innerHTML="<h3>รายการ Work Permit"+(role==="ADMIN"?" ที่อยู่ในระบบ":" รอตรวจอนุมัติ")+" ("+(role==="ADMIN"?grouped.size:pendingCount)+")</h3>";
+ if(!grouped.size){list.append(document.createTextNode("ไม่มีรายการที่ต้องดำเนินการ"));return;}
+ const statusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",revision_requested:"ขอแก้ไข",rejected:"ไม่อนุมัติ"};
+ for(const [permitId,approvals] of grouped){
+   const p=permitMap[permitId]||{};
+   p.workers=workerMap[permitId]||[];
    const card=document.createElement("article");card.className="card";
-   const title=document.createElement("h3");title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.company_name||"ไม่พบชื่อบริษัท");card.append(title);
-   const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";open.onclick=()=>openInspection({...item,work_permits:p});card.append(open);
-   const detail=document.createElement("p");detail.textContent=[p.work_title,p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
-   const actions=document.createElement("div");actions.className="row";
-   ["approved","revision_requested","rejected"].forEach(action=>{const b=document.createElement("button");b.className="btn "+(action==="rejected"?"danger":"secondary");b.textContent=action==="approved"?"อนุญาต":action==="revision_requested"?"ขอแก้ไข":"ไม่อนุญาต";b.onclick=()=>approve(item,action);actions.append(b);});
-   card.append(actions);list.append(card);
- });
+   const title=document.createElement("h3");
+   title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน");
+   card.append(title);
+   const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";
+   open.onclick=()=>openInspection({...approvals.find(x=>x.status==="pending")||approvals[0],work_permits:p});
+   card.append(open);
+   const detail=document.createElement("p");detail.textContent=[p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
+   const statusBox=document.createElement("div");statusBox.className="card";
+   const statusTitle=document.createElement("strong");statusTitle.textContent="สถานะการอนุมัติ";statusBox.append(statusTitle);
+   for(const item of approvals){
+     const row=document.createElement("div");row.className="row";row.style.padding="7px 0";row.style.borderTop="1px solid #e5ece7";
+     const label=document.createElement("span");label.textContent=item.department+" : "+(statusLabel[item.status]||item.status);row.append(label);
+     if(item.status==="pending"){
+       const actions=document.createElement("div");actions.className="row";
+       [["approved","อนุญาต"],["revision_requested","ขอแก้ไข"],["rejected","ไม่อนุญาต"]].forEach(([action,text])=>{
+         const b=document.createElement("button");b.className="btn mini "+(action==="rejected"?"danger":"secondary");b.textContent=text;
+         b.onclick=()=>approve(item,action);actions.append(b);
+       });
+       row.append(actions);
+     }
+     statusBox.append(row);
+   }
+   card.append(statusBox);list.append(card);
+ }
 }
 async function approve(item,status){const comment=prompt("หมายเหตุ (ถ้ามี):")||null;const {error}=await db.from("work_permit_department_approvals").update({status,comment,actor_id:(await db.auth.getUser()).data.user.id,acted_at:new Date().toISOString()}).eq("id",item.id);if(error){alert("บันทึกไม่สำเร็จ: "+error.message);return;}alert("บันทึกผลของฝ่ายเรียบร้อย");await loadStaff();}
 </script></body></html>
