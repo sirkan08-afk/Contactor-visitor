@@ -459,8 +459,8 @@ $("reportExcel").onclick=async()=>{
     const c=checks.find(x=>x.permit_id===p.id&&Number(x.item_no)===i+1);
     const result=c?(c.result_status==="yes"?"ใช่":c.result_status==="no"?"ไม่ใช่":c.result_status==="na"?"ไม่เกี่ยวข้อง":""):"ยังไม่ตรวจ";
     const note=c?.note||"";
-    const problem=note.match(/ปัญหา:\\s*([^\\n]+)/)?.[1]||"";
-    const fix=note.match(/แก้ไข:\\s*([\\s\\S]*)/)?.[1]||"";
+    const problem=note.match(/ปัญหา:\s*([^\n]+)/)?.[1]||"";
+    const fix=note.match(/แก้ไข:\s*([\s\S]*)/)?.[1]||"";
     rows.push([i+1,c?.item_title||title,result,problem,fix]);
    });
    const inspected=checks.find(c=>c.permit_id===p.id)?.inspected_at;
