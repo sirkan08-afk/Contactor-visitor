@@ -141,7 +141,32 @@ const workerNames=[...document.querySelectorAll("[data-worker-name]")].map(x=>x.
 payload.worker_names=workerNames;
 payload.work_description=(payload.work_description||"")+(workerNames.length?"\nรายชื่อผู้ปฏิบัติงาน:\n"+workerNames.map((n,i)=>(i+1)+". "+n).join("\n"):"");
 payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p><strong>สถานะ: รอการอนุมัติ</strong></p><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code><p class=\"muted\">กรุณาเก็บเลข Work Permit และรหัสติดตามไว้ เพื่อตรวจสอบผลการอนุมัติ</p>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);form.reset();if(window.turnstile)window.turnstile.reset();}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
-$("trackForm").addEventListener("submit",async e=>{e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});if(error)throw error;if(data.error)throw new Error(data.error);msg.innerHTML="";const card=document.createElement("div");card.className="card";const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);const status=document.createElement("p");status.textContent="สถานะรวม: "+(permitStatusLabel[data.permit.status]||data.permit.status);card.append(status);(data.approvals||[]).forEach(a=>{const p=document.createElement("p");p.textContent=a.department+": "+(approvalStatusLabel[a.status]||a.status)+(a.comment?" — "+a.comment:"");card.append(p);});msg.append(card);}catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}});
+$("trackForm").addEventListener("submit",async e=>{
+ e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";
+ try{
+  const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});
+  if(error)throw error;if(data.error)throw new Error(data.error);
+  msg.innerHTML="";
+  const card=document.createElement("div");card.className="card";
+  const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);
+  const approvals=data.approvals||[];
+  const statuses=approvals.map(a=>a.status);
+  let overall;
+  if(statuses.includes("rejected"))overall="ไม่อนุญาต";
+  else if(statuses.includes("revision_requested"))overall="รอการแก้ไขข้อมูล";
+  else if(statuses.length>0&&statuses.every(s=>s==="approved"))overall="อนุมัติครบทุกฝ่าย";
+  else if(statuses.some(s=>s==="approved"))overall="อยู่ระหว่างการอนุมัติ";
+  else if(statuses.some(s=>s==="pending"))overall="รออนุมัติ";
+  else overall=permitStatusLabel[data.permit.status]||data.permit.status;
+  const status=document.createElement("p");status.textContent="สถานะรวม: "+overall;card.append(status);
+  approvals.forEach(a=>{
+   const p=document.createElement("p");
+   p.textContent=a.department+": "+(approvalStatusLabel[a.status]||a.status)+(a.comment?" — "+a.comment:"");
+   card.append(p);
+  });
+  msg.append(card);
+ }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
+});
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();});
 let activePermit=null; let selectedPhotos=[];
 const checklistItems=[
