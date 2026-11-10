@@ -21,7 +21,9 @@ This work is isolated under work-permit/ and does not modify Patrol or Contracto
 - Inspector screen: 16-item checklist with Yes/No/Not applicable selections prepared.
 - Photo evidence UI: multiple image capture/upload with local preview and print appendix prepared.
 - Print-to-PDF layout: inspector checklist and photo appendix interface prepared; original two-page permit form integration still pending.
-- Inspection persistence: NOT connected to database yet; do not treat browser preview as saved evidence.
+- Inspection checklist persistence: frontend connected to `work_permit_checklists` using `result_status` (`yes`/`no`/`na`), inspector ID, and inspection timestamp.
+- Inspection photo persistence: frontend uploads authenticated evidence files to the private `work-permit-inspections` bucket and writes metadata to `work_permit_inspection_photos`.
+- Apply `migration-inspection-v1.sql` in Supabase SQL Editor before testing the save button. Test with an ADMIN, SAFETY, or SECURITY account; confirm `current_user_role()` returns one of those exact role strings. The existing checklist policies are preserved.
 
 ## Deployment safety
 Nothing in this branch has been applied to the production Supabase database. Do not enable the live QR link until the migration and Edge Function are reviewed, applied, deployed, and tested with staff accounts.
