@@ -162,7 +162,7 @@ const checklistItems=[
 "ไม่มีการหก, รั่วไหลของยานพาหนะ หรือ สารเคมี",
 "หลังจากการปฏิบัติงานเสร็จสิ้น ไม่มีการทิ้งขยะตามพื้นที่ปฏิบัติงาน"
 ];
-function openInspection(item){
+async function openInspection(item){
  activePermit=item;selectedPhotos=[];
  $("staffList").classList.add("hidden");$("inspection").classList.remove("hidden");
  const p=item.work_permits||{};
@@ -172,12 +172,17 @@ function openInspection(item){
   const row=document.createElement("div");row.className="inspect-item";
   const span=document.createElement("span");span.textContent=(i+1)+". "+label;
   const sel=document.createElement("select");sel.dataset.item=String(i+1);
-  ["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});
+  const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="-- เลือกผลตรวจ --";placeholder.selected=true;sel.append(placeholder);["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});
   row.append(span,sel);$("checklist").append(row);
  });
  ["before","after"].forEach(stage=>{$(stage+"Photos").value="";$(stage+"Preview").innerHTML="";});
  $("inspectionProblems").value="";$("inspectionCorrection").value="";$("inspectionNotes")?.remove();
- $("inspectionMsg").textContent="";
+ $("inspectionMsg").textContent="กำลังโหลดผลตรวจเดิม...";
+ const {data:savedRows,error:savedError}=await db.from("work_permit_checklists").select("item_no,result_status,is_checked,note").eq("permit_id",item.permit_id);
+ if(savedError){$("inspectionMsg").textContent="โหลดผลตรวจเดิมไม่ได้: "+savedError.message;return;}
+ const savedMap=new Map((savedRows||[]).map(row=>[Number(row.item_no),row]));
+ [...$("checklist").querySelectorAll("select[data-item]")].forEach(sel=>{const row=savedMap.get(Number(sel.dataset.item));if(row){sel.value=row.result_status||(row.is_checked===true?"yes":row.is_checked===false?"no":"");if(row.note){const note=String(row.note);if(note.includes("ปัญหา:"))$("inspectionProblems").value=note.split("ปัญหา:")[1].split("\n")[0].trim();if(note.includes("แก้ไข:"))$("inspectionCorrection").value=note.split("แก้ไข:")[1].trim();}}});
+ $("inspectionMsg").textContent=savedRows?.length?"โหลดผลตรวจเดิมแล้ว":"ยังไม่มีผลตรวจที่บันทึกไว้";
 }
 $("backToList").onclick=()=>{$("inspection").classList.add("hidden");$("staffList").classList.remove("hidden")};
 ["before","after"].forEach(stage=>{
@@ -203,11 +208,11 @@ function buildPdfPages(){
  const sec=(t)=>page1.append(pdfEl("div","pdf-section",t));
  sec("ส่วนที่ 1 : ข้อมูลเบื้องต้นของผู้รับเหมา (Sub-Contractor Detail)");
  let grid=pdfEl("div","pdf-grid");
- [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ชื่อเครื่องจักร (Machine, Equipment)",p.machine_equipment],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.supervisor_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
+ [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ผู้ยื่นคำขอ (Applicant)",p.applicant_name||p.contact_name],["ผู้ควบคุมงาน (Supervisor)",p.supervisor_name],["อุปกรณ์ / เครื่องจักร (Equipment)",p.machine_equipment||p.tools],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.applicant_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
  sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
  const desc=p.work_description||"";
  const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\s*([\s\S]*)$/);
- const legacyWorkerNames=workerMatch?workerMatch[1].split(/\r?\n|(?=\s*\d+\.\s*)/).map(x=>x.replace(/^\s*\d+\.\s*/,"").trim()).filter(Boolean):[];
+ const legacyWorkerNames=workerMatch?workerMatch[1].trim().split(/\r?\n/).flatMap(line=>line.split(/(?=\s*\d+\.\s*)/)).map(x=>x.replace(/^\s*\d+\.\s*/,"").trim()).filter(Boolean):[];
  const workerNames=Array.isArray(p.workers)&&p.workers.length?p.workers:legacyWorkerNames;
  const names=pdfEl("div","pdf-worker-grid");workerNames.forEach((name,i)=>{const cell=pdfEl("div","pdf-worker-cell");cell.textContent=(i+1)+". "+name;names.append(cell);});if(!workerNames.length){const cell=pdfEl("div","pdf-worker-cell","ไม่ได้ระบุชื่อผู้ปฏิบัติงาน");names.append(cell);}page1.append(names);
  sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
@@ -291,6 +296,7 @@ $("saveInspection").onclick=async()=>{
   const inspectedAt=new Date().toISOString(),problems=$("inspectionProblems").value.trim(),correction=$("inspectionCorrection").value.trim();
   const rows=[...$("checklist").querySelectorAll("select[data-item]")];
   if(rows.length!==16)throw new Error("Checklist ไม่ครบ 16 ข้อ กรุณาเปิดรายการตรวจใหม่");
+  if(rows.some(sel=>!["yes","no","na"].includes(sel.value)))throw new Error("กรุณาเลือกผลตรวจให้ครบทั้ง 16 ข้อก่อนบันทึก");
   for(const sel of rows){
    const itemNo=Number(sel.dataset.item),status=sel.value;
    const {data:existing,error:findError}=await db.from("work_permit_checklists").select("id").eq("permit_id",activePermit.permit_id).eq("item_no",itemNo).maybeSingle();
