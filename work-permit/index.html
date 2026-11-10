@@ -83,7 +83,13 @@ $("downloadInspectionPdf").onclick=async()=>{
   if(document.fonts?.ready)await document.fonts.ready;
   await Promise.all([...root.querySelectorAll("img")].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
   if(!root.textContent.trim())throw new Error("ไม่พบเนื้อหาเอกสารสำหรับสร้าง PDF");
-  await html2pdf().set({margin:8,filename:(p.permit_no||"Work-Permit")+"_Inspection.pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:850,logging:false},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(root).save();
+  const canvas=await html2canvas(root,{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:850,logging:false});
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  let visiblePixels=0;
+  for(let i=0;i<pixels.length;i+=4){if(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245){visiblePixels++;if(visiblePixels>30)break;}}
+  if(canvas.width<100||canvas.height<100||visiblePixels<30)throw new Error("ระบบจับภาพเอกสารไม่ได้ จึงยกเลิกการสร้างไฟล์เปล่า กรุณาลองใหม่");
+  await html2pdf().set({margin:8,filename:(p.permit_no||"Work-Permit")+"_Inspection.pdf",image:{type:"jpeg",quality:1},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:850,logging:false},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(canvas).save();
   msg.textContent="สร้างไฟล์ PDF เรียบร้อยแล้ว";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
  finally{if(root?.parentNode)root.parentNode.removeChild(root);button.disabled=false;}
