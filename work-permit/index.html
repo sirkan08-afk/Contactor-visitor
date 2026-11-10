@@ -49,7 +49,7 @@ window.__jsPdfReady=(async()=>{
 </style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
-<nav class="tabs"><button class="active" data-tab="request">ยื่นคำขอ</button><button data-tab="track">ติดตามคำขอ</button><button data-tab="staff">เจ้าหน้าที่ / ผู้ตรวจ</button></nav>
+<nav class="tabs"><button class="active" data-tab="request">ยื่นคำขอ</button><button data-tab="track">ติดตามคำขอ</button><button data-tab="staff">เจ้าหน้าที่ / ผู้ตรวจ</button><button data-tab="downloads">ดาวน์โหลด PDF</button></nav>
 <section id="request" class="panel"><h2>แบบฟอร์มขออนุญาตทำงาน</h2><div class="notice">สแกน QR แล้วกรอกได้ทันที ไม่ต้องล็อกอิน และไม่ต้องแนบรูปในขั้นตอนนี้</div>
 <form id="requestForm" class="grid">
 <div class="field"><label>ชื่อผู้รับเหมา / ผู้ยื่นคำขอ *</label><input name="applicant_name" required maxlength="160"></div>
@@ -91,7 +91,25 @@ window.__jsPdfReady=(async()=>{
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
 <section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
-<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div><section id="inspection" class="hidden panel">
+<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div>
+<div id="downloadsPanel" class="card">
+ <h3>ดาวน์โหลดเอกสาร Work Permit (PDF)</h3>
+ <p class="muted">เลือกวันที่เพื่อแสดงใบอนุญาต จากนั้นติ๊กเลือกรายการที่ต้องการดาวน์โหลด สามารถเลือกได้หลายใบ</p>
+ <div class="grid">
+  <div class="field"><label>วันที่เริ่มต้น</label><input type="date" id="pdfFrom"></div>
+  <div class="field"><label>วันที่สิ้นสุด</label><input type="date" id="pdfTo"></div>
+ </div>
+ <div class="row" style="margin:10px 0">
+  <button class="btn secondary" type="button" id="pdfSearch">ค้นหารายการ</button>
+  <button class="btn secondary" type="button" id="pdfSelectAll">เลือกทั้งหมด</button>
+  <button class="btn secondary" type="button" id="pdfClearAll">ยกเลิกทั้งหมด</button>
+  <button class="btn" type="button" id="pdfDownloadSelected">ดาวน์โหลด PDF ที่เลือก</button>
+ </div>
+ <div id="pdfSelectionCount" class="muted">เลือก 0 รายการ</div>
+ <div id="pdfPermitList"></div>
+ <div id="pdfDownloadMsg" class="muted"></div>
+</div>
+<section id="inspection" class="hidden panel">
 <div class="row"><h2>ตรวจหน้างาน / Inspection</h2><button class="btn secondary no-print" id="backToList">กลับรายการ</button></div>
 <div id="permitSummary" class="card"></div>
 <h3>Checklist ตรวจความปลอดภัย 16 ข้อ</h3>
@@ -127,7 +145,7 @@ function renderWorkerNameFields(){
 }
 $("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
 renderWorkerNameFields();
-document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==b.dataset.tab));}));
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff","downloads"].forEach(id=>$(id).classList.toggle("hidden",id!==b.dataset.tab));}));
 const formObject=form=>Object.fromEntries(new FormData(form).entries());
 const permitStatusLabel={draft:"ฉบับร่าง",submitted:"ส่งคำขอแล้ว",under_review:"กำลังตรวจสอบ",approved:"ได้รับอนุญาตเรียบร้อย",rejected:"ไม่อนุญาต",revision_requested:"รอการแก้ไขข้อมูล",closed:"ปิดงานแล้ว"};
 const approvalStatusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",rejected:"ไม่อนุมัติ",revision_requested:"ขอแก้ไข"};
@@ -156,7 +174,7 @@ $("trackForm").addEventListener("submit",async e=>{
   msg.append(card);
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
 });
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();$("downloadsPanel").classList.remove("hidden");initPdfPicker();await loadPdfPermitList();});
 let activePermit=null; let selectedPhotos=[];
 const checklistItems=[
 "พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
@@ -335,6 +353,83 @@ $("saveInspection").onclick=async()=>{
  }catch(err){msg.textContent="บันทึกไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด กรุณาลองอีกครั้ง");}
  finally{button.disabled=false;}
 };
+
+// ===== PDF document picker: separate from the main request / approval workflow =====
+let pdfPermitRows=[];
+function bangkokDateValue(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok"}).format(new Date());}
+function initPdfPicker(){const d=bangkokDateValue();$("pdfFrom").value=d;$("pdfTo").value=d;}
+function updatePdfSelectionCount(){const n=document.querySelectorAll(".pdf-permit-check:checked").length;$("pdfSelectionCount").textContent="เลือก "+n+" รายการ";}
+async function loadPdfPermitList(){
+ const wrap=$("pdfPermitList"),msg=$("pdfDownloadMsg");wrap.textContent="กำลังโหลดรายการ...";
+ const from=$("pdfFrom").value,to=$("pdfTo").value;
+ if(!from||!to||from>to){wrap.textContent="กรุณาเลือกช่วงวันที่ให้ถูกต้อง";return;}
+ try{
+  const start=new Date(from+"T00:00:00+07:00").toISOString();
+  const end=new Date(new Date(to+"T00:00:00+07:00").getTime()+86400000).toISOString();
+  const {data,error}=await db.from("work_permits").select("*").gte("created_at",start).lt("created_at",end).order("created_at",{ascending:false});
+  if(error)throw error;pdfPermitRows=data||[];wrap.innerHTML="";
+  if(!pdfPermitRows.length){wrap.textContent="ไม่พบใบ Work Permit ในช่วงวันที่เลือก";updatePdfSelectionCount();return;}
+  pdfPermitRows.forEach(p=>{
+   const label=document.createElement("label");label.className="card row";label.style.cssText="display:flex;justify-content:flex-start;gap:12px;align-items:center";
+   const cb=document.createElement("input");cb.type="checkbox";cb.className="pdf-permit-check";cb.value=p.id;cb.style.cssText="width:20px;height:20px";
+   cb.addEventListener("change",updatePdfSelectionCount);
+   const info=document.createElement("span");info.textContent=[p.permit_no,p.work_title,p.company_name,p.start_date,permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
+   label.append(cb,info);wrap.append(label);
+  });
+  msg.textContent="พบ "+pdfPermitRows.length+" ใบ Work Permit";
+  updatePdfSelectionCount();
+ }catch(err){wrap.textContent="โหลดรายการไม่สำเร็จ";msg.textContent=err.message||"เกิดข้อผิดพลาด";}
+}
+$("pdfSearch").onclick=loadPdfPermitList;
+$("pdfSelectAll").onclick=()=>{document.querySelectorAll(".pdf-permit-check").forEach(x=>x.checked=true);updatePdfSelectionCount();};
+$("pdfClearAll").onclick=()=>{document.querySelectorAll(".pdf-permit-check").forEach(x=>x.checked=false);updatePdfSelectionCount();};
+$("pdfDownloadSelected").onclick=async()=>{
+ const ids=[...document.querySelectorAll(".pdf-permit-check:checked")].map(x=>x.value);
+ const msg=$("pdfDownloadMsg"),button=$("pdfDownloadSelected");
+ if(!ids.length){msg.textContent="กรุณาติ๊กเลือกใบ Work Permit อย่างน้อย 1 รายการ";return;}
+ button.disabled=true;let completed=0;
+ try{
+  await window.__html2pdfReady;const JsPDF=await window.__jsPdfReady;
+  for(const id of ids){
+   const p=pdfPermitRows.find(x=>x.id===id);if(!p)continue;
+   msg.textContent="กำลังจัดทำ "+(p.permit_no||"Work Permit")+" ("+(completed+1)+"/"+ids.length+")";
+   const [workerResult,checkResult]=await Promise.all([
+    db.from("work_permit_workers").select("full_name").eq("permit_id",id).order("created_at",{ascending:true}),
+    db.from("work_permit_checklists").select("item_no,result_status,note").eq("permit_id",id).order("item_no",{ascending:true})
+   ]);
+   if(workerResult.error)throw workerResult.error;if(checkResult.error)throw checkResult.error;
+   activePermit={work_permits:{...p,workers:(workerResult.data||[]).map(w=>w.full_name).filter(Boolean)}};
+   selectedPhotos=[];
+   const checkWrap=$("checklist"),oldChecklist=checkWrap.innerHTML,oldProblems=$("inspectionProblems").value,oldCorrection=$("inspectionCorrection").value;
+   checkWrap.innerHTML="";
+   checklistItems.forEach((label,i)=>{
+    const row=document.createElement("div"),sel=document.createElement("select");sel.dataset.item=String(i+1);
+    const saved=(checkResult.data||[]).find(x=>Number(x.item_no)===i+1);
+    ["yes","no","na"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(saved?.result_status===v)o.selected=true;sel.append(o);});
+    row.append(sel);checkWrap.append(row);
+   });
+   $("inspectionProblems").value="";$("inspectionCorrection").value="";
+   let root;
+   try{
+    root=buildPdfPages();await document.fonts.ready;
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const pages=[...root.querySelectorAll(".pdf-page")];if(pages.length!==2)throw new Error("สร้าง PDF ไม่ครบ 2 หน้า");
+    const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+    for(let i=0;i<pages.length;i++){
+     const canvas=await window.html2pdf().set({margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false}}).from(pages[i]).toCanvas().get("canvas");
+     if(i>0)pdf.addPage("a4","portrait");
+     pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+    }
+    pdf.save((p.permit_no||"Work-Permit")+".pdf");completed++;
+   }finally{
+    root?.remove();checkWrap.innerHTML=oldChecklist;$("inspectionProblems").value=oldProblems;$("inspectionCorrection").value=oldCorrection;
+   }
+  }
+  msg.textContent="ดาวน์โหลดเรียบร้อย "+completed+" จาก "+ids.length+" ไฟล์ PDF";
+ }catch(err){msg.textContent="ดาวน์โหลดไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
+ finally{button.disabled=false;}
+};
+
 async function loadStaff(){
  const list=$("staffList");list.textContent="กำลังโหลดคำขอ...";
  const {data:auth}=await db.auth.getUser();
