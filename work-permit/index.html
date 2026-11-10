@@ -143,8 +143,11 @@ function buildPdfPages(){
  const table=pdfEl("table","pdf-table"),thead=pdfEl("thead"),tr=pdfEl("tr");["ลำดับ","รายการตรวจสอบ (Checking Detail)","ใช่","ไม่ใช่","ไม่เกี่ยวข้อง","ปัญหาที่พบ","ดำเนินการแก้ไข"].forEach((t,i)=>tr.append(pdfEl("th","",t)));thead.append(tr);table.append(thead);
  const tbody=pdfEl("tbody"),sels=[...$("checklist").querySelectorAll("select[data-item]")];
  checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"□")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
- page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",""));
- page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",""));
+ page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",$("inspectionProblems").value.trim()||"-"));
+ page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
+ page2.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
+ const rules=pdfEl("div","pdf-small");rules.style.fontSize="6.2pt";rules.style.lineHeight="1.15";
+ rules.textContent="1. การใช้น้ำมัน/สารเคมี: ห้ามถ่ายน้ำมันหรือสารไวไฟใกล้บริเวณเสี่ยงอัคคีภัย และต้องเตรียมอุปกรณ์ถ่ายเท ถาดรอง และผ้าเช็ดให้พร้อมก่อนดำเนินการ  |  2. เหตุฉุกเฉิน: เมื่อพบสารเคมีหกรั่วไหล แก๊สรั่ว กลิ่นผิดปกติ หรือเพลิงไหม้ ให้แจ้งเจ้าของพื้นที่หรือ จป. ทันที และอพยพตามเส้นทางไปจุดรวมพล  |  3. การสูบบุหรี่: สูบเฉพาะพื้นที่ที่บริษัทจัดไว้ ดับก้นบุหรี่ให้สนิท และห้ามทิ้งขยะลงที่เขี่ยบุหรี่  |  4. ข้อปฏิบัติทั่วไป: ห้ามสวมรองเท้าแตะ/รองเท้าฟองน้ำ เตรียมถังดับเพลิงเมื่อมีความเสี่ยง กั้นเขตและติดป้ายอันตราย เว้นระยะสารไวไฟจากแหล่งประกายไฟอย่างน้อย 8 เมตร ติดป้ายห้ามเปิดสวิตช์เมื่อตัดแยกพลังงาน สวม PPE ให้เหมาะสม ทำความสะอาดพื้นที่หลังงาน และงดงานบนที่สูงเมื่อฝนตกหรือลมพายุรุนแรง  |  5. ยื่น Work Permit ล่วงหน้าอย่างน้อย 2 วัน หรือทุกวันศุกร์จนกว่างานจะเสร็จ เพื่อให้ จป. พิจารณาอนุมัติก่อนเริ่มงาน";page2.append(rules);
  const photos=pdfEl("div","pdf-photo-grid");
  ["before","after"].forEach(stage=>{const box=pdfEl("div","pdf-photo-box"),title=pdfEl("div","pdf-photo-title",stage==="before"?"ภาพก่อนเริ่มงาน / BEFORE WORK":"ภาพหลังเสร็จงาน / AFTER WORK");box.append(title);
   const items=selectedPhotos.filter(x=>x.stage===stage);
