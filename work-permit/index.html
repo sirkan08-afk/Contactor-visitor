@@ -57,16 +57,36 @@ window.__jsPdfReady=(async()=>{
 <div class="field"><label>บริษัทผู้รับเหมา *</label><input name="company_name" required></div>
 <div class="field"><label>เบอร์ติดต่อ *</label><input name="contact_phone" required inputmode="tel"></div>
 <div class="field"><label>แผนกเจ้าของพื้นที่</label><select name="department"><option>Engineering</option><option>Housekeeping</option><option>F&B</option><option>Front Office</option><option>Other</option></select></div>
-<div class="field"><label>ประเภทงาน *</label><select name="work_type" required><option value="">เลือกประเภท</option><option>Hot Work / งานเชื่อมตัด</option><option>งานที่สูง</option><option>งานไฟฟ้า</option><option>งานที่อับอากาศ</option><option>ซ่อมบำรุงทั่วไป</option><option>งานอื่น ๆ</option></select></div>
+<div class="field full"><label>ประเภทงานที่ต้องปฏิบัติ * (เลือกได้มากกว่า 1 รายการ)</label><div id="workTypeChoices" class="pdf-checks">
+<label class="check"><input type="checkbox" data-work-type value="งานตัดด้วยแก๊ส">งานตัดด้วยแก๊ส</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตัดด้วยเครื่อง">งานตัดด้วยเครื่อง</label>
+<label class="check"><input type="checkbox" data-work-type value="งานเจียร">งานเจียร</label>
+<label class="check"><input type="checkbox" data-work-type value="งานไฟฟ้า">งานไฟฟ้า</label>
+<label class="check"><input type="checkbox" data-work-type value="งานเชื่อม">งานเชื่อม</label>
+<label class="check"><input type="checkbox" data-work-type value="งานขุด/งานเจาะ">งานขุด/งานเจาะ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานอื่นๆ">งานอื่นๆ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทาสี">งานทาสี</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทำความสะอาด">งานทำความสะอาด</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตรวจสอบ/เช็ค">งานตรวจสอบ/เช็ค</label>
+<label class="check"><input type="checkbox" data-work-type value="งานบนนั่งร้าน">งานบนนั่งร้าน</label>
+<label class="check"><input type="checkbox" data-work-type value="งานรื้อถอนอาคาร / สิ่งก่อสร้าง">งานรื้อถอนอาคาร / สิ่งก่อสร้าง</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตอกเสาเข็ม / ปั้นจั่น">งานตอกเสาเข็ม / ปั้นจั่น</label>
+<label class="check"><input type="checkbox" data-work-type value="ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป">ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทั่วไปอื่นๆ">งานทั่วไปอื่นๆ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานในพื้นที่อับอากาศ">งานในพื้นที่อับอากาศ</label>
+</div></div>
 <div class="field full"><label>ชื่องาน *</label><input name="work_title" required></div>
 <div class="field full"><label>รายละเอียด / วิธีปฏิบัติงาน</label><textarea name="work_description"></textarea></div>
 <div class="field"><label>สถานที่ทำงาน *</label><input name="work_location" required></div>
 <div class="field"><label>จำนวนผู้ปฏิบัติงาน *</label><input name="team_size" type="number" min="1" max="200" value="1" required></div>
+<div class="field full"><label>รายชื่อผู้ปฏิบัติงาน (กรอกตามจำนวนคน)</label><div id="workerNameFields" class="grid"></div></div>
 <div class="field"><label>วันที่เริ่ม *</label><input name="start_date" type="date" required></div>
 <div class="field"><label>วันที่สิ้นสุด</label><input name="end_date" type="date"></div>
 <div class="field"><label>เวลาเริ่ม</label><input name="start_time" type="time"></div>
 <div class="field"><label>เวลาสิ้นสุด</label><input name="end_time" type="time"></div>
-<div class="field full"><label>เครื่องมือ / อุปกรณ์</label><textarea name="tools"></textarea></div>
+<div class="field full"><label>รายการอุปกรณ์ที่นำเข้ามาทำงาน (เลือกได้หลายรายการ)</label><div id="equipmentChoices" class="pdf-checks"><label class="check"><input type="checkbox" data-equipment value="เครื่องตัด">เครื่องตัด</label><label class="check"><input type="checkbox" data-equipment value="เครื่องเจียร">เครื่องเจียร</label><label class="check"><input type="checkbox" data-equipment value="เครื่องเชื่อมไฟฟ้า / แก๊ส">เครื่องเชื่อมไฟฟ้า / แก๊ส</label><label class="check"><input type="checkbox" data-equipment value="ถังแก๊สสำหรับงานเชื่อม">ถังแก๊สสำหรับงานเชื่อม</label><label class="check"><input type="checkbox" data-equipment value="สว่านไฟฟ้า">สว่านไฟฟ้า</label><label class="check"><input type="checkbox" data-equipment value="นั่งร้าน">นั่งร้าน</label><label class="check"><input type="checkbox" data-equipment value="บันได">บันได</label><label class="check"><input type="checkbox" data-equipment value="ถังดับเพลิง">ถังดับเพลิง</label><label class="check"><input type="checkbox" data-equipment value="ผ้ากันสะเก็ดไฟ">ผ้ากันสะเก็ดไฟ</label><label class="check"><input type="checkbox" data-equipment value="ป้ายเตือน / ป้ายระวัง">ป้ายเตือน / ป้ายระวัง</label></div></div>
+<div class="field full"><label>อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE) (เลือกได้หลายรายการ)</label><div id="ppeChoices" class="pdf-checks"><label class="check"><input type="checkbox" data-ppe value="หมวกนิรภัย">หมวกนิรภัย</label><label class="check"><input type="checkbox" data-ppe value="ผ้าปิดจมูก">ผ้าปิดจมูก</label><label class="check"><input type="checkbox" data-ppe value="ถุงมือผ้า">ถุงมือผ้า</label><label class="check"><input type="checkbox" data-ppe value="ชุดกันสารเคมี">ชุดกันสารเคมี</label><label class="check"><input type="checkbox" data-ppe value="ถุงมือหนัง">ถุงมือหนัง</label><label class="check"><input type="checkbox" data-ppe value="หน้ากากเชื่อม">หน้ากากเชื่อม</label><label class="check"><input type="checkbox" data-ppe value="แว่นตานิรภัย">แว่นตานิรภัย</label><label class="check"><input type="checkbox" data-ppe value="รองเท้าบู๊ท">รองเท้าบู๊ท</label><label class="check"><input type="checkbox" data-ppe value="อุปกรณ์ลดเสียง">อุปกรณ์ลดเสียง</label><label class="check"><input type="checkbox" data-ppe value="รองเท้าเซฟตี้">รองเท้าเซฟตี้</label><label class="check"><input type="checkbox" data-ppe value="เข็มขัดนิรภัย">เข็มขัดนิรภัย</label><label class="check"><input type="checkbox" data-ppe value="กระบังหน้า">กระบังหน้า</label><label class="check"><input type="checkbox" data-ppe value="ถังอ๊อกซิเจน">ถังอ๊อกซิเจน</label><label class="check"><input type="checkbox" data-ppe value="ชุด SCBA">ชุด SCBA</label><label class="check"><input type="checkbox" data-ppe value="ชุดเป่าอากาศ">ชุดเป่าอากาศ</label><label class="check"><input type="checkbox" data-ppe value="อื่นๆ">อื่นๆ</label></div></div>
+<div class="field full"><label>อุปกรณ์อื่น ๆ / จำนวน / รายละเอียดเพิ่มเติม</label><textarea id="otherTools" placeholder="ระบุอุปกรณ์เพิ่มเติมหรือจำนวน"></textarea></div>
 <div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div>
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
@@ -94,9 +114,30 @@ const SUPABASE_URL="https://nldoneixnuapuzpeeznl.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
+function renderWorkerNameFields(){
+ const count=Math.max(1,Math.min(200,Number($("requestForm").elements.team_size.value)||1));
+ const host=$("workerNameFields"),old=[...host.querySelectorAll("input")].map(x=>x.value);
+ host.innerHTML="";
+ for(let i=1;i<=count;i++){
+  const wrap=document.createElement("div");wrap.className="field";
+  const label=document.createElement("label");label.textContent="ชื่อผู้ปฏิบัติงาน "+i;
+  const input=document.createElement("input");input.type="text";input.maxLength=160;input.dataset.workerName=String(i);input.placeholder="กรอกชื่อคนที่ "+i;input.value=old[i-1]||"";
+  wrap.append(label,input);host.append(wrap);
+ }
+}
+$("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
+renderWorkerNameFields();
 document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==b.dataset.tab));}));
 const formObject=form=>Object.fromEntries(new FormData(form).entries());
-$("requestForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget;const msg=$("requestMsg");msg.textContent="กำลังส่งคำขอ...";const payload=formObject(e.currentTarget);payload.team_size=Number(payload.team_size);payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);form.reset();if(window.turnstile)window.turnstile.reset();}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
+$("requestForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget;const msg=$("requestMsg");msg.textContent="กำลังส่งคำขอ...";const payload=formObject(e.currentTarget);payload.team_size=Number(payload.team_size);
+payload.work_type=[...document.querySelectorAll("[data-work-type]:checked")].map(x=>x.value).join(" / ");
+if(!payload.work_type){msg.textContent="กรุณาเลือกประเภทงานอย่างน้อย 1 รายการ";return;}
+const selectedEquipment=[...document.querySelectorAll("[data-equipment]:checked")].map(x=>x.value);
+const selectedPpe=[...document.querySelectorAll("[data-ppe]:checked")].map(x=>x.value);
+payload.tools="อุปกรณ์ที่นำเข้าทำงาน: "+(selectedEquipment.join(", ")||"-")+"\nPPE: "+(selectedPpe.join(", ")||"-")+"\nเพิ่มเติม: "+$("otherTools").value.trim();
+const workerNames=[...document.querySelectorAll("[data-worker-name]")].map(x=>x.value.trim()).filter(Boolean);
+payload.work_description=(payload.work_description||"")+(workerNames.length?"\nรายชื่อผู้ปฏิบัติงาน:\n"+workerNames.map((n,i)=>(i+1)+". "+n).join("\n"):"");
+payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);form.reset();if(window.turnstile)window.turnstile.reset();}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
 $("trackForm").addEventListener("submit",async e=>{e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});if(error)throw error;if(data.error)throw new Error(data.error);msg.innerHTML="";const card=document.createElement("div");card.className="card";const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);const status=document.createElement("p");status.textContent="สถานะรวม: "+data.permit.status;card.append(status);(data.approvals||[]).forEach(a=>{const p=document.createElement("p");p.textContent=a.department+": "+a.status+(a.comment?" — "+a.comment:"");card.append(p);});msg.append(card);}catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}});
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();});
 let activePermit=null; let selectedPhotos=[];
@@ -161,16 +202,20 @@ function buildPdfPages(){
  let grid=pdfEl("div","pdf-grid");
  [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ชื่อเครื่องจักร (Machine, Equipment)",p.machine_equipment],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.supervisor_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
  sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
- const names=pdfEl("div","pdf-grid");for(let i=1;i<=9;i++)addField(names,"ชื่อผู้ปฏิบัติงาน "+i,"");page1.append(names);
+ const desc=p.work_description||"";
+ const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\\s*([\\s\\S]*)$/);
+ const workerNames=workerMatch?workerMatch[1].split(/\\n/).map(x=>x.replace(/^\\d+\\.\\s*/,"").trim()).filter(Boolean):[];
+ const names=pdfEl("div","pdf-grid");workerNames.forEach((name,i)=>addField(names,"ชื่อผู้ปฏิบัติงาน "+(i+1),name));if(!workerNames.length)addField(names,"รายชื่อผู้ปฏิบัติงาน","ไม่ได้ระบุชื่อ");page1.append(names);
  sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
- const workTypes=["งานตัดด้วยแก๊ส","งานตัดด้วยเครื่อง","งานเจียร","งานไฟฟ้า","งานเชื่อม","งานขุด/งานเจาะ","งานอื่นๆ","งานทาสี","งานทำความสะอาด","งานตรวจสอบ/เช็ค","งานบนนั่งร้าน","งานรื้อถอนอาคาร / สิ่งก่อสร้าง","งานตอกเสาเข็ม / ปั้นจั่น","ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป","งานทั่วไปอื่นๆ","งานในพื้นที่อับอากาศ"];
- const checks=pdfEl("div","pdf-checks");workTypes.forEach(t=>checks.append(pdfEl("div","pdf-check","□ "+t)));page1.append(checks);
- sec("รายชื่ออุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
- const equipment=["เครื่องตัด","เครื่องเจียร","เครื่องเชื่อมไฟฟ้า / แก๊ส","ถังแก๊สสำหรับงานเชื่อม","สว่านไฟฟ้า","นั่งร้าน","บันได","ถังดับเพลิง","ผ้ากันสะเก็ดไฟ","ป้ายเตือน / ป้ายระวัง"];
- const eq=pdfEl("div","pdf-checks");equipment.forEach(t=>eq.append(pdfEl("div","pdf-check","□ "+t)));page1.append(eq);
+ const chosenTypes=(p.work_type||"").split(" / ").filter(Boolean);
+ const checks=pdfEl("div","pdf-checks");chosenTypes.forEach(t=>checks.append(pdfEl("div","pdf-check","☑ "+t)));page1.append(checks);
+ const toolText=p.tools||"";
+ const eqMatch=toolText.match(/อุปกรณ์ที่นำเข้าทำงาน:\\s*([^\\n]*)/),ppeMatch=toolText.match(/PPE:\\s*([^\\n]*)/),otherMatch=toolText.match(/เพิ่มเติม:\\s*([\\s\\S]*)/);
+ sec("รายการอุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
+ const eq=pdfEl("div","pdf-checks");(eqMatch?.[1]||"-").split(",").map(x=>x.trim()).filter(Boolean).forEach(t=>eq.append(pdfEl("div","pdf-check","☑ "+t)));page1.append(eq);
  sec("อุปกรณ์ป้องกันอันตรายส่วนบุคคล (Personal Protective Equipment)");
- const ppe=["หมวกนิรภัย","ผ้าปิดจมูก","ถุงมือผ้า","ชุดกันสารเคมี","ถุงมือหนัง","หน้ากากเชื่อม","แว่นตานิรภัย","รองเท้าบู๊ท","อุปกรณ์ลดเสียง","รองเท้าเซฟตี้","เข็มขัดนิรภัย","กระบังหน้า","ถังอ๊อกซิเจน","ชุด SCBA","ชุดเป่าอากาศ","อื่นๆ"];
- const pp=pdfEl("div","pdf-checks");ppe.forEach(t=>pp.append(pdfEl("div","pdf-check","□ "+t+"   จำนวน ........")));page1.append(pp);
+ const pp=pdfEl("div","pdf-checks");(ppeMatch?.[1]||"-").split(",").map(x=>x.trim()).filter(Boolean).forEach(t=>pp.append(pdfEl("div","pdf-check","☑ "+t)));page1.append(pp);
+ if(otherMatch?.[1])page1.append(pdfEl("div","pdf-small","อุปกรณ์เพิ่มเติม: "+otherMatch[1]));
  sec("ส่วนที่ 3 : ลำดับการขออนุญาตก่อนเข้าทำงาน และหลังเสร็จงาน");
  const sign=pdfEl("div","pdf-sign");["ผู้ขออนุญาต / ผู้ควบคุม","เจ้าของงาน (Job Owner)","เจ้าของพื้นที่ (Area Owner)","เจ้าหน้าที่ความปลอดภัย (Safety Officer)"].forEach(t=>sign.append(pdfEl("div","",t+"\n\nลงชื่อ __________________\nวันที่ ____ / ____ / ____")));page1.append(sign);
  page1.append(pdfEl("div","pdf-small","หมายเหตุ: ให้ผู้รับเหมาติดใบอนุญาตไว้บริเวณพื้นที่ปฏิบัติงาน และต้องปฏิบัติตามมาตรการความปลอดภัยของโรงแรม"));
