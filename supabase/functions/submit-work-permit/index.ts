@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       const tokenHash = await sha256(trackingCode);
       const { data: permit, error } = await db.from("work_permits")
         .select("id,permit_no,status,work_title,company_name,start_date,work_location")
-        .eq("permit_no", permitNo).eq("tracking_token_hash", tokenHash).maybeSingle();
+        .eq("permit_no", permitNo).eq("tracking_code_hash", tokenHash).maybeSingle();
       if (error) throw error;
       if (!permit) return json({ error: "ไม่พบคำขอ หรือรหัสติดตามไม่ถูกต้อง" }, 404);
       const { data: approvals, error: approvalError } = await db.from("work_permit_department_approvals")
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       supervisor_name: supervisor,
       work_type: type,
       tools: clean(body.tools, 2000),
-      tracking_token_hash: trackingHash,
+      tracking_code_hash: trackingHash,
     }).select("id,permit_no").single();
     if (error) throw error;
 
