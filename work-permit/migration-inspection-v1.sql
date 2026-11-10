@@ -77,7 +77,7 @@ create policy "Staff delete work permit inspection files"
 on storage.objects for delete to authenticated
 using (
   bucket_id = 'work-permit-inspections'
-  and (owner = auth.uid() or public.current_user_role() = 'ADMIN')
+  and ((storage.foldername(name))[2] = auth.uid()::text or public.current_user_role() = 'ADMIN')
 );
 
 commit;
