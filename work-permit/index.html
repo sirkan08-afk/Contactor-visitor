@@ -428,6 +428,7 @@ $("reportExcel").onclick=async()=>{
    if(approval.error)throw approval.error;
    const a=approval.data||{};
    const ws=XLSX.utils.aoa_to_sheet([]);
+   const workerRows=workers.filter(w=>w.permit_id===p.id);
    const rows=[
     ["U KHAOCHICHAN PATTAYA"],
     ["ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมาช่วง (WORK PERMIT FOR SUB-CONTRACTOR)"],
@@ -442,15 +443,17 @@ $("reportExcel").onclick=async()=>{
     ["เวลาเริ่ม",p.start_time||"","เวลาสิ้นสุด",p.end_time||""],
     ["จำนวนผู้ปฏิบัติงาน",p.team_size??""],
     ["รายชื่อผู้ปฏิบัติงาน"],
-    ...workers.filter(w=>w.permit_id===p.id).map((w,i)=>[i+1,w.full_name||""]),
+    ...workerRows.map((w,i)=>[i+1,w.full_name||""]),
     ["รายการอุปกรณ์ที่นำเข้ามาทำงาน",p.tools||""],
     ["อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE)",p.ppe||""],
     ["สถานะรวม",permitStatusLabel[p.status]||p.status||""],
     ["ผลอนุมัติ SECURITY",statusLabel[a.status]||"รออนุมัติ","หมายเหตุ",a.comment||""],
-    [],
-    ["รายการตรวจสอบความปลอดภัย (CHECKING DETAIL)"],
-    ["ลำดับ","รายการตรวจสอบ (Checking Detail)","ผลการตรวจสอบ","ปัญหาที่พบ","ดำเนินการแก้ไข"]
+    []
    ];
+   const sectionRow=rows.length;
+   rows.push(["รายการตรวจสอบความปลอดภัย (CHECKING DETAIL)"]);
+   const headerRow=rows.length;
+   rows.push(["ลำดับ","รายการตรวจสอบ (Checking Detail)","ผลการตรวจสอบ","ปัญหาที่พบ","ดำเนินการแก้ไข"]);
    checklistItems.forEach((title,i)=>{
     const c=checks.find(x=>x.permit_id===p.id&&Number(x.item_no)===i+1);
     const result=c?(c.result_status==="yes"?"ใช่":c.result_status==="no"?"ไม่ใช่":c.result_status==="na"?"ไม่เกี่ยวข้อง":""):"ยังไม่ตรวจ";
@@ -459,21 +462,28 @@ $("reportExcel").onclick=async()=>{
     const fix=note.match(/แก้ไข:\\s*([\\s\\S]*)/)?.[1]||"";
     rows.push([i+1,c?.item_title||title,result,problem,fix]);
    });
-   rows.push([],["วันที่ตรวจ",checks.find(c=>c.permit_id===p.id)?.inspected_at?new Date(checks.find(c=>c.permit_id===p.id).inspected_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):""]);
+   const inspected=checks.find(c=>c.permit_id===p.id)?.inspected_at;
+   rows.push([],["วันที่ตรวจ",inspected?new Date(inspected).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):""]);
    XLSX.utils.sheet_add_aoa(ws,rows,{origin:"A1"});
    ws["!cols"]=[{wch:10},{wch:52},{wch:18},{wch:35},{wch:35}];
-   ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}},{s:{r:6,c:1},e:{r:6,c:4}},{s:{r:7,c:1},e:{r:7,c:4}},{s:{r:8,c:1},e:{r:8,c:4}},{s:{r:12,c:0},e:{r:12,c:4}}];
+   ws["!merges"]=[
+    {s:{r:0,c:0},e:{r:0,c:4}},
+    {s:{r:1,c:0},e:{r:1,c:4}},
+    {s:{r:12,c:0},e:{r:12,c:4}},
+    {s:{r:sectionRow,c:0},e:{r:sectionRow,c:4}}
+   ];
    const range=XLSX.utils.decode_range(ws["!ref"]);
    for(let R=0;R<=range.e.r;R++)for(let C=0;C<=range.e.c;C++){
     const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(!cell)continue;
     if(!cell.s)cell.s={};
     cell.s.alignment={vertical:"center",wrapText:true};
     cell.s.border={top:{style:"thin",color:{rgb:"AAB8B0"}},bottom:{style:"thin",color:{rgb:"AAB8B0"}},left:{style:"thin",color:{rgb:"AAB8B0"}},right:{style:"thin",color:{rgb:"AAB8B0"}}};
-    if(R===0||R===1||R===12||R===19){cell.s.font={bold:true,color:{rgb:R<=1?"FFFFFF":"174D40"},sz:R<=1?14:11};cell.s.fill={fgColor:{rgb:"174D40"}};}
-    else if(R===20){cell.s.font={bold:true,color:{rgb:"FFFFFF"}};cell.s.fill={fgColor:{rgb:"23745C"}};}
-    else if(C===0&&R>=2){cell.s.font={bold:true};cell.s.fill={fgColor:{rgb:"EAF2ED"}};}
+    if(R===0||R===1){cell.s.font={bold:true,color:{rgb:"FFFFFF"},sz:R===0?14:12};cell.s.fill={fgColor:{rgb:"174D40"}};}
+    else if(R===12||R===sectionRow){cell.s.font={bold:true,color:{rgb:"FFFFFF"},sz:11};cell.s.fill={fgColor:{rgb:"174D40"}};}
+    else if(R===headerRow){cell.s.font={bold:true,color:{rgb:"FFFFFF"}};cell.s.fill={fgColor:{rgb:"23745C"}};}
+    else if(C===0&&R>=2&&R<sectionRow){cell.s.font={bold:true};cell.s.fill={fgColor:{rgb:"EAF2ED"}};}
    }
-   ws["!rows"]=rows.map((r,i)=>({hpt:i===1?32:(i===0?24: i>=20&&i<=36?34:22)}));
+   ws["!rows"]=rows.map((r,i)=>({hpt:i===1?32:(i===0?24:(i>=headerRow?34:22))}));
    ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0};
    ws["!margins"]={left:0.25,right:0.25,top:0.5,bottom:0.5,header:0.2,footer:0.2};
    const safe=(p.permit_no||"WP").replace(/[^A-Za-z0-9_-]/g,"").slice(0,25);
