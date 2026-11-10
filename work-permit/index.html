@@ -355,7 +355,7 @@ $("saveInspection").onclick=async()=>{
 };
 
 // ===== Work Permit Reports (submission date / date range) =====
-let reportRows=[];
+let reportRows=[];let reportPermitRows=[];
 function localDateInput(d=new Date()){
  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);
  const v=Object.fromEntries(parts.map(x=>[x.type,x.value]));return v.year+"-"+v.month+"-"+v.day;
@@ -376,7 +376,7 @@ async function loadReport(){
   let approvals=[];
   if(ids.length){const result=await db.from("work_permit_department_approvals").select("permit_id,department,status,comment,acted_at").in("permit_id",ids);if(result.error)throw result.error;approvals=result.data||[];}
   const byPermit=new Map(approvals.map(a=>[a.permit_id,a]));
-  reportRows=(permits||[]).map(p=>{const a=byPermit.get(p.id)||{};return {
+  reportPermitRows=permits||[];\n  reportRows=(permits||[]).map(p=>{const a=byPermit.get(p.id)||{};return {
    "เลข Work Permit":p.permit_no||"",
    "วันที่ยื่น":p.created_at?new Date(p.created_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):"",
    "บริษัท":p.company_name||"",
@@ -409,12 +409,80 @@ function renderReportTable(){
 $("reportToday").onclick=()=>{initReportDates();loadReport();};
 $("reportRange").onclick=loadReport;
 $("reportExcel").onclick=async()=>{
- if(!reportRows.length){$("reportMsg").textContent="ไม่มีข้อมูลสำหรับดาวน์โหลด";return;}
+ if(!reportPermitRows.length){$("reportMsg").textContent="ไม่มีข้อมูลสำหรับดาวน์โหลด";return;}
+ const button=$("reportExcel");button.disabled=true;$("reportMsg").textContent="กำลังจัดทำ Excel แยกชีตตามเลข WP...";
  try{
   if(!window.XLSX){await new Promise((resolve,reject)=>{const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";sc.onload=resolve;sc.onerror=()=>reject(new Error("โหลดเครื่องมือ Excel ไม่สำเร็จ"));document.head.append(sc);});}
-  const ws=XLSX.utils.json_to_sheet(reportRows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Work Permit Report");
-  XLSX.writeFile(wb,"Work-Permit-Report-"+$("reportFrom").value+"-"+$("reportTo").value+".xlsx");
- }catch(err){$("reportMsg").textContent=err.message||"ส่งออก Excel ไม่สำเร็จ";}
+  const wb=XLSX.utils.book_new();
+  const statusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",revision_requested:"ขอแก้ไข",rejected:"ไม่อนุมัติ"};
+  const ids=reportPermitRows.map(p=>p.id);
+  let workers=[],checks=[];
+  if(ids.length){
+   const w=await db.from("work_permit_workers").select("permit_id,full_name,created_at").in("permit_id",ids).order("created_at",{ascending:true});
+   if(w.error)throw w.error;workers=w.data||[];
+   const c=await db.from("work_permit_checklists").select("permit_id,item_no,item_title,result_status,is_checked,note,inspected_at").in("permit_id",ids).order("item_no",{ascending:true});
+   if(c.error)throw c.error;checks=c.data||[];
+  }
+  for(const p of reportPermitRows){
+   const approval=(await db.from("work_permit_department_approvals").select("status,comment,acted_at").eq("permit_id",p.id).eq("department","SECURITY").maybeSingle());
+   if(approval.error)throw approval.error;
+   const a=approval.data||{};
+   const ws=XLSX.utils.aoa_to_sheet([]);
+   const rows=[
+    ["U KHAOCHICHAN PATTAYA"],
+    ["ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมาช่วง (WORK PERMIT FOR SUB-CONTRACTOR)"],
+    ["เลขที่ใบอนุญาต",p.permit_no||"","วันที่ยื่น",p.created_at?new Date(p.created_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):""],
+    ["บริษัทผู้รับเหมา",p.company_name||"","แผนกเจ้าของพื้นที่",p.department||""],
+    ["ผู้ยื่นคำขอ",p.applicant_name||"","ผู้ควบคุมงาน",p.supervisor_name||""],
+    ["เบอร์ติดต่อ",p.contact_phone||"","สถานที่ปฏิบัติงาน",p.work_location||""],
+    ["ชื่องาน",p.work_title||""],
+    ["ประเภทงาน",p.work_type||""],
+    ["รายละเอียด / วิธีปฏิบัติงาน",p.work_description||""],
+    ["วันที่เริ่ม",p.start_date||"","วันที่สิ้นสุด",p.end_date||""],
+    ["เวลาเริ่ม",p.start_time||"","เวลาสิ้นสุด",p.end_time||""],
+    ["จำนวนผู้ปฏิบัติงาน",p.team_size??""],
+    ["รายชื่อผู้ปฏิบัติงาน"],
+    ...workers.filter(w=>w.permit_id===p.id).map((w,i)=>[i+1,w.full_name||""]),
+    ["รายการอุปกรณ์ที่นำเข้ามาทำงาน",p.tools||""],
+    ["อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE)",p.ppe||""],
+    ["สถานะรวม",permitStatusLabel[p.status]||p.status||""],
+    ["ผลอนุมัติ SECURITY",statusLabel[a.status]||"รออนุมัติ","หมายเหตุ",a.comment||""],
+    [],
+    ["รายการตรวจสอบความปลอดภัย (CHECKING DETAIL)"],
+    ["ลำดับ","รายการตรวจสอบ (Checking Detail)","ผลการตรวจสอบ","ปัญหาที่พบ","ดำเนินการแก้ไข"]
+   ];
+   checklistItems.forEach((title,i)=>{
+    const c=checks.find(x=>x.permit_id===p.id&&Number(x.item_no)===i+1);
+    const result=c?(c.result_status==="yes"?"ใช่":c.result_status==="no"?"ไม่ใช่":c.result_status==="na"?"ไม่เกี่ยวข้อง":""):"ยังไม่ตรวจ";
+    const note=c?.note||"";
+    const problem=note.match(/ปัญหา:\\s*([^\\n]+)/)?.[1]||"";
+    const fix=note.match(/แก้ไข:\\s*([\\s\\S]*)/)?.[1]||"";
+    rows.push([i+1,c?.item_title||title,result,problem,fix]);
+   });
+   rows.push([],["วันที่ตรวจ",checks.find(c=>c.permit_id===p.id)?.inspected_at?new Date(checks.find(c=>c.permit_id===p.id).inspected_at).toLocaleString("th-TH",{timeZone:"Asia/Bangkok"}):""]);
+   XLSX.utils.sheet_add_aoa(ws,rows,{origin:"A1"});
+   ws["!cols"]=[{wch:10},{wch:52},{wch:18},{wch:35},{wch:35}];
+   ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}},{s:{r:6,c:1},e:{r:6,c:4}},{s:{r:7,c:1},e:{r:7,c:4}},{s:{r:8,c:1},e:{r:8,c:4}},{s:{r:12,c:0},e:{r:12,c:4}}];
+   const range=XLSX.utils.decode_range(ws["!ref"]);
+   for(let R=0;R<=range.e.r;R++)for(let C=0;C<=range.e.c;C++){
+    const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(!cell)continue;
+    if(!cell.s)cell.s={};
+    cell.s.alignment={vertical:"center",wrapText:true};
+    cell.s.border={top:{style:"thin",color:{rgb:"AAB8B0"}},bottom:{style:"thin",color:{rgb:"AAB8B0"}},left:{style:"thin",color:{rgb:"AAB8B0"}},right:{style:"thin",color:{rgb:"AAB8B0"}}};
+    if(R===0||R===1||R===12||R===19){cell.s.font={bold:true,color:{rgb:R<=1?"FFFFFF":"174D40"},sz:R<=1?14:11};cell.s.fill={fgColor:{rgb:"174D40"}};}
+    else if(R===20){cell.s.font={bold:true,color:{rgb:"FFFFFF"}};cell.s.fill={fgColor:{rgb:"23745C"}};}
+    else if(C===0&&R>=2){cell.s.font={bold:true};cell.s.fill={fgColor:{rgb:"EAF2ED"}};}
+   }
+   ws["!rows"]=rows.map((r,i)=>({hpt:i===1?32:(i===0?24: i>=20&&i<=36?34:22)}));
+   ws["!pageSetup"]={paperSize:9,orientation:"portrait",fitToWidth:1,fitToHeight:0};
+   ws["!margins"]={left:0.25,right:0.25,top:0.5,bottom:0.5,header:0.2,footer:0.2};
+   const safe=(p.permit_no||"WP").replace(/[^A-Za-z0-9_-]/g,"").slice(0,25);
+   XLSX.utils.book_append_sheet(wb,ws,safe||"Work Permit");
+  }
+  XLSX.writeFile(wb,"Work-Permit-Individual-"+$("reportFrom").value+"-"+$("reportTo").value+".xlsx");
+  $("reportMsg").textContent="ดาวน์โหลด Excel เรียบร้อย: แยก "+reportPermitRows.length+" ชีต ตามเลข WP";
+ }catch(err){$("reportMsg").textContent="ส่งออก Excel ไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
+ finally{button.disabled=false;}
 };
 $("reportPdf").onclick=async()=>{
  if(!reportRows.length){$("reportMsg").textContent="ไม่มีข้อมูลสำหรับดาวน์โหลด";return;}
