@@ -9,13 +9,13 @@ This work is isolated under work-permit/ and does not modify Patrol or Contracto
 - work-permit/migration-v1.sql — additive SQL migration for applicant/supervisor fields, tracking hash, department approvals, staff visibility, and overall status synchronization.
 - work-permit/schema-audit.sql — read-only schema audit.
 - work-permit/deployment-checklist.md — deployment prerequisites and role checks.
-- supabase/functions/work-permit-public/index.ts — public QR submit and private tracking Edge Function.
+- supabase/functions/submit-work-permit/index.ts — public QR submit and private tracking Edge Function.
 
 ## Current progress
 - UI shell and Supabase client integration: prepared.
 - Public QR submission: Edge Function source prepared; not deployed.
 - Tracking: secure token hash lookup source prepared; not deployed.
-- Department approval routing: initial routing logic prepared; hotel routing rules must be confirmed.
+- Department approval routing: SECURITY is always required; SAFETY and ENGINEERING are added for relevant work types; AREA_OWNER is added when an owner department is selected. Confirm this routing with the hotel before production.
 - Staff approval UI: prepared against department approval table.
 - Overall status sync: SQL trigger included in migration.
 - Inspector screen: 16-item checklist with Yes/No/Not applicable selections prepared.
@@ -33,6 +33,6 @@ Before applying migration-v1.sql:
 2. Confirm exact role values in user_roles and current_user_role().
 3. Confirm routing by work type with Security, Safety, Engineering, and Area Owner.
 4. Test with real staff accounts and verify existing Work Permit records remain readable.
-5. Deploy the Edge Function with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as server-side secrets only.
+5. Deploy `submit-work-permit` with `SUPABASE_URL`, `SUPABASE_SECRET_KEYS`, and `TURNSTILE_SECRET_KEY` configured as server-side Edge Function secrets only. The Turnstile hostname is restricted to `sirkan08-afk.github.io`.
 
 Never expose a service-role key in browser code or grant anon direct SELECT/INSERT on work_permits.
