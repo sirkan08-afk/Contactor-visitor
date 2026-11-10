@@ -145,7 +145,7 @@ function renderWorkerNameFields(){
 }
 $("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
 renderWorkerNameFields();
-document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff","downloads"].forEach(id=>$(id).classList.toggle("hidden",id!==b.dataset.tab));}));
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==(b.dataset.tab==="downloads"?"staff":b.dataset.tab)));if(b.dataset.tab==="downloads"){$("staffList").classList.add("hidden");$("inspection").classList.add("hidden");$("downloadsPanel").classList.remove("hidden");}else if(b.dataset.tab==="staff"){$("staffList").classList.remove("hidden");$("downloadsPanel").classList.remove("hidden");}else{$("downloadsPanel").classList.add("hidden");}}));
 const formObject=form=>Object.fromEntries(new FormData(form).entries());
 const permitStatusLabel={draft:"ฉบับร่าง",submitted:"ส่งคำขอแล้ว",under_review:"กำลังตรวจสอบ",approved:"ได้รับอนุญาตเรียบร้อย",rejected:"ไม่อนุญาต",revision_requested:"รอการแก้ไขข้อมูล",closed:"ปิดงานแล้ว"};
 const approvalStatusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",rejected:"ไม่อนุมัติ",revision_requested:"ขอแก้ไข"};
