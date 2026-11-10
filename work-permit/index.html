@@ -58,7 +58,7 @@ $("downloadInspectionPdf").onclick=async()=>{
  try{
   const p=activePermit.work_permits||{};
   root=document.createElement("div");
-  root.style.cssText="position:fixed;left:0;top:0;width:794px;padding:34px;background:#fff;color:#172b24;z-index:99999;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;";
+  root.style.cssText="display:block;position:relative;width:794px;min-height:1123px;margin:0 auto;padding:34px;background:#fff;color:#172b24;z-index:1;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;box-sizing:border-box;";
   const heading=document.createElement("h1");heading.textContent="U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT";heading.style.cssText="font-size:19px;margin:0 0 4px;color:#174d40";
   const sub=document.createElement("h2");sub.textContent="WORK PERMIT – INSPECTION REPORT";sub.style.cssText="font-size:17px;margin:0 0 18px";
   const summary=document.createElement("div");summary.style.cssText="border:1px solid #cbd8d1;padding:12px;margin-bottom:16px;border-radius:8px";
@@ -79,7 +79,11 @@ $("downloadInspectionPdf").onclick=async()=>{
    page.append(grid);root.append(page);
   }
   document.body.append(root);
-  await html2pdf().set({margin:8,filename:(p.permit_no||"Work-Permit")+"_Inspection.pdf",image:{type:"jpeg",quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(root).save();
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  if(document.fonts?.ready)await document.fonts.ready;
+  await Promise.all([...root.querySelectorAll("img")].map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
+  if(!root.textContent.trim())throw new Error("ไม่พบเนื้อหาเอกสารสำหรับสร้าง PDF");
+  await html2pdf().set({margin:8,filename:(p.permit_no||"Work-Permit")+"_Inspection.pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:850,logging:false},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(root).save();
   msg.textContent="สร้างไฟล์ PDF เรียบร้อยแล้ว";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
  finally{if(root?.parentNode)root.parentNode.removeChild(root);button.disabled=false;}
