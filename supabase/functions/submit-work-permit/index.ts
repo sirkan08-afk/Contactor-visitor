@@ -100,8 +100,10 @@ Deno.serve(async (req) => {
     if (error) throw error;
 
     const approvalRows = [...departments].map((department) => ({
-      permit_id: permit.id, department, status: "pending",
-    });
+      permit_id: permit.id,
+      department,
+      status: "pending",
+    }));
     const { error: routeError } = await db.from("work_permit_department_approvals").insert(approvalRows);
     if (routeError) {
       await db.from("work_permits").delete().eq("id", permit.id);
