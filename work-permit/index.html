@@ -161,9 +161,7 @@ function buildPdfPages(){
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- if(typeof window.html2canvas!=="function"){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
- const JsPDF=window.jspdf?.jsPDF;
- if(!JsPDF){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
+ if(typeof window.html2pdf!=="function"){msg.textContent="โหลดตัวสร้าง PDF ไม่สำเร็จ (html2pdf) กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่";return;}
  button.disabled=true;msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
  let root;
  try{
@@ -171,14 +169,16 @@ $("downloadInspectionPdf").onclick=async()=>{
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const pages=[...root.querySelectorAll(".pdf-page")];
   if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
-  const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-  for(let i=0;i<pages.length;i++){
-   const canvas=await window.html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0});
-   if(!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" เป็นภาพได้");
-   if(i>0)pdf.addPage("a4","portrait");
+  const opt={margin:0,image:{type:"jpeg",quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait",compress:true},pagebreak:{mode:[]}};
+  const firstWorker=window.html2pdf().set(opt).from(pages[0]).toPdf();
+  const pdf=await firstWorker.get("pdf");
+  for(let i=1;i<pages.length;i++){
+   const canvas=await window.html2pdf().set(opt).from(pages[i]).toCanvas().get("canvas");
+   if(!canvas||!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" ได้");
+   pdf.addPage("a4","portrait");
    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
   }
-  if(pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้างหน้า PDF ไม่ครบ 2 หน้า");
+  if(pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้าง PDF ได้ไม่ครบ 2 หน้า");
   pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
   msg.textContent="บันทึก PDF A4 เรียบร้อย จำนวน 2 หน้า";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
