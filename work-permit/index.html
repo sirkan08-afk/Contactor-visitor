@@ -6,7 +6,10 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 :root{--green:#174d40;--green2:#23745c;--ink:#20332d;--muted:#65766f;--line:#dce6e0;--bg:#f2f6f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,sans-serif}.hero{background:linear-gradient(120deg,#123a32,#246a53);color:#fff;padding:24px max(18px,calc((100% - 980px)/2))}.hero small{letter-spacing:.08em}.hero h1{margin:8px 0 4px;font-size:28px}.wrap{max-width:980px;margin:20px auto;padding:0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button,.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--green2);color:#fff;font-weight:700;font-size:15px;cursor:pointer}.tabs button{background:#e1ece6;color:#285044}.tabs button.active{background:var(--green);color:#fff}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px;box-shadow:0 3px 12px #183c2b0a}.hidden{display:none}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.full{grid-column:1/-1}input,select,textarea{width:100%;padding:12px;border:1px solid #cbd8d1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:85px}.notice{padding:12px;background:#edf6f0;border-radius:10px;margin:10px 0}.muted{color:var(--muted);font-size:13px}.card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0}.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.pill{display:inline-block;border-radius:30px;padding:4px 10px;background:#e7f2ec;color:#1d654a;font-size:12px;font-weight:700}.pill.warn{background:#fff3d9;color:#875d00}.pill.bad{background:#fbe7e5;color:#a32c24}.btn.secondary{background:#e8efeb;color:#23483c}.btn.danger{background:#a9342d}.progress{height:8px;border-radius:10px;background:#e6eee9;overflow:hidden}.progress span{display:block;height:100%;background:#27946c;width:30%}#msg{white-space:pre-wrap}.demo{background:#fff6df;border:1px solid #f0d89a;color:#77530a;padding:10px;border-radius:10px;margin-top:12px}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero h1{font-size:24px}}
-.inspect-grid{display:grid;grid-template-columns:1fr;gap:8px}.inspect-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;border-radius:10px}.inspect-item select{max-width:160px}.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.photo-grid img{width:100%;height:120px;object-fit:cover;border-radius:8px}.mini{padding:8px 11px;font-size:13px}.print-only{display:none}@media print{body{background:#fff}.hero,.tabs,#request,#track,#staff,.demo,.no-print{display:none!important}#inspection{display:block!important;border:0;box-shadow:none;margin:0;padding:0}.print-only{display:block}.appendix{page-break-before:always}.inspect-item{break-inside:avoid}}</style></head><body>
+.inspect-grid{display:grid;grid-template-columns:1fr;gap:8px}.inspect-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;border-radius:10px}.inspect-item select{max-width:160px}.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.photo-grid img{width:100%;height:120px;object-fit:cover;border-radius:8px}.mini{padding:8px 11px;font-size:13px}.print-only{display:none}@media print{body{background:#fff}.hero,.tabs,#request,#track,#staff,.demo,.no-print{display:none!important}#inspection{display:block!important;border:0;box-shadow:none;margin:0;padding:0}.print-only{display:block}.appendix{page-break-before:always}.inspect-item{break-inside:avoid}}
+/* Work Permit two-page A4 export */
+.photo-stage{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.photo-stage h4{margin:0 0 8px;color:var(--green)}.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.photo-grid img{width:100%;height:120px;object-fit:cover;border:1px solid var(--line);border-radius:8px}.photo-grid input{margin-top:5px;font-size:13px;padding:7px}.pdf-root{position:fixed;left:-12000px;top:0;width:210mm;background:#fff;color:#172820;z-index:-1}.pdf-page{width:210mm;height:297mm;padding:9mm 10mm;background:#fff;overflow:hidden;page-break-after:always;break-after:page;font-family:Tahoma,Arial,sans-serif;font-size:9pt;line-height:1.22;box-sizing:border-box}.pdf-page:last-child{page-break-after:auto;break-after:auto}.pdf-head{text-align:center;border-bottom:2px solid #174d40;padding-bottom:3mm;margin-bottom:3mm}.pdf-head h1{font-size:15pt;margin:0 0 1mm;color:#174d40}.pdf-head p{margin:0;font-size:8pt}.pdf-section{background:#eaf2ed;border:1px solid #9db8a9;padding:1.5mm 2mm;font-weight:bold;margin:2mm 0 1.5mm}.pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4mm 4mm}.pdf-field{border-bottom:1px dotted #7f9187;min-height:6mm;padding:1mm 0}.pdf-field b{font-size:8pt}.pdf-field span{display:inline-block;min-width:20mm}.pdf-small{font-size:7.2pt}.pdf-checks{display:grid;grid-template-columns:1fr 1fr;gap:1mm 3mm}.pdf-check{font-size:7.2pt;display:flex;gap:1mm;align-items:flex-start}.pdf-sign{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;margin-top:3mm}.pdf-sign div{border:1px solid #9aaca1;min-height:18mm;padding:2mm;text-align:center;font-size:7pt}.pdf-table{width:100%;border-collapse:collapse;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #899b90;padding:1.1mm;font-size:7.3pt;vertical-align:middle}.pdf-table th{background:#eaf2ed;text-align:center}.pdf-table .num{width:7mm;text-align:center}.pdf-table .result{width:29mm;text-align:center}.pdf-table .notes{width:29mm}.pdf-table .fix{width:29mm}.pdf-photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:2mm}.pdf-photo-box{height:35mm;border:1px solid #9aaca1;padding:1.5mm;overflow:hidden}.pdf-photo-box img{width:100%;height:27mm;object-fit:contain}.pdf-photo-title{font-weight:bold;font-size:8pt;margin-bottom:1mm}.pdf-note{border:1px solid #9aaca1;min-height:12mm;padding:2mm;font-size:7.5pt}.pdf-footer{margin-top:2mm;text-align:right;font-size:7pt;color:#52645a}
+</style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
 <nav class="tabs"><button class="active" data-tab="request">ยื่นคำขอ</button><button data-tab="track">ติดตามคำขอ</button><button data-tab="staff">เจ้าหน้าที่ / ผู้ตรวจ</button></nav>
@@ -31,7 +34,22 @@
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
 <section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">ใช้เลข Work Permit และรหัสติดตามที่ได้รับหลังส่งคำขอสำเร็จ</p><form id="trackForm" class="grid"><div class="field"><label>เลข Work Permit</label><input name="permit_no" required></div><div class="field"><label>รหัสติดตามส่วนตัว</label><input name="tracking_code" required></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
-<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div><section id="inspection" class="hidden panel"><div class="row"><h2>ตรวจหน้างาน / Inspection</h2><button class="btn secondary no-print" id="backToList">กลับรายการ</button></div><div id="permitSummary" class="card"></div><h3>Checklist ตรวจความปลอดภัย 16 ข้อ</h3><div id="checklist" class="inspect-grid"></div><div class="field"><label>ปัญหาที่พบ / การแก้ไข</label><textarea id="inspectionNotes"></textarea></div><h3>ภาพถ่ายหลักฐานจากผู้ตรวจ</h3><p class="muted">ถ่ายภาพหรือเลือกภาพจากอุปกรณ์ได้หลายภาพ ภาพจะแสดงในภาคผนวกแยกจากเอกสารหลัก</p><input id="inspectionPhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="photoPreview" class="photo-grid"></div><div class="row no-print"><button class="btn secondary" id="downloadInspectionPdf">บันทึก PDF</button><button class="btn" id="saveInspection">บันทึกผลตรวจ</button></div><div id="inspectionMsg" class="muted no-print"></div><div class="print-only appendix"><h2>ภาคผนวก: ภาพถ่ายหลักฐานการตรวจหน้างาน</h2><div id="printPhotos" class="photo-grid"></div></div></section></section>
+<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div><section id="inspection" class="hidden panel">
+<div class="row"><h2>ตรวจหน้างาน / Inspection</h2><button class="btn secondary no-print" id="backToList">กลับรายการ</button></div>
+<div id="permitSummary" class="card"></div>
+<h3>Checklist ตรวจความปลอดภัย 16 ข้อ</h3>
+<div id="checklist" class="inspect-grid"></div>
+<div class="grid">
+ <div class="field"><label>ปัญหาที่พบ / Problems found</label><textarea id="inspectionProblems"></textarea></div>
+ <div class="field"><label>ดำเนินการแก้ไข / Corrective action</label><textarea id="inspectionCorrection"></textarea></div>
+</div>
+<h3>ภาพถ่ายตรวจสอบหน้างาน</h3>
+<div class="photo-stage"><h4>ภาพก่อนเริ่มงาน / BEFORE WORK</h4><input id="beforePhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="beforePreview" class="photo-grid"></div></div>
+<div class="photo-stage"><h4>ภาพหลังเสร็จงาน / AFTER WORK</h4><input id="afterPhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="afterPreview" class="photo-grid"></div></div>
+<div class="row no-print"><button class="btn secondary" id="downloadInspectionPdf">บันทึก PDF (A4 2 หน้า)</button><button class="btn" id="saveInspection">บันทึกผลตรวจ</button></div>
+<div id="inspectionMsg" class="muted no-print"></div>
+</section></section>
+<div id="pdfRenderRoot" aria-hidden="true"></div>
 <div class="demo"><b>สถานะการติดตั้ง:</b> หน้านี้เป็นส่วนติดต่อผู้ใช้ที่เตรียมไว้ การส่งคำขอจริงจะเปิดหลังติดตั้ง SQL Migration และ Edge Function ใน Supabase ก่อน ยังไม่ถือว่าเป็นระบบ Production</div>
 </main>
 <script>
@@ -45,70 +63,113 @@ $("requestForm").addEventListener("submit",async e=>{e.preventDefault();const fo
 $("trackForm").addEventListener("submit",async e=>{e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});if(error)throw error;if(data.error)throw new Error(data.error);msg.innerHTML="";const card=document.createElement("div");card.className="card";const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);const status=document.createElement("p");status.textContent="สถานะรวม: "+data.permit.status;card.append(status);(data.approvals||[]).forEach(a=>{const p=document.createElement("p");p.textContent=a.department+": "+a.status+(a.comment?" — "+a.comment:"");card.append(p);});msg.append(card);}catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}});
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();});
 let activePermit=null; let selectedPhotos=[];
-const checklistItems=["มีใบอนุญาตทำงานและเอกสารครบถ้วน","มีการชี้แจงงานและประเมินความเสี่ยงก่อนเริ่มงาน","ผู้ปฏิบัติงานสวม PPE เหมาะสม","พื้นที่ทำงานมีป้ายเตือนและกั้นเขต","มีการควบคุมการเข้าออกพื้นที่","อุปกรณ์และเครื่องมืออยู่ในสภาพพร้อมใช้","มีการตรวจสอบอุปกรณ์ไฟฟ้าและสายไฟ","มีการจัดการแหล่งพลังงานและตัดแยกพลังงานเมื่อจำเป็น","งานเชื่อมตัดมีมาตรการ Hot Work และถังดับเพลิง","งานที่สูงมีอุปกรณ์ป้องกันการตก","นั่งร้าน/บันไดได้รับการตรวจสอบ","พื้นที่อับอากาศมีการตรวจวัดและแผนช่วยเหลือ","มีการจัดเก็บสารเคมีและ SDS อย่างเหมาะสม","มีการรักษาความสะอาดและทางหนีไฟไม่ถูกกีดขวาง","มีผู้ควบคุมงานอยู่ประจำพื้นที่","มีแผนฉุกเฉินและอุปกรณ์ตอบโต้เหตุพร้อม"];
-function openInspection(item){activePermit=item; $("staffList").classList.add("hidden");$("inspection").classList.remove("hidden");const p=item.work_permits||{};$("permitSummary").textContent=[p.permit_no,p.company_name,p.work_title,p.work_location,p.start_date].filter(Boolean).join(" · ");$("checklist").innerHTML="";checklistItems.forEach((label,i)=>{const row=document.createElement("div");row.className="inspect-item";const span=document.createElement("span");span.textContent=(i+1)+". "+label;const sel=document.createElement("select");sel.dataset.item=String(i+1);["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});row.append(span,sel);$("checklist").append(row)});}
+const checklistItems=[
+"พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
+"มีการกั้นพื้นที่การทำงาน และมีธงขาว-แดง หรือสัญลักษณ์กั้นอาณาเขตอย่างชัดเจน",
+"มีการใช้ผ้าสำหรับกันสะเก็ดไฟ หรืออุปกรณ์กั้นอื่นๆ ขณะทำงานที่ก่อให้เกิดประกายไฟ",
+"มีอุปกรณ์ป้องกันไฟไหลย้อนกลับ (Fash Back) (ในกรณีงานเชื่อมแก๊ส)",
+"มีถังดับเพลิงพร้อมต่อการระงับเหตุฉุกเฉิน",
+"มีอุปกรณ์ป้องกันอันตรายส่วนบุคคลที่เหมาะสมกับลักษณะงาน และถูกต้องขณะปฏิบัติงาน",
+"อุปกรณ์ที่ใช้ในการปฏิบัติงานวางเป็นระเบียบ ไม่ก่อให้เกิดอันตรายต่อบุคคลรอบข้าง",
+"อุปกรณ์ที่ใช้ในการปฏิบัติงานอยู่ในสภาพดี ไม่ชำรุด",
+"การตั้งนั่งร้าน/ บันได ไม่มีสิ่งกีดขวางการทำงานและทางเดินรถ",
+"สภาพนั่งร้าน/ บันได อยู่ในสภาพดี ตั้งตรง ไม่เอียง ข้อต่อยึดมั่นคงแข็งแรง",
+"มีการควบคุมการหกรั่วไหลของสารเคมี (กรณีที่ทำงานกับสารเคมี)",
+"มีการสำรวจระบบท่อ ไฟฟ้า หรืออุปกรณ์อื่น (ระบบสาธารณูปโภค) ก่อนทำการขุดเจาะ",
+"ตัดกระแสไฟฟ้า กรณีที่ทำงานใกล้เครื่องจักรหรืออุปกรณ์ไฟฟ้าและติดป้ายเตือน(Log out, Tag out)",
+"มีการติดตั้งป้ายเตือนอันตรายที่เกี่ยวข้องกับการทำงาน",
+"ไม่มีการหก, รั่วไหลของยานพาหนะ หรือ สารเคมี",
+"หลังจากการปฏิบัติงานเสร็จสิ้น ไม่มีการทิ้งขยะตามพื้นที่ปฏิบัติงาน"
+];
+function openInspection(item){
+ activePermit=item;selectedPhotos=[];
+ $("staffList").classList.add("hidden");$("inspection").classList.remove("hidden");
+ const p=item.work_permits||{};
+ $("permitSummary").textContent=[p.permit_no,p.company_name,p.work_title,p.work_location,p.start_date].filter(Boolean).join(" · ");
+ $("checklist").innerHTML="";
+ checklistItems.forEach((label,i)=>{
+  const row=document.createElement("div");row.className="inspect-item";
+  const span=document.createElement("span");span.textContent=(i+1)+". "+label;
+  const sel=document.createElement("select");sel.dataset.item=String(i+1);
+  ["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});
+  row.append(span,sel);$("checklist").append(row);
+ });
+ ["before","after"].forEach(stage=>{$(stage+"Photos").value="";$(stage+"Preview").innerHTML="";});
+ $("inspectionProblems").value="";$("inspectionCorrection").value="";$("inspectionNotes")?.remove();
+ $("inspectionMsg").textContent="";
+}
 $("backToList").onclick=()=>{$("inspection").classList.add("hidden");$("staffList").classList.remove("hidden")};
-$("inspectionPhotos").addEventListener("change",e=>{selectedPhotos=[...selectedPhotos,...[...e.target.files].map(file=>({file,url:URL.createObjectURL(file)}))];renderPhotos()});
-function renderPhotos(){const box=$("photoPreview");box.innerHTML="";selectedPhotos.forEach((p,i)=>{const wrap=document.createElement("div");const img=document.createElement("img");img.src=p.url;const cap=document.createElement("input");cap.placeholder="คำอธิบายภาพ "+(i+1);cap.dataset.caption=String(i);wrap.append(img,cap);box.append(wrap)});$("printPhotos").innerHTML=box.innerHTML;}
+["before","after"].forEach(stage=>{
+ $(stage+"Photos").addEventListener("change",e=>{
+  const added=[...e.target.files].map(file=>({file,url:URL.createObjectURL(file),stage}));
+  selectedPhotos.push(...added);renderPhotos(stage);e.target.value="";
+ });
+});
+function renderPhotos(stage){
+ const box=$(stage+"Preview");box.innerHTML="";
+ selectedPhotos.filter(p=>p.stage===stage).forEach((p)=>{
+  const i=selectedPhotos.indexOf(p),wrap=document.createElement("div"),img=document.createElement("img"),cap=document.createElement("input");
+  img.src=p.url;cap.placeholder="คำอธิบายภาพ";cap.dataset.caption=String(i);wrap.append(img,cap);box.append(wrap);
+ });
+}
+function pdfEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+function addField(parent,label,value){const d=pdfEl("div","pdf-field");const b=pdfEl("b","",label+" : ");d.append(b,document.createTextNode(value||" "));parent.append(d);}
+function buildPdfPages(){
+ const p=activePermit?.work_permits||{},root=pdfEl("div","pdf-root");
+ const page1=pdfEl("div","pdf-page"),head=pdfEl("div","pdf-head");
+ head.append(pdfEl("h1","","ใบขอนุญาตปฏิบัติงานสำหรับผู้รับเหมาช่วง"),pdfEl("p","","WORK PERMIT FOR SUB-CONTRACTOR · U KHAO CHI CHAN PATTAYA"));
+ page1.append(head);
+ const sec=(t)=>page1.append(pdfEl("div","pdf-section",t));
+ sec("ส่วนที่ 1 : ข้อมูลเบื้องต้นของผู้รับเหมา (Sub-Contractor Detail)");
+ let grid=pdfEl("div","pdf-grid");
+ [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ชื่อเครื่องจักร (Machine, Equipment)",p.machine_equipment],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.supervisor_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
+ sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
+ const names=pdfEl("div","pdf-grid");for(let i=1;i<=9;i++)addField(names,"ชื่อผู้ปฏิบัติงาน "+i,"");page1.append(names);
+ sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
+ const workTypes=["งานตัดด้วยแก๊ส","งานตัดด้วยเครื่อง","งานเจียร","งานไฟฟ้า","งานเชื่อม","งานขุด/งานเจาะ","งานอื่นๆ","งานทาสี","งานทำความสะอาด","งานตรวจสอบ/เช็ค","งานบนนั่งร้าน","งานรื้อถอนอาคาร / สิ่งก่อสร้าง","งานตอกเสาเข็ม / ปั้นจั่น","ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป","งานทั่วไปอื่นๆ","งานในพื้นที่อับอากาศ"];
+ const checks=pdfEl("div","pdf-checks");workTypes.forEach(t=>checks.append(pdfEl("div","pdf-check","□ "+t)));page1.append(checks);
+ sec("รายชื่ออุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
+ const equipment=["เครื่องตัด","เครื่องเจียร","เครื่องเชื่อมไฟฟ้า / แก๊ส","ถังแก๊สสำหรับงานเชื่อม","สว่านไฟฟ้า","นั่งร้าน","บันได","ถังดับเพลิง","ผ้ากันสะเก็ดไฟ","ป้ายเตือน / ป้ายระวัง"];
+ const eq=pdfEl("div","pdf-checks");equipment.forEach(t=>eq.append(pdfEl("div","pdf-check","□ "+t)));page1.append(eq);
+ sec("อุปกรณ์ป้องกันอันตรายส่วนบุคคล (Personal Protective Equipment)");
+ const ppe=["หมวกนิรภัย","ผ้าปิดจมูก","ถุงมือผ้า","ชุดกันสารเคมี","ถุงมือหนัง","หน้ากากเชื่อม","แว่นตานิรภัย","รองเท้าบู๊ท","อุปกรณ์ลดเสียง","รองเท้าเซฟตี้","เข็มขัดนิรภัย","กระบังหน้า","ถังอ๊อกซิเจน","ชุด SCBA","ชุดเป่าอากาศ","อื่นๆ"];
+ const pp=pdfEl("div","pdf-checks");ppe.forEach(t=>pp.append(pdfEl("div","pdf-check","□ "+t+"   จำนวน ........")));page1.append(pp);
+ sec("ส่วนที่ 3 : ลำดับการขออนุญาตก่อนเข้าทำงาน และหลังเสร็จงาน");
+ const sign=pdfEl("div","pdf-sign");["ผู้ขออนุญาต / ผู้ควบคุม","เจ้าของงาน (Job Owner)","เจ้าของพื้นที่ (Area Owner)","เจ้าหน้าที่ความปลอดภัย (Safety Officer)"].forEach(t=>sign.append(pdfEl("div","",t+"\n\nลงชื่อ __________________\nวันที่ ____ / ____ / ____")));page1.append(sign);
+ page1.append(pdfEl("div","pdf-small","หมายเหตุ: ให้ผู้รับเหมาติดใบอนุญาตไว้บริเวณพื้นที่ปฏิบัติงาน และต้องปฏิบัติตามมาตรการความปลอดภัยของโรงแรม"));
+ page1.append(pdfEl("div","pdf-footer","หน้า 1 / 2"));
+ const page2=pdfEl("div","pdf-page"),h2=pdfEl("div","pdf-head");h2.append(pdfEl("h1","","ใบขอนุญาตปฏิบัติงานสำหรับผู้รับเหมาช่วง"),pdfEl("p","","รายการตรวจสอบความปลอดภัย (Checking Detail)"));page2.append(h2);
+ const meta=pdfEl("div","pdf-grid");[["เลขที่ใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["พื้นที่",p.work_location],["วันที่",p.start_date]].forEach(x=>addField(meta,x[0],x[1]));page2.append(meta);
+ const table=pdfEl("table","pdf-table"),thead=pdfEl("thead"),tr=pdfEl("tr");["ลำดับ","รายการตรวจสอบ (Checking Detail)","ใช่","ไม่ใช่","ไม่เกี่ยวข้อง","ปัญหาที่พบ","ดำเนินการแก้ไข"].forEach((t,i)=>tr.append(pdfEl("th","",t)));thead.append(tr);table.append(thead);
+ const tbody=pdfEl("tbody"),sels=[...$("checklist").querySelectorAll("select[data-item]")];
+ checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"□")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
+ page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",""));
+ page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",""));
+ const photos=pdfEl("div","pdf-photo-grid");
+ ["before","after"].forEach(stage=>{const box=pdfEl("div","pdf-photo-box"),title=pdfEl("div","pdf-photo-title",stage==="before"?"ภาพก่อนเริ่มงาน / BEFORE WORK":"ภาพหลังเสร็จงาน / AFTER WORK");box.append(title);
+  const items=selectedPhotos.filter(x=>x.stage===stage);
+  if(items.length){items.slice(0,1).forEach(item=>{const img=pdfEl("img");img.src=item.url;box.append(img)})}else box.append(pdfEl("div","pdf-small","พื้นที่สำหรับติดภาพถ่ายหลักฐาน"));
+  photos.append(box);
+ });page2.append(photos);
+ const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page2.append(sign2);
+ page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
+ root.append(page1,page2);document.body.append(root);return root;
+}
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- const JsPDF=window.jspdf?.jsPDF;
- if(!JsPDF){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
- button.disabled=true;msg.textContent="กำลังวาดเอกสาร PDF...";
+ if(typeof window.html2pdf!=="function"){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
+ button.disabled=true;msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
+ let root;
  try{
-  const p=activePermit.work_permits||{};
-  await document.fonts.ready;
-  const W=1240, pad=70, lineH=48;
-  const c=document.createElement("canvas");c.width=W;
-  const ctx=c.getContext("2d");
-  ctx.font='30px Tahoma, "Noto Sans Thai", Arial, sans-serif';
-  const wrap=(text,max)=>{const words=String(text??"-").split("");const lines=[];let line="";for(const ch of words){if(ctx.measureText(line+ch).width>max&&line){lines.push(line);line=ch;}else line+=ch;}if(line)lines.push(line);return lines;};
-  const answers=[...$("checklist").querySelectorAll("select[data-item]")];
-  const notes=$("inspectionNotes").value.trim()||"-";
-  const photoImgs=[];
-  for(const photo of selectedPhotos){const img=new Image();img.src=photo.url;try{await img.decode();}catch{}photoImgs.push(img);}
-  const estimated=pad*2+250+5*lineH+110+16*lineH+180+Math.max(200,notes.length*38)+Math.ceil(photoImgs.length/2)*520;
-  c.height=Math.max(1800,estimated+200);
-  const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,c.height);
-  let y=pad;
-  const text=(t,x,yy,size=30,color="#20332d",bold=false)=>{g.font=(bold?"bold ":"")+size+'px Tahoma, "Noto Sans Thai", Arial, sans-serif';g.fillStyle=color;g.fillText(String(t??"-"),x,yy);};
-  const line=(x1,yy,x2,color="#b9c9c0")=>{g.strokeStyle=color;g.lineWidth=2;g.beginPath();g.moveTo(x1,yy);g.lineTo(x2,yy);g.stroke();};
-  text("U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT",pad,y,34,"#174d40",true);y+=58;
-  text("WORK PERMIT – INSPECTION REPORT",pad,y,32,"#20332d",true);y+=54;
-  const fields=[["เลขใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["ชื่องาน",p.work_title],["สถานที่",p.work_location],["วันที่เริ่ม",p.start_date]];
-  for(const [k,v] of fields){text(k+": "+(v||"-"),pad+10,y,27);y+=lineH;}
-  y+=18;line(pad,y,W-pad);y+=55;
-  text("Checklist ตรวจความปลอดภัย 16 ข้อ",pad,y,32,"#174d40",true);y+=55;
-  answers.forEach((sel,i)=>{const label=checklistItems[i]||("รายการตรวจ "+(i+1));const status=({yes:"ผ่าน",no:"ไม่ผ่าน",na:"ไม่เกี่ยวข้อง"})[sel.value]||"-";const lines=wrap((i+1)+". "+label,W-360);lines.forEach((part,j)=>text(part,pad+8,y+j*34,25));text(status,W-pad-250,y,25,status==="ไม่ผ่าน"?"#a9342d":"#174d40",true);y+=Math.max(lineH,lines.length*34+12);line(pad,y,W-pad,"#dce6e0");y+=8;});
-  y+=25;text("ปัญหาที่พบ / การแก้ไข",pad,y,30,"#174d40",true);y+=48;
-  const noteLines=wrap(notes,W-pad*2-30);noteLines.forEach(part=>{text(part,pad+10,y,25);y+=36;});
-  if(photoImgs.length){
-   y+=35;text("ภาคผนวก: ภาพถ่ายหลักฐาน",pad,y,32,"#174d40",true);y+=45;
-   for(let i=0;i<photoImgs.length;i++){
-    const img=photoImgs[i],col=i%2,row=Math.floor(i/2),x=pad+col*550,top=y+row*510;
-    g.strokeStyle="#cbd8d1";g.strokeRect(x,top,510,430);
-    if(img.complete&&img.naturalWidth){const scale=Math.min(480/img.naturalWidth,350/img.naturalHeight);const iw=img.naturalWidth*scale,ih=img.naturalHeight*scale;g.drawImage(img,x+(510-iw)/2,top+12+(350-ih)/2,iw,ih);}
-    const cap=$("photoPreview").querySelector('input[data-caption="'+i+'"]')?.value?.trim()||("ภาพที่ "+(i+1));
-    text(cap,x+12,top+395,22);
-   }
-   y+=Math.ceil(photoImgs.length/2)*510;
-  }
-  const pdf=new JsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
-  const pagePx=Math.floor(c.width*297/210);
-  let page=0;
-  for(let top=0;top<c.height;top+=pagePx){
-   const slice=document.createElement("canvas");slice.width=c.width;slice.height=Math.min(pagePx,c.height-top);
-   slice.getContext("2d").drawImage(c,0,top,c.width,slice.height,0,0,c.width,slice.height);
-   if(page>0)pdf.addPage();
-   pdf.addImage(slice.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
-   page++;
-  }
-  if(page===0)throw new Error("ไม่พบเนื้อหาเอกสาร");
-  pdf.save((p.permit_no||"Work-Permit")+"_Inspection_"+Date.now()+".pdf");
-  msg.textContent="บันทึก PDF เรียบร้อย ("+page+" หน้า)";
+  root=buildPdfPages();await document.fonts.ready;
+  const opt={margin:0,filename:(activePermit.work_permits?.permit_no||"Work-Permit")+".pdf",image:{type:"jpeg",quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}};
+  const worker=window.html2pdf().set(opt).from(root).toPdf();
+  const pdf=await worker.get("pdf");
+  if(pdf.internal.getNumberOfPages()!==2)throw new Error("เอกสารได้ "+pdf.internal.getNumberOfPages()+" หน้า (ต้องเป็น 2 หน้า) กรุณาลองอีกครั้ง");
+  await worker.save();msg.textContent="บันทึก PDF A4 เรียบร้อย จำนวน 2 หน้า";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
- finally{button.disabled=false;}
+ finally{root?.remove();button.disabled=false;}
 };
 $("saveInspection").onclick=async()=>{
  const msg=$("inspectionMsg"),button=$("saveInspection");
@@ -121,18 +182,15 @@ $("saveInspection").onclick=async()=>{
   const {data:roleRow,error:roleError}=await db.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
   if(roleError||!roleRow)throw new Error("ไม่พบสิทธิ์เจ้าหน้าที่");
   if(!["ADMIN","SAFETY","SECURITY"].includes(roleRow.role))throw new Error("บัญชีนี้ไม่มีสิทธิ์บันทึกผล Inspection");
-  const inspectedAt=new Date().toISOString();
-  const note=$("inspectionNotes").value.trim()||null;
+  const inspectedAt=new Date().toISOString(),problems=$("inspectionProblems").value.trim(),correction=$("inspectionCorrection").value.trim();
   const rows=[...$("checklist").querySelectorAll("select[data-item]")];
   if(rows.length!==16)throw new Error("Checklist ไม่ครบ 16 ข้อ กรุณาเปิดรายการตรวจใหม่");
   for(const sel of rows){
    const itemNo=Number(sel.dataset.item),status=sel.value;
    const {data:existing,error:findError}=await db.from("work_permit_checklists").select("id").eq("permit_id",activePermit.permit_id).eq("item_no",itemNo).maybeSingle();
    if(findError)throw findError;
-   const payload={permit_id:activePermit.permit_id,item_no:itemNo,item_title:checklistItems[itemNo-1],is_checked:status==="yes",result_status:status,note,inspector_id:user.id,inspected_at:inspectedAt};
-   const result=existing
-    ? await db.from("work_permit_checklists").update(payload).eq("id",existing.id)
-    : await db.from("work_permit_checklists").insert(payload);
+   const payload={permit_id:activePermit.permit_id,item_no:itemNo,item_title:checklistItems[itemNo-1],is_checked:status==="yes",result_status:status,note:[problems&&("ปัญหา: "+problems),correction&&("แก้ไข: "+correction)].filter(Boolean).join("\n")||null,inspector_id:user.id,inspected_at:inspectedAt};
+   const result=existing?await db.from("work_permit_checklists").update(payload).eq("id",existing.id):await db.from("work_permit_checklists").insert(payload);
    if(result.error)throw result.error;
   }
   for(let i=0;i<selectedPhotos.length;i++){
@@ -140,10 +198,10 @@ $("saveInspection").onclick=async()=>{
    if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("รองรับเฉพาะภาพ JPG, PNG หรือ WEBP");
    if(file.size>10*1024*1024)throw new Error("รูปภาพแต่ละไฟล์ต้องมีขนาดไม่เกิน 10 MB");
    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-90)||"evidence.jpg";
-   const path=activePermit.permit_id+"/"+user.id+"/"+Date.now()+"_"+i+"_"+safeName;
+   const path=activePermit.permit_id+"/"+user.id+"/"+photo.stage+"_"+Date.now()+"_"+i+"_"+safeName;
    const {error:uploadError}=await db.storage.from("work-permit-inspections").upload(path,file,{contentType:file.type,upsert:false});
    if(uploadError)throw uploadError;
-   const caption=$("photoPreview").querySelector('input[data-caption="'+i+'"]')?.value?.trim()||null;
+   const caption=photo.stage.toUpperCase()+" WORK"+(($("photoPreview")?.querySelector('input[data-caption="'+i+'"]')?.value||"").trim()?": "+$("photoPreview").querySelector('input[data-caption="'+i+'"]').value.trim():"");
    const {error:recordError}=await db.from("work_permit_inspection_photos").insert({permit_id:activePermit.permit_id,storage_path:path,caption,uploaded_by:user.id});
    if(recordError)throw recordError;
   }
