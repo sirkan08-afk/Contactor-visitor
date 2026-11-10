@@ -7,15 +7,15 @@ alter table public.work_permits
   add column if not exists supervisor_name text,
   add column if not exists work_type text,
   add column if not exists tools text,
-  add column if not exists tracking_token_hash text;
+  add column if not exists tracking_code_hash text;
 
 -- Public submissions are created only by the Edge Function using service role.
 -- NULL created_by is therefore allowed for QR-originated requests; existing rows remain unchanged.
 alter table public.work_permits alter column created_by drop not null;
 
-create unique index if not exists work_permits_tracking_token_hash_uidx
-  on public.work_permits (tracking_token_hash)
-  where tracking_token_hash is not null;
+create unique index if not exists work_permits_tracking_code_hash_uidx
+  on public.work_permits (tracking_code_hash)
+  where tracking_code_hash is not null;
 
 create table if not exists public.work_permit_department_approvals (
   id uuid primary key default gen_random_uuid(),
