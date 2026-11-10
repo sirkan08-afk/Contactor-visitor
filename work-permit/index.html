@@ -21,6 +21,24 @@ window.__html2pdfReady=(async()=>{
  }
  throw new Error("ไม่สามารถโหลด html2pdf จาก CDN ทั้งสองแหล่งได้");
 })();
+window.__jsPdfReady=(async()=>{
+ const getCtor=()=>window.jspdf?.jsPDF||window.jsPDF;
+ if(getCtor())return getCtor();
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=reject;document.head.appendChild(script);
+   });
+   if(getCtor())return getCtor();
+  }catch(error){console.warn("jsPDF CDN failed",url);}
+ }
+ throw new Error("โหลด jsPDF ไม่สำเร็จ");
+})();
 </script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
@@ -190,16 +208,17 @@ $("downloadInspectionPdf").onclick=async()=>{
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const pages=[...root.querySelectorAll(".pdf-page")];
   if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
-  const opt={margin:0,image:{type:"jpeg",quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait",compress:true},pagebreak:{mode:[]}};
-  const firstWorker=window.html2pdf().set(opt).from(pages[0]).toPdf();
-  const pdf=await firstWorker.get("pdf");
-  for(let i=1;i<pages.length;i++){
+  const JsPDF=await window.__jsPdfReady;
+  const opt={margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0}};
+  let pdf=null;
+  for(let i=0;i<pages.length;i++){
    const canvas=await window.html2pdf().set(opt).from(pages[i]).toCanvas().get("canvas");
    if(!canvas||!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" ได้");
-   pdf.addPage("a4","portrait");
+   if(!pdf)pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+   else pdf.addPage("a4","portrait");
    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
   }
-  if(pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้าง PDF ได้ไม่ครบ 2 หน้า");
+  if(!pdf||pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้าง PDF ได้ไม่ครบ 2 หน้า");
   pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
   msg.textContent="บันทึก PDF A4 เรียบร้อย จำนวน 2 หน้า";
  }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
