@@ -310,14 +310,21 @@ $("downloadInspectionPdf").onclick=async()=>{
   const pages=[...root.querySelectorAll(".pdf-page")];
   if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
   const JsPDF=await window.__jsPdfReady;
-  const opt={margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(794,root.offsetWidth),windowHeight:Math.max(1123,root.offsetHeight)}};
   let pdf=null;
   for(let i=0;i<pages.length;i++){
-   const canvas=await window.html2pdf().set(opt).from(pages[i]).toCanvas().get("canvas");
-   if(!canvas||!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" ได้");
-   if(!pdf)pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-   else pdf.addPage("a4","portrait");
-   pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   const capture=document.createElement("div");
+   capture.style.cssText="position:fixed;left:0;top:0;width:210mm;height:297mm;margin:0;padding:0;background:#fff;overflow:hidden;z-index:2147483647;transform:none";
+   const page=pages[i];
+   page.style.position="relative";page.style.left="0";page.style.top="0";page.style.margin="0";page.style.transform="none";
+   capture.appendChild(page);document.body.appendChild(capture);
+   try{
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const canvas=await window.html2pdf().set({margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,x:0,y:0,windowWidth:794,windowHeight:1123}}).from(page).toCanvas().get("canvas");
+    if(!canvas||!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" ได้");
+    if(!pdf)pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+    else pdf.addPage("a4","portrait");
+    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   }finally{capture.remove();root.appendChild(page);}
   }
   if(!pdf||pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้าง PDF ได้ไม่ครบ 2 หน้า");
   pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
