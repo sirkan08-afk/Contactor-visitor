@@ -31,17 +31,15 @@ Deno.serve(async (req) => {
     const db = admin;
 
     if (body.action === "track") {
-      const permitNo = clean(body.permit_no, 60);
-      const trackingCode = clean(body.tracking_code, 120);
-      if (!permitNo || trackingCode.length < 20) return json({ error: "ข้อมูลติดตามไม่ถูกต้อง" }, 400);
-      const tokenHash = await sha256(trackingCode);
+      const permitNo = clean(body.permit_no, 60).toUpperCase();
+      if (!/^WP-[A-Z0-9-]{6,30}$/.test(permitNo)) return json({ error: "รูปแบบเลข Work Permit ไม่ถูกต้อง" }, 400);
       const { data: permit, error } = await db.from("work_permits")
-        .select("id,permit_no,status,work_title,company_name,start_date,work_location")
-        .eq("permit_no", permitNo).eq("tracking_code_hash", tokenHash).maybeSingle();
+        .select("id,permit_no,status,work_title,start_date,work_location")
+        .eq("permit_no", permitNo).maybeSingle();
       if (error) throw error;
-      if (!permit) return json({ error: "ไม่พบคำขอ หรือรหัสติดตามไม่ถูกต้อง" }, 404);
+      if (!permit) return json({ error: "ไม่พบเลข Work Permit นี้" }, 404);
       const { data: approvals, error: approvalError } = await db.from("work_permit_department_approvals")
-        .select("department,status,comment,acted_at").eq("permit_id", permit.id);
+        .select("department,status,acted_at").eq("permit_id", permit.id).eq("department", "SECURITY");
       if (approvalError) throw approvalError;
       return json({ permit, approvals: approvals ?? [] });
     }
@@ -90,17 +88,21 @@ Deno.serve(async (req) => {
       return json({ error: "การยืนยันความปลอดภัยไม่สำเร็จ กรุณาลองใหม่" }, 403);
     }
 
+    const type = clean(body.work_type, 500);
+    const typeText = (type + " " + title).toLowerCase();
+    const typeCode = /ไฟฟ้า|electrical/.test(typeText) ? "ELE" :
+      /เชื่อม|weld/.test(typeText) ? "WLD" :
+      /ตัด|เจียร|cut|grind/.test(typeText) ? "CUT" :
+      /ที่สูง|นั่งร้าน|height/.test(typeText) ? "HGT" :
+      /อับอากาศ|confined/.test(typeText) ? "CSP" :
+      /ขุด|เจาะ|excavat|drill/.test(typeText) ? "EXC" :
+      /ทาสี|paint/.test(typeText) ? "PNT" :
+      /ทำความสะอาด|clean/.test(typeText) ? "CLN" : "GEN";
+    const { data: generatedPermitNo, error: numberError } = await db.rpc("next_work_permit_no", { p_type_code: typeCode });
+    if (numberError || !generatedPermitNo) throw numberError || new Error("Cannot generate Work Permit number");
+    const permitNo = generatedPermitNo as string;
     const trackingCode = crypto.randomUUID() + crypto.randomUUID();
     const trackingHash = await sha256(trackingCode);
-    const permitNo = "WP-" + new Date().toISOString().slice(0, 10).replaceAll("-", "") +
-      "-" + crypto.randomUUID().slice(0, 8).toUpperCase();
-    const type = clean(body.work_type, 500);
-    const ownerDepartment = clean(body.department, 100);
-    const departments = new Set<string>(["SECURITY"]);
-    if (/ไฟฟ้า|เชื่อม|hot|ที่สูง|อับ|confined|electrical/i.test(type)) departments.add("SAFETY");
-    if (/ซ่อม|ไฟฟ้า|เชื่อม|เครื่อง|maintenance|electrical/i.test(type)) departments.add("ENGINEERING");
-    // Department owners use the existing AREA_OWNER role; keep this aligned with RLS policies.
-    if (ownerDepartment) departments.add("AREA_OWNER");
 
     const { data: permit, error } = await db.from("work_permits").insert({
       permit_no: permitNo,
@@ -141,12 +143,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    const approvalRows = [...departments].map((department) => ({
+    const { error: routeError } = await db.from("work_permit_department_approvals").insert([{
       permit_id: permit.id,
-      department,
+      department: "SECURITY",
       status: "pending",
-    }));
-    const { error: routeError } = await db.from("work_permit_department_approvals").insert(approvalRows);
+    }]);
     if (routeError) {
       await db.from("work_permits").delete().eq("id", permit.id);
       throw routeError;
