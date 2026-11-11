@@ -301,7 +301,7 @@ function fitPdfPages(root){
   const style=getComputedStyle(page);
   const available=page.clientHeight-parseFloat(style.paddingTop||0)-parseFloat(style.paddingBottom||0);
   const needed=content.scrollHeight;
-  const scale=needed>available?Math.max(0.65,available/needed):1;
+  const scale=needed>available?Math.max(0.35,available/needed):1;
   content.style.width=(100/scale)+"%";content.style.transform="scale("+scale+")";
  });
 }
