@@ -295,42 +295,34 @@ function buildPdfPages(){
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- button.disabled=true;msg.textContent="กำลังโหลดเครื่องมือ PDF...";
- let root;
+ button.disabled=true;msg.textContent="กำลังจัดเตรียมเอกสาร A4...";
+ let root=null,printWindow=null;
  try{
-  await window.__html2pdfReady;
-  if(typeof window.html2pdf!=="function")throw new Error("โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ต");
-  msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
-  const previousScrollY=window.scrollY;
-  window.scrollTo(0,0);
   root=buildPdfPages();
-  root.style.position="fixed";root.style.left="0";root.style.top="0";root.style.margin="0";root.style.transform="none";
   await document.fonts.ready;
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const pages=[...root.querySelectorAll(".pdf-page")];
-  if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
-  const JsPDF=await window.__jsPdfReady;
-  let pdf=null;
-  for(let i=0;i<pages.length;i++){
-   const capture=document.createElement("div");
-   capture.style.cssText="position:fixed;left:0;top:0;width:210mm;height:297mm;margin:0;padding:0;background:#fff;overflow:hidden;z-index:2147483647;transform:none";
-   const page=pages[i];
-   page.style.position="relative";page.style.left="0";page.style.top="0";page.style.margin="0";page.style.transform="none";
-   capture.appendChild(page);document.body.appendChild(capture);
-   try{
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    const canvas=await window.html2pdf().set({margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,x:0,y:0,windowWidth:794,windowHeight:1123}}).from(page).toCanvas().get("canvas");
-    if(!canvas||!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" ได้");
-    if(!pdf)pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-    else pdf.addPage("a4","portrait");
-    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
-   }finally{capture.remove();root.appendChild(page);}
-  }
-  if(!pdf||pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้าง PDF ได้ไม่ครบ 2 หน้า");
-  pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
-  msg.textContent="บันทึก PDF A4 เรียบร้อย จำนวน 2 หน้า";
- }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
- finally{root?.remove();button.disabled=false;}
+  if(pages.length!==2)throw new Error("ไม่พบเอกสารครบ 2 หน้า");
+  const permitNo=activePermit.work_permits?.permit_no||"Work-Permit";
+  const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+  const pageHtml=pages.map(p=>p.outerHTML).join("");
+  printWindow=window.open("","_blank");
+  if(!printWindow)throw new Error("เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่");
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><style>${styleText}
+   @page{size:A4 portrait;margin:0}
+   html,body{margin:0!important;padding:0!important;background:#fff!important;width:210mm!important}
+   body{display:block!important}
+   .pdf-root{position:static!important;left:auto!important;top:auto!important;width:210mm!important;margin:0!important;padding:0!important;overflow:visible!important;z-index:auto!important}
+   .pdf-page{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:9mm 10mm!important;overflow:hidden!important;box-sizing:border-box!important;break-after:page!important;page-break-after:always!important}
+   .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
+   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+   </style></head><body><main class="pdf-root">${pageHtml}</main><script>window.onload=()=>{setTimeout(()=>window.print(),700)};<\/script></body></html>`);
+  printWindow.document.close();
+  msg.textContent="เปิดหน้าพิมพ์แล้ว กรุณาเลือก Save as PDF / บันทึกเป็น PDF";
+ }catch(err){
+  printWindow?.close();
+  msg.textContent="เปิดเอกสาร PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");
+ }finally{root?.remove();button.disabled=false;}
 };
 $("saveInspection").onclick=async()=>{
  const msg=$("inspectionMsg"),button=$("saveInspection");
