@@ -306,23 +306,26 @@ function buildPdfPages(){
  checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
  page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",$("inspectionProblems").value.trim()||"-"));
  page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
- page2.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
+ const page3=pdfEl("div","pdf-page"),h3=pdfEl("div","pdf-head");
+ h3.append(pdfEl("h1","","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"),pdfEl("p","","CONTRACTOR SAFETY REGULATIONS"));
+ page3.append(h3);
+ page3.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
  const rules=pdfEl("div","pdf-rules");
- rules.style.cssText="display:block!important;width:100%!important;margin:1.5mm 0 2mm!important;color:#111!important;font-size:7.4pt!important;line-height:1.28!important";
+ rules.style.cssText="display:block!important;width:100%!important;margin:2mm 0!important;color:#111!important;font-size:10pt!important;line-height:1.55!important";
  const intro=pdfEl("div","pdf-rules-intro","การเข้าปฏิบัติงานในพื้นที่โรงงาน ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน");
- intro.style.cssText="font-weight:600;margin:0 0 1.5mm;padding:0 0 1mm;border-bottom:1px solid #bdbdbd";
+ intro.style.cssText="font-weight:600;font-size:10pt;line-height:1.55;margin:0 0 2mm;padding:0 0 2mm;border-bottom:1px solid #bdbdbd";
  rules.append(intro);
  const table=pdfEl("div","pdf-rules-table");
  table.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999";
  const header=pdfEl("div","pdf-rules-row");
  header.style.cssText="display:grid;grid-template-columns:31% 69%;background:#eeeeee;font-weight:700";
- [["ระเบียบปฏิบัติ","รายละเอียด"]].forEach(cols=>cols.forEach((v,i)=>{const c=pdfEl("div","pdf-rules-cell",v);c.style.cssText="padding:1mm 1.5mm;border-right:1px solid #999;border-bottom:1px solid #999";header.append(c);}));
+ [["ระเบียบปฏิบัติ","รายละเอียด"]].forEach(cols=>cols.forEach((v,i)=>{const c=pdfEl("div","pdf-rules-cell",v);c.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-size:10pt";header.append(c);}));
  table.append(header);
  const addRuleRow=(label,details)=>{
   const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:31% 69%;break-inside:avoid;page-break-inside:avoid";
-  const left=pdfEl("div","pdf-rules-cell",label);left.style.cssText="padding:1mm 1.5mm;border-right:1px solid #999;border-bottom:1px solid #999;font-weight:600;white-space:normal;overflow-wrap:break-word";
-  const right=pdfEl("div","pdf-rules-cell");right.style.cssText="padding:1mm 1.5mm;border-right:1px solid #999;border-bottom:1px solid #999;white-space:normal;overflow-wrap:break-word";
-  details.forEach((detail,i)=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;margin:0 0 .7mm;line-height:1.3;white-space:normal;overflow-wrap:break-word";right.append(line);});
+  const left=pdfEl("div","pdf-rules-cell",label);left.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-weight:600;font-size:9.5pt;line-height:1.5;white-space:normal;overflow-wrap:break-word";
+  const right=pdfEl("div","pdf-rules-cell");right.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;white-space:normal;overflow-wrap:break-word;font-size:9.5pt;line-height:1.5";
+  details.forEach((detail,i)=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;margin:0 0 1.5mm;line-height:1.5;font-size:9.5pt;white-space:normal;overflow-wrap:break-word";right.append(line);});
   row.append(left,right);table.append(row);
  };
  addRuleRow("1. การใช้น้ำมัน, สารเคมี",[
@@ -350,11 +353,11 @@ function buildPdfPages(){
   "4.10 ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุกๆ วันศุกร์ของสัปดาห์ จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work permit ทางเจ้าของงานจะส่งให้ทางอีเมลล์"
  ]);
  rules.append(table);
- page2.append(rules);
+ page3.append(rules);
  const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page2.append(sign2);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
  for(const page of [page1,page2]){const content=pdfEl("div","pdf-content");while(page.firstChild)content.append(page.firstChild);page.append(content);}
- root.append(page1,page2);document.body.append(root);return root;
+ root.append(page1,page2,page3);document.body.append(root);return root;
 }
 function fitPdfPages(root){
  const pages=[...root.querySelectorAll(".pdf-page")];
@@ -380,7 +383,7 @@ $("downloadInspectionPdf").onclick=async()=>{
   await document.fonts.ready;
   fitPdfPages(root);
   const pages=[...root.querySelectorAll(".pdf-page")];
-  if(pages.length!==2)throw new Error("ไม่พบเอกสารครบ 2 หน้า");
+  if(pages.length!==3)throw new Error("ไม่พบเอกสารครบ 3 หน้า");
   const permitNo=activePermit.work_permits?.permit_no||"Work-Permit";
   const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
   const pageHtml=pages.map(p=>p.outerHTML).join("");
