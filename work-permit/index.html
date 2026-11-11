@@ -52,7 +52,7 @@ window.__jsPdfReady=(async()=>{
 .pdf-table th:nth-child(6),.pdf-table td:nth-child(6){width:31mm;overflow-wrap:anywhere;word-break:break-word}
 .pdf-table th:nth-child(7),.pdf-table td:nth-child(7){width:32mm;overflow-wrap:anywhere;word-break:break-word}
 .pdf-table th{font-size:6.7pt;line-height:1.1;padding:1mm}
-.pdf-table td{line-height:1.2;padding:1.2mm}.pdf-photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:2mm}.pdf-photo-box{height:35mm;border:1px solid #9aaca1;padding:1.5mm;overflow:hidden}.pdf-photo-box img{width:100%;height:27mm;object-fit:contain}.pdf-photo-title{font-weight:bold;font-size:8pt;margin-bottom:1mm}.pdf-note{border:1px solid #9aaca1;min-height:12mm;padding:2mm;font-size:7.5pt}.pdf-footer{margin-top:2mm;text-align:right;font-size:7pt;color:#52645a}
+.pdf-table td{line-height:1.2;padding:1.2mm}.pdf-photo-grid,.pdf-photo-box{display:none!important}.pdf-photo-box{height:35mm;border:1px solid #9aaca1;padding:1.5mm;overflow:hidden}.pdf-photo-box img{width:100%;height:27mm;object-fit:contain}.pdf-photo-title{font-weight:bold;font-size:8pt;margin-bottom:1mm}.pdf-note{border:1px solid #9aaca1;min-height:12mm;padding:2mm;font-size:7.5pt}.pdf-footer{margin-top:2mm;text-align:right;font-size:7pt;color:#52645a}
 </style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
@@ -281,14 +281,14 @@ function buildPdfPages(){
  page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
  page2.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
  const rules=pdfEl("div","pdf-rules");
- rules.style.cssText="font-size:8pt;line-height:1.35;margin:2mm 0 3mm";
+ rules.style.cssText="display:block!important;font-size:9pt!important;line-height:1.5!important;margin:2mm 0 3mm!important;width:100%";
  [
   "1. การใช้น้ำมัน/สารเคมี: ห้ามถ่ายน้ำมันหรือสารไวไฟใกล้บริเวณเสี่ยงอัคคีภัย และต้องเตรียมอุปกรณ์ถ่ายเท ถาดรอง และผ้าเช็ดให้พร้อมก่อนดำเนินการ",
   "2. เหตุฉุกเฉิน: เมื่อพบสารเคมีหกรั่วไหล แก๊สรั่ว กลิ่นผิดปกติ หรือเพลิงไหม้ ให้แจ้งเจ้าของพื้นที่หรือ จป. ทันที และอพยพตามเส้นทางไปจุดรวมพล",
   "3. การสูบบุหรี่: สูบเฉพาะพื้นที่ที่บริษัทจัดไว้ ดับก้นบุหรี่ให้สนิท และห้ามทิ้งขยะลงที่เขี่ยบุหรี่",
   "4. ข้อปฏิบัติทั่วไป: ห้ามสวมรองเท้าแตะ/รองเท้าฟองน้ำ เตรียมถังดับเพลิงเมื่อมีความเสี่ยง กั้นเขตและติดป้ายอันตราย เว้นระยะสารไวไฟจากแหล่งประกายไฟอย่างน้อย 8 เมตร ติดป้ายห้ามเปิดสวิตช์เมื่อตัดแยกพลังงาน สวม PPE ให้เหมาะสม ทำความสะอาดพื้นที่หลังงาน และงดงานบนที่สูงเมื่อฝนตกหรือลมพายุรุนแรง",
   "5. ยื่น Work Permit ล่วงหน้าอย่างน้อย 2 วัน หรือทุกวันศุกร์จนกว่างานจะเสร็จ เพื่อให้ จป. พิจารณาอนุมัติก่อนเริ่มงาน"
- ].forEach(line=>{const item=pdfEl("div","pdf-rule-item",line);item.style.cssText="margin:0 0 1.2mm;padding:0 0 .8mm;border-bottom:1px dotted #aab8b0;white-space:normal";rules.append(item);});
+ ].forEach(line=>{const item=pdfEl("div","pdf-rule-item",line);item.style.cssText="display:block!important;font-size:9pt!important;line-height:1.5!important;margin:0 0 1.8mm!important;padding:0 0 1mm!important;border-bottom:1px dotted #aab8b0;white-space:normal;break-inside:avoid";rules.append(item);});
  page2.append(rules);
  const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page2.append(sign2);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
@@ -315,6 +315,7 @@ $("downloadInspectionPdf").onclick=async()=>{
  if(!printWindow){button.disabled=false;msg.textContent="เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่";return;}
  try{
   root=buildPdfPages();
+  root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
   await document.fonts.ready;
   fitPdfPages(root);
   const pages=[...root.querySelectorAll(".pdf-page")];
@@ -450,7 +451,7 @@ $("pdfDownloadSelected").onclick=async()=>{
    $("inspectionProblems").value="";$("inspectionCorrection").value="";
    let root;
    try{
-    root=buildPdfPages();await document.fonts.ready;
+    root=buildPdfPages();root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());await document.fonts.ready;
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     fitPdfPages(root);
     const pages=[...root.querySelectorAll(".pdf-page")];if(pages.length!==2)throw new Error("สร้าง PDF ไม่ครบ 2 หน้า");
