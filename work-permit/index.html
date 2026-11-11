@@ -296,7 +296,8 @@ $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
  button.disabled=true;msg.textContent="กำลังจัดเตรียมเอกสาร A4...";
- let root=null,printWindow=null;
+ let root=null,printWindow=window.open("","_blank");
+ if(!printWindow){button.disabled=false;msg.textContent="เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่";return;}
  try{
   root=buildPdfPages();
   await document.fonts.ready;
@@ -305,8 +306,6 @@ $("downloadInspectionPdf").onclick=async()=>{
   const permitNo=activePermit.work_permits?.permit_no||"Work-Permit";
   const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
   const pageHtml=pages.map(p=>p.outerHTML).join("");
-  printWindow=window.open("","_blank");
-  if(!printWindow)throw new Error("เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่");
   printWindow.document.open();
   printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><style>${styleText}
    @page{size:A4 portrait;margin:0}
