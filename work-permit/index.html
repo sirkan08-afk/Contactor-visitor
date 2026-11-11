@@ -387,30 +387,29 @@ async function loadPdfPermitList(){
  const from=$("pdfFrom").value,to=$("pdfTo").value;
  if(!from||!to||from>to){wrap.textContent="กรุณาเลือกช่วงวันที่ให้ถูกต้อง";return;}
  try{
-  const start=new Date(from+"T00:00:00+07:00").toISOString();
-  const end=new Date(new Date(to+"T00:00:00+07:00").getTime()+86400000).toISOString();
-  // Use the same SECURITY approval records that drive the staff approval list.
-  const {data:approvalRows,error:approvalError}=await db.from("work_permit_department_approvals")
-   .select("permit_id,created_at").eq("department","SECURITY")
-   .gte("created_at",start).lt("created_at",end).order("created_at",{ascending:false});
+  const {data:approvalRows,error:approvalError}=await db.from("work_permit_department_approvals").select("permit_id").eq("department","SECURITY");
   if(approvalError)throw approvalError;
   const ids=[...new Set((approvalRows||[]).map(x=>x.permit_id).filter(Boolean))];
-  if(!ids.length){pdfPermitRows=[];wrap.textContent="ไม่พบใบ Work Permit ในช่วงวันที่เลือก";msg.textContent="ช่วงวันที่ "+from+" ถึง "+to+" · พบ 0 รายการในรายการอนุมัติ SECURITY";updatePdfSelectionCount();return;}
+  if(!ids.length){pdfPermitRows=[];wrap.textContent="ไม่พบรายการ Work Permit ในคิวอนุมัติ SECURITY";msg.textContent="ตรวจสอบว่ามีรายการอนุมัติ SECURITY และบัญชีมีสิทธิ์อ่านข้อมูล";updatePdfSelectionCount();return;}
   const {data,error}=await db.from("work_permits").select("*").in("id",ids);
   if(error)throw error;
-  const byId=new Map((data||[]).map(p=>[p.id,p]));
-  pdfPermitRows=ids.map(id=>byId.get(id)).filter(Boolean).sort((x,y)=>String(y.created_at||"").localeCompare(String(x.created_at||"")));
+  const inRange=p=>{
+   const created=p.created_at?new Date(p.created_at).toLocaleDateString("en-CA",{timeZone:"Asia/Bangkok"}):"";
+   const workDate=String(p.start_date||"").slice(0,10);
+   return (created>=from&&created<=to)||(workDate>=from&&workDate<=to);
+  };
+  pdfPermitRows=(data||[]).filter(inRange).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")));
   wrap.innerHTML="";
-  if(!pdfPermitRows.length){wrap.textContent="พบรายการอนุมัติ แต่ไม่สามารถอ่านรายละเอียดใบอนุญาตได้ ตรวจสอบสิทธิ์อ่าน work_permits";msg.textContent="ไม่พบรายละเอียดใบอนุญาต";updatePdfSelectionCount();return;}
+  if(!pdfPermitRows.length){wrap.textContent="ไม่พบใบ Work Permit ในช่วงวันที่เลือก";msg.textContent="ตรวจแล้ว "+ids.length+" รายการในคิว SECURITY · ค้นหาจากวันที่ยื่นคำขอหรือวันที่เริ่มงาน ("+from+" ถึง "+to+")";updatePdfSelectionCount();return;}
   pdfPermitRows.forEach(p=>{
    const label=document.createElement("label");label.className="card row";label.style.cssText="display:flex;justify-content:flex-start;gap:12px;align-items:center";
    const cb=document.createElement("input");cb.type="checkbox";cb.className="pdf-permit-check";cb.value=p.id;cb.style.cssText="width:20px;height:20px";
    cb.addEventListener("change",updatePdfSelectionCount);
-   const info=document.createElement("span");info.textContent=[p.permit_no,p.work_title,p.company_name,p.start_date,permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
+   const created=p.created_at?new Date(p.created_at).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"}):"";
+   const info=document.createElement("span");info.textContent=[p.permit_no,p.work_title,p.company_name,"วันที่ยื่น "+created,"วันเริ่ม "+(p.start_date||""),permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
    label.append(cb,info);wrap.append(label);
   });
-  msg.textContent="พบ "+pdfPermitRows.length+" ใบ Work Permit";
-  updatePdfSelectionCount();
+  msg.textContent="พบ "+pdfPermitRows.length+" ใบ Work Permit";updatePdfSelectionCount();
  }catch(err){pdfPermitRows=[];wrap.textContent="โหลดรายการไม่สำเร็จ";msg.textContent=err.message||"เกิดข้อผิดพลาด";updatePdfSelectionCount();}
 }
 $("pdfSearch").onclick=loadPdfPermitList;
