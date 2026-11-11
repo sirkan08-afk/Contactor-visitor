@@ -354,9 +354,9 @@ function buildPdfPages(){
  ]);
  rules.append(table);
  page3.append(rules);
- const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page2.append(sign2);
- page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
- for(const page of [page1,page2]){const content=pdfEl("div","pdf-content");while(page.firstChild)content.append(page.firstChild);page.append(content);}
+ const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page3.append(sign2);
+ page2.append(pdfEl("div","pdf-footer","หน้า 2 / 3"));page3.append(pdfEl("div","pdf-footer","หน้า 3 / 3"));
+ for(const page of [page1,page2,page3]){const content=pdfEl("div","pdf-content");while(page.firstChild)content.append(page.firstChild);page.append(content);}
  root.append(page1,page2,page3);document.body.append(root);return root;
 }
 function fitPdfPages(root){
