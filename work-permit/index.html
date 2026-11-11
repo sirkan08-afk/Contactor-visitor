@@ -247,7 +247,7 @@ function buildPdfPages(){
  const sec=(t)=>page1.append(pdfEl("div","pdf-section",t));
  sec("ส่วนที่ 1 : ข้อมูลเบื้องต้นของผู้รับเหมา (Sub-Contractor Detail)");
  let grid=pdfEl("div","pdf-grid");
- [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ผู้ยื่นคำขอ (Applicant)",p.applicant_name||p.contact_name],["ผู้ควบคุมงาน (Supervisor)",p.supervisor_name],["อุปกรณ์ / เครื่องจักร (Equipment)",p.machine_equipment||p.tools],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.applicant_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
+ [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ผู้ยื่นคำขอ (Applicant)",p.applicant_name||p.contact_name],["ผู้ควบคุมงาน (Supervisor)",p.supervisor_name],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.applicant_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
  sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
  const desc=p.work_description||"";
  const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\s*([\s\S]*)$/);
