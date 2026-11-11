@@ -261,7 +261,7 @@ function buildPdfPages(){
  const chosenTypes=new Set((p.work_type||"").split(" / ").map(x=>x.trim()).filter(Boolean));
  const chosenEquipment=new Set(splitValues(eqMatch?.[1]));
  const chosenPpe=new Set(splitValues(ppeMatch?.[1]));
- const appendChoices=(container,selector,selected)=>{document.querySelectorAll(selector).forEach(input=>{const label=input.closest("label");const text=(input.value||label?.textContent||"").trim();if(text&&selected.has(text))container.append(pdfEl("div","pdf-check","✓ "+text));});};
+ const appendChoices=(container,selector,selected)=>{document.querySelectorAll(selector).forEach(input=>{const label=input.closest("label");const text=(input.value||label?.textContent||"").trim();if(text)container.append(pdfEl("div","pdf-check",(selected.has(text)?"☑ ":"□ ")+text));});};
  const checks=pdfEl("div","pdf-checks");appendChoices(checks,"[data-work-type]",chosenTypes);page1.append(checks);
  sec("รายการอุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
  const eq=pdfEl("div","pdf-checks");appendChoices(eq,"[data-equipment]",chosenEquipment);page1.append(eq);
@@ -269,7 +269,7 @@ function buildPdfPages(){
  const pp=pdfEl("div","pdf-checks");appendChoices(pp,"[data-ppe]",chosenPpe);page1.append(pp);
  if(otherMatch?.[1]&&otherMatch[1].trim()!=="-")page1.append(pdfEl("div","pdf-small","อุปกรณ์เพิ่มเติม: "+otherMatch[1]));
  sec("ส่วนที่ 3 : ลำดับการขออนุญาตก่อนเข้าทำงาน และหลังเสร็จงาน");
- const sign=pdfEl("div","pdf-sign");const applicantName=p.applicant_name||p.contact_name||p.supervisor_name||"-";sign.append(pdfEl("div","","ผู้ขออนุญาต / ผู้ควบคุม\n"+applicantName+"\nลงชื่อ __________________\nวันที่ ____ / ____ / ____"));["เจ้าของงาน (Job Owner)","เจ้าของพื้นที่ (Area Owner)","เจ้าหน้าที่ความปลอดภัย (Safety Officer)"].forEach(t=>sign.append(pdfEl("div","",t+"\n\nลงชื่อ __________________\nวันที่ ____ / ____ / ____")));page1.append(sign);
+ const sign=pdfEl("div","pdf-sign");const applicantName=p.applicant_name||p.contact_name||p.supervisor_name||"-";const applicantDate=p.created_at?new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Bangkok",day:"2-digit",month:"2-digit",year:"2-digit"}).format(new Date(p.created_at)):((p.start_date||"").split("-").reverse().join("/"));sign.append(pdfEl("div","","ผู้ขออนุญาต / ผู้ควบคุม\n"+applicantName+"\nวันที่ "+(applicantDate||"-")));["เจ้าของงาน (Job Owner)","เจ้าของพื้นที่ (Area Owner)","เจ้าหน้าที่ความปลอดภัย (Safety Officer)"].forEach(t=>sign.append(pdfEl("div","",t+"\n\nลงชื่อ __________________\nวันที่ ____ / ____ / ____")));page1.append(sign);
  page1.append(pdfEl("div","pdf-small","หมายเหตุ: ให้ผู้รับเหมาติดใบอนุญาตไว้บริเวณพื้นที่ปฏิบัติงาน และต้องปฏิบัติตามมาตรการความปลอดภัยของโรงแรม"));
  page1.append(pdfEl("div","pdf-footer","หน้า 1 / 2"));
  const page2=pdfEl("div","pdf-page"),h2=pdfEl("div","pdf-head");h2.append(pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","รายการตรวจสอบความปลอดภัย (Checking Detail)"));page2.append(h2);
