@@ -312,49 +312,22 @@ function buildPdfPages(){
  page3.append(h3);
  page3.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
  const rules=pdfEl("div","pdf-rules");
- rules.style.cssText="display:block!important;width:100%!important;margin:2mm 0!important;color:#111!important;font-family:Tahoma,Arial,sans-serif!important;font-size:9pt!important;line-height:1.45!important;letter-spacing:normal!important";
+ rules.style.cssText="display:block!important;width:100%!important;margin:2mm 0!important;color:#111!important;font-family:'Cordia New',Tahoma,Arial,sans-serif!important;font-size:11pt!important;line-height:1.35!important;letter-spacing:normal!important";
  const intro=pdfEl("div","pdf-rules-intro","การเข้าปฏิบัติงานในพื้นที่โรงงาน ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน");
- intro.style.cssText="font-family:Tahoma,Arial,sans-serif;font-weight:700;font-size:9pt;line-height:1.45;letter-spacing:normal;margin:0 0 2mm;padding:0 0 2mm;border-bottom:1px solid #bdbdbd";
+ intro.style.cssText="font-family:'Cordia New',Tahoma,Arial,sans-serif;font-weight:700;font-size:11pt;line-height:1.35;margin:0 0 2mm;padding:0 0 2mm;border-bottom:1px solid #bdbdbd";
  rules.append(intro);
  const rulesTable=pdfEl("div","pdf-rules-table");
- rulesTable.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999";
- const header=pdfEl("div","pdf-rules-row");
- header.style.cssText="display:grid;grid-template-columns:31% 69%;background:#eeeeee;font-family:Tahoma,Arial,sans-serif;font-size:9pt;font-weight:700;line-height:1.45;letter-spacing:normal";
- [["ระเบียบปฏิบัติ","รายละเอียด"]].forEach(cols=>cols.forEach((v,i)=>{const c=pdfEl("div","pdf-rules-cell",v);c.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:Tahoma,Arial,sans-serif;font-size:9pt;font-weight:700;line-height:1.45;letter-spacing:normal";header.append(c);}));
- rulesTable.append(header);
- const addRuleRow=(label,details)=>{
-  const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:31% 69%;break-inside:avoid;page-break-inside:avoid";
-  const left=pdfEl("div","pdf-rules-cell",label);left.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:Tahoma,Arial,sans-serif;font-weight:400;font-size:9pt;line-height:1.45;letter-spacing:normal;white-space:normal;overflow-wrap:break-word";
-  const right=pdfEl("div","pdf-rules-cell");right.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;white-space:normal;overflow-wrap:break-word;font-family:Tahoma,Arial,sans-serif;font-size:9pt;font-weight:400;line-height:1.45;letter-spacing:normal";
-  details.forEach((detail,i)=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;margin:0 0 1.8mm;line-height:1.45;font-family:Tahoma,Arial,sans-serif;font-size:9pt;font-weight:400;letter-spacing:normal;white-space:normal;overflow-wrap:break-word";right.append(line);});
-  row.append(left,right);rulesTable.append(row);
- };
- addRuleRow("1. การใช้น้ำมัน, สารเคมี",[
-  "1.1 ไม่ถ่ายน้ำมันเครื่อง หรือสารไวไฟ ใกล้บริเวณที่อาจก่อให้เกิดอัคคีภัย",
-  "1.2 ก่อนถ่ายน้ำมันต้องเตรียมอุปกรณ์ให้พร้อม เช่น อุปกรณ์สำหรับถ่ายเท ถาดรองป้องกันการหกรั่วไหล เศษผ้าสำหรับเช็ด เป็นต้น"
- ]);
- addRuleRow("2. การดำเนินการเมื่อเกิดเหตุฉุกเฉิน",[
-  "2.1 กรณีพบเห็นเหตุการณ์ เช่น น้ำมันหรือสารเคมีหกรั่วไหล แก๊สรั่ว มีกลิ่นผิดปกติ หรือเกิดเหตุเพลิงไหม้ ต้องรีบแจ้งต่อเจ้าของพื้นที่หรือเจ้าหน้าที่ความปลอดภัยทราบทันที",
-  "2.2 กรณีที่อยู่ในเหตุการณ์ฉุกเฉิน และต้องอพยพจากพื้นที่ หากไม่ทราบเส้นทางหนีไฟ ให้เดินตามเจ้าของพื้นที่ไปยังจุดรวมพล"
- ]);
- addRuleRow("3. การสูบบุหรี่",[
-  "3.1 ให้สูบบุหรี่ในพื้นที่ที่บริษัทฯจัดให้เท่านั้น และหลังสูบเสร็จให้ดับก้นบุหรี่ให้สนิท ทิ้งลงในถังบุหรี่ที่จัดเตรียมไว้ให้",
-  "3.2 ห้ามทิ้งขยะลงที่เขี่ยบุหรี่เพราะอาจจะทำให้เกิดอัคคีภัยได้"
- ]);
- addRuleRow("4. ข้อปฏิบัติทั่วไปเกี่ยวกับความปลอดภัยในการทำงาน",[
-  "4.1 ห้ามสวมรองเท้าแตะ หรือรองเท้าฟองน้ำเข้ามาทำงานภายในโรงแรม ยู พัทยา",
-  "4.2 ผู้รับเหมา จะต้องเตรียมถังดับเพลิงไว้ใกล้พื้นที่การปฏิบัติงาน กรณีทำงานเสี่ยงต่อการเกิดอัคคีภัย",
-  "4.3 จะต้องติดป้าย \"เขตอันตราย หรือกั้นพื้นที่ขาว-แดง ในพื้นที่กำลังก่อสร้าง หรือติดตั้งนั่งร้าน\"",
-  "4.4 ผู้รับเหมาจะต้องจัดพื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร",
-  "4.5 ในกรณีที่จำเป็นต้องใช้สารไวไฟในการทำงาน เช่น ทินเนอร์ น้ำมัน จะต้องวางให้ห่างจากแหล่งที่มีประกายไฟอย่างน้อย 8 เมตร และต้องติดป้าย \"มีสารไวไฟ ห้ามก่อประกายไฟ\"",
-  "4.6 ในกรณีที่จำเป็นต้องตัดกระแสไฟ/ ก๊าซ หรือสารไวไฟตามท่อ จะต้องมีป้ายกำกับ \"กำลังซ่อมบำรุง ห้ามเปิดสวิตซ์\" หรือ \"กำลังซ่อมบำรุงห้ามเดินเครื่องตลอดระยะเวลาที่ปฏิบัติงาน\"",
-  "4.7 ผู้รับเหมาจะต้องสวมเครื่องป้องกันอันตรายส่วนบุคคลที่เหมาะสมตามลักษณะงาน",
-  "4.8 เมื่อทำงานเรียบร้อย จะต้องเก็บทำความสะอาดพื้นที่การทำงานและเก็บขยะที่เกิดจากการทำงานกลับไปด้วย",
-  "4.9 ห้ามปฏิบัติงานบนที่สูงมากกว่า 2 เมตร ภายนอกอาคารหรือบนหลังคาโรงงาน เมื่อมีเหตุฝนตก ลมพายุกรรโชกรุนแรง",
-  "4.10 ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุกๆ วันศุกร์ของสัปดาห์ จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work permit ทางเจ้าของงานจะส่งให้ทางอีเมลล์"
- ]);
+ rulesTable.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif";
+ const makeCell=(text,bold=false)=>{const c=pdfEl("div","pdf-rules-cell",text);c.style.cssText="box-sizing:border-box;padding:1.5mm 2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:"+(bold?"700":"400")+";line-height:1.35;letter-spacing:normal;white-space:pre-line;word-break:normal;overflow-wrap:normal";return c;};
+ const header=pdfEl("div","pdf-rules-row");header.style.cssText="display:grid;grid-template-columns:14% 86%;background:#eeeeee";
+ header.append(makeCell("ระเบียบปฏิบัติ",true),makeCell("รายละเอียด",true));rulesTable.append(header);
+ const addRuleRow=(label,detail)=>{const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:14% 86%;break-inside:avoid;page-break-inside:avoid";row.append(makeCell(label),makeCell(detail));rulesTable.append(row);};
+ addRuleRow("1. การใช้น้ำมัน, สารเคมี","1.1 ไม่ถ่ายน้ำมันเครื่อง หรือสารไวไฟ ใกล้บริเวณที่อาจก่อให้เกิดอัคคีภัย\n1.2 ก่อนถ่ายน้ำมันต้องเตรียมอุปกรณ์ให้พร้อม เช่น อุปกรณ์สำหรับถ่ายเท ถาดรองป้องกันการหกรั่วไหล เศษผ้าสำหรับเช็ด เป็นต้น");
+ addRuleRow("2. การดำเนินการเมื่อเกิดเหตุฉุกเฉิน","2.1 กรณีพบเห็นเหตุการณ์ เช่น น้ำมันหรือสารเคมีหกรั่วไหล แก๊สรั่ว มีกลิ่นผิดปกติ หรือเกิดเหตุเพลิงไหม้ ต้องรีบแจ้งต่อเจ้าของพื้นที่หรือเจ้าหน้าที่ความปลอดภัยทราบทันที\n2.2 กรณีที่อยู่ในเหตุการณ์ฉุกเฉิน และต้องอพยพจากพื้นที่ หากไม่ทราบเส้นทางหนีไฟ ให้เดินตามเจ้าของพื้นที่ไปยังจุดรวมพล");
+ addRuleRow("3. การสูบบุหรี่","3.1 ให้สูบบุหรี่ในพื้นที่ที่บริษัทฯจัดให้เท่านั้น และหลังสูบเสร็จให้ดับก้นบุหรี่ให้สนิท ทิ้งลงในถังบุหรี่ที่จัดเตรียมไว้ให้\n3.2 ห้ามทิ้งขยะลงที่เขี่ยบุหรี่เพราะอาจจะทำให้เกิดอัคคีภัยได้");
+ addRuleRow("4. ข้อปฏิบัติทั่วไปเกี่ยวกับความปลอดภัยในการทำงาน","4.1 ห้ามสวมรองเท้าแตะ หรือรองเท้าฟองน้ำเข้ามาทำงานภายในโรงแรม ยู พัทยา\n4.2 ผู้รับเหมา จะต้องเตรียมถังดับเพลิงไว้ใกล้พื้นที่การปฏิบัติงาน กรณีทำงานเสี่ยงต่อการเกิดอัคคีภัย\n4.3 จะต้องติดป้าย \"เขตอันตราย หรือกั้นพื้นที่ขาว-แดง ในพื้นที่กำลังก่อสร้าง หรือติดตั้งนั่งร้าน\"\n4.4 ผู้รับเหมาจะต้องจัดพื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร\n4.5 ในกรณีที่จำเป็นต้องใช้สารไวไฟในการทำงาน เช่น ทินเนอร์ น้ำมัน จะต้องวางให้ห่างจากแหล่งที่มีประกายไฟอย่างน้อย 8 เมตร และต้องติดป้าย \"มีสารไวไฟ ห้ามก่อประกายไฟ\"\n4.6 ในกรณีที่จำเป็นต้องตัดกระแสไฟ/ ก๊าซ หรือสารไวไฟตามท่อ จะต้องมีป้ายกำกับ \"กำลังซ่อมบำรุง ห้ามเปิดสวิตซ์\" หรือ กำลังซ่อมบำรุงห้ามเดินเครื่องตลอดระยะเวลาที่ปฏิบัติงาน\"\n4.7 ผู้รับเหมาจะต้องสวมเครื่องป้องกันอันตรายส่วนบุคคลที่เหมาะสมตามลักษณะงาน\n4.8 เมื่อทำงานเรียบร้อย จะต้องเก็บทำความสะอาดพื้นที่การทำงานและเก็บขยะที่เกิดจากการทำงานกลับไปด้วย\n4.9 ห้ามปฏิบัติงานบนที่สูงมากกว่า 2 เมตร ภายนอกอาคารหรือบนหลังคาโรงงาน เมื่อมีเหตุฝนตก ลมพายุกรรโชกรุนแรง\n4.10 ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุกๆ วันศุกร์ของสัปดาห์ จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work permit ทางเจ้าของงานจะส่งให้ทางอีเมลล์");
  rules.append(rulesTable);
- page3.append(rules);
+
  const sign2=pdfEl("div","pdf-sign");["ลงชื่อ Safety","ลงชื่อ Sub-Contractor"].forEach(t=>sign2.append(pdfEl("div","",t+"\n\n__________________")));page3.append(sign2);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 3"));page3.append(pdfEl("div","pdf-footer","หน้า 3 / 3"));
  for(const page of [page1,page2,page3]){const content=pdfEl("div","pdf-content");while(page.firstChild)content.append(page.firstChild);page.append(content);}
