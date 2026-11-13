@@ -518,7 +518,7 @@ $("pdfDownloadSelected").onclick=async()=>{
     root=buildPdfPages();root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());await document.fonts.ready;
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     fitPdfPages(root);
-    const pages=[...root.querySelectorAll(".pdf-page")];if(pages.length!==2)throw new Error("สร้าง PDF ไม่ครบ 2 หน้า");
+    const pages=[...root.querySelectorAll(".pdf-page")];if(pages.length!==3)throw new Error("สร้าง PDF ไม่ครบ 3 หน้า");
     const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
     for(let i=0;i<pages.length;i++){
      const canvas=await window.html2pdf().set({margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false}}).from(pages[i]).toCanvas().get("canvas");
