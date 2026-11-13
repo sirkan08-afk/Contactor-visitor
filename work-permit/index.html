@@ -318,12 +318,12 @@ function buildPdfPages(){
  rules.append(intro);
  const rulesTable=pdfEl("div","pdf-rules-table");
  rulesTable.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif";
- const makeCell=(text,bold=false)=>{const c=pdfEl("div","pdf-rules-cell",text);c.style.cssText="box-sizing:border-box;min-width:0;width:auto;max-width:100%;padding:1.8mm 2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:"+(bold?"700":"400")+";line-height:1.65;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:anywhere;vertical-align:top";return c;};
- const header=pdfEl("div","pdf-rules-row");header.style.cssText="display:grid;grid-template-columns:20% minmax(0,80%);background:#eeeeee;align-items:stretch";
+ const makeCell=(text,bold=false)=>{const c=pdfEl("div","pdf-rules-cell",text);c.style.cssText="box-sizing:border-box;display:block;min-width:0;width:100%;max-width:100%;height:auto;min-height:0;padding:1.8mm 2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:"+(bold?"700":"400")+";line-height:1.5;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:break-word;vertical-align:top";return c;};
+ const header=pdfEl("div","pdf-rules-row");header.style.cssText="display:grid;grid-template-columns:26% minmax(0,74%);width:100%;height:auto;min-height:0;background:#eeeeee;align-items:start;break-inside:avoid;page-break-inside:avoid";
  header.append(makeCell("ระเบียบปฏิบัติ",true),makeCell("รายละเอียด",true));rulesTable.append(header);
- const addRuleRow=(label,details)=>{const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:20% minmax(0,80%);align-items:stretch;break-inside:avoid;page-break-inside:avoid";
+ const addRuleRow=(label,details)=>{const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:26% minmax(0,74%);width:100%;height:auto;min-height:0;align-items:start;break-inside:avoid;page-break-inside:avoid";
   const left=makeCell(label);left.style.fontWeight="400";
-  const right=makeCell("");details.forEach(detail=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;position:relative;box-sizing:border-box;width:100%;margin:0 0 1.5mm;padding:0;min-height:1.65em;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.65;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:anywhere";right.append(line);});
+  const right=makeCell("");details.forEach(detail=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;position:static;box-sizing:border-box;width:100%;height:auto;min-height:0;margin:0 0 2mm;padding:0;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:400;line-height:1.5;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:break-word";right.append(line);});
   row.append(left,right);rulesTable.append(row);
  };
  addRuleRow("1. การใช้น้ำมัน, สารเคมี",[
