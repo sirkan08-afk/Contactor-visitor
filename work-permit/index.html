@@ -318,7 +318,7 @@ function buildPdfPages(){
  rules.append(intro);
  const rulesTable=pdfEl("div","pdf-rules-table");
  rulesTable.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif";
- const makeCell=(text,bold=false)=>{const c=pdfEl("div","pdf-rules-cell",text);c.style.cssText="box-sizing:border-box;min-width:0;width:100%;padding:1.8mm 2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:"+(bold?"700":"400")+";line-height:1.65;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:anywhere;vertical-align:top";return c;};
+ const makeCell=(text,bold=false)=>{const c=pdfEl("div","pdf-rules-cell",text);c.style.cssText="box-sizing:border-box;min-width:0;width:auto;max-width:100%;padding:1.8mm 2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,Arial,sans-serif;font-size:11pt;font-weight:"+(bold?"700":"400")+";line-height:1.65;letter-spacing:normal;white-space:normal;word-break:normal;overflow-wrap:anywhere;vertical-align:top";return c;};
  const header=pdfEl("div","pdf-rules-row");header.style.cssText="display:grid;grid-template-columns:20% minmax(0,80%);background:#eeeeee;align-items:stretch";
  header.append(makeCell("ระเบียบปฏิบัติ",true),makeCell("รายละเอียด",true));rulesTable.append(header);
  const addRuleRow=(label,details)=>{const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:20% minmax(0,80%);align-items:stretch;break-inside:avoid;page-break-inside:avoid";
