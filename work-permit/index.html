@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8">
+<html lang="th"><head><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>U Khaochichan | Work Permit</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -312,20 +312,20 @@ function buildPdfPages(){
  page3.append(h3);
  page3.append(pdfEl("div","pdf-section","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา"));
  const rules=pdfEl("div","pdf-rules");
- rules.style.cssText="display:block!important;width:100%!important;margin:2mm 0!important;color:#111!important;font-family:'Cordia New',Tahoma,sans-serif!important;font-size:11pt!important;line-height:1.15!important;letter-spacing:0!important";
+ rules.style.cssText="display:block!important;width:100%!important;margin:2mm 0!important;color:#111!important;font-family:'Noto Sans Thai',Tahoma,sans-serif!important;font-size:10pt!important;line-height:1.45!important;letter-spacing:0!important";
  const intro=pdfEl("div","pdf-rules-intro","การเข้าปฏิบัติงานในพื้นที่โรงงาน ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน");
- intro.style.cssText="font-family:'Cordia New',Tahoma,sans-serif;font-weight:700;font-size:11pt;line-height:1.15;letter-spacing:0;margin:0 0 2mm;padding:0 0 2mm;border-bottom:1px solid #bdbdbd";
+ intro.style.cssText="font-family:'Cordia New',Tahoma,sans-serif;font-weight:700;font-size:10pt;line-height:1.45;letter-spacing:0;margin:0 0 2mm;padding:0 0 2mm;border-bottom:1px solid #bdbdbd";
  rules.append(intro);
  const rulesTable=pdfEl("div","pdf-rules-table");
  rulesTable.style.cssText="display:block;width:100%;border-top:1px solid #999;border-left:1px solid #999";
  const header=pdfEl("div","pdf-rules-row");
- header.style.cssText="display:grid;grid-template-columns:31% 69%;background:#eeeeee;font-family:'Cordia New',Tahoma,sans-serif;font-size:11pt;font-weight:700;line-height:1.15;letter-spacing:0";
+ header.style.cssText="display:grid;grid-template-columns:31% 69%;background:#eeeeee;font-family:'Cordia New',Tahoma,sans-serif;font-size:10pt;font-weight:700;line-height:1.45;letter-spacing:0";
  [["ระเบียบปฏิบัติ","รายละเอียด"]].forEach(cols=>cols.forEach((v,i)=>{const c=pdfEl("div","pdf-rules-cell",v);c.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,sans-serif;font-size:11pt;font-weight:700;line-height:1.15;letter-spacing:0";header.append(c);}));
  rulesTable.append(header);
  const addRuleRow=(label,details)=>{
   const row=pdfEl("div","pdf-rules-row");row.style.cssText="display:grid;grid-template-columns:31% 69%;break-inside:avoid;page-break-inside:avoid";
   const left=pdfEl("div","pdf-rules-cell",label);left.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;font-family:'Cordia New',Tahoma,sans-serif;font-weight:400;font-size:11pt;line-height:1.15;letter-spacing:0;white-space:normal;overflow-wrap:break-word";
-  const right=pdfEl("div","pdf-rules-cell");right.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;white-space:normal;overflow-wrap:break-word;font-family:'Cordia New',Tahoma,sans-serif;font-size:11pt;font-weight:400;line-height:1.15;letter-spacing:0";
+  const right=pdfEl("div","pdf-rules-cell");right.style.cssText="padding:2mm;border-right:1px solid #999;border-bottom:1px solid #999;white-space:normal;overflow-wrap:break-word;font-family:'Cordia New',Tahoma,sans-serif;font-size:10pt;font-weight:400;line-height:1.45;letter-spacing:0";
   details.forEach((detail,i)=>{const line=pdfEl("div","pdf-rules-detail",detail);line.style.cssText="display:block;margin:0 0 1mm;line-height:1.15;font-family:'Cordia New',Tahoma,sans-serif;font-size:11pt;font-weight:400;letter-spacing:0;white-space:normal;overflow-wrap:break-word";right.append(line);});
   row.append(left,right);rulesTable.append(row);
  };
@@ -391,7 +391,7 @@ $("downloadInspectionPdf").onclick=async()=>{
   const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
   const pageHtml=pages.map(p=>p.outerHTML).join("");
   printWindow.document.open();
-  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${styleText}
+  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${styleText}
    @page{size:A4 portrait;margin:0}
    html,body{margin:0!important;padding:0!important;background:#fff!important;width:210mm!important}
    body{display:block!important}
@@ -399,7 +399,7 @@ $("downloadInspectionPdf").onclick=async()=>{
    .pdf-page{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:9mm 10mm!important;overflow:hidden!important;box-sizing:border-box!important;break-after:page!important;page-break-after:always!important}
    .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-   </style></head><body><main class="pdf-root">${pageHtml}</main><script>window.onload=()=>{setTimeout(()=>window.print(),700)};<\/script></body></html>`);
+   </style></head><body><main class="pdf-root">${pageHtml}</main><script>window.onload=async()=>{try{await document.fonts.load('10pt "Noto Sans Thai"');await document.fonts.ready;}catch(e){}setTimeout(()=>window.print(),300)};<\/script></body></html>`);
   printWindow.document.close();
   msg.textContent="เปิดหน้าพิมพ์แล้ว กรุณาเลือก Save as PDF / บันทึกเป็น PDF";
  }catch(err){
