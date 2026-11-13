@@ -391,7 +391,7 @@ $("downloadInspectionPdf").onclick=async()=>{
   const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
   const pageHtml=pages.map(p=>p.outerHTML).join("");
   printWindow.document.open();
-  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><style>${styleText}
+  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${styleText}
    @page{size:A4 portrait;margin:0}
    html,body{margin:0!important;padding:0!important;background:#fff!important;width:210mm!important}
    body{display:block!important}
