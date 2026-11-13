@@ -360,15 +360,22 @@ function buildPdfPages(){
 function fitPdfPages(root){
  const pages=[...root.querySelectorAll(".pdf-page")];
  pages.forEach((page,index)=>{
-  const content=page.querySelector(".pdf-content");if(!content)return;
+  let content=page.querySelector(".pdf-content");
+  if(!content){
+   content=document.createElement("div");content.className="pdf-content";
+   while(page.firstChild)content.appendChild(page.firstChild);
+   page.appendChild(content);
+  }
   content.style.fontFamily="Tahoma,Arial,sans-serif";
-  if(index===2){content.style.transform="none";content.style.width="100%";content.style.marginTop="0";page.style.paddingTop="9mm";return;}
-  content.style.transform="none";content.style.width="100%";
+  content.style.transform="none";content.style.width="100%";content.style.marginTop="0";
+  if(index===2){page.style.paddingTop="9mm";return;}
   const style=getComputedStyle(page);
   const available=page.clientHeight-parseFloat(style.paddingTop||0)-parseFloat(style.paddingBottom||0);
   const needed=content.scrollHeight;
-  const scale=needed>available?Math.max(0.35,available/needed):1;
-  content.style.width=(100/scale)+"%";content.style.transform="scale("+scale+")";
+  // Enlarge the relatively short first page modestly; shrink only when a page would overflow.
+  const scale=index===0?Math.min(1.3,available/Math.max(needed,1)):Math.min(1,available/Math.max(needed,1));
+  content.style.width=(100/scale)+"%";
+  content.style.transform="scale("+scale+")";
  });
 }
 $("downloadInspectionPdf").onclick=async()=>{
