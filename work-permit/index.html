@@ -369,39 +369,41 @@ function fitPdfPages(root){
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
  if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- if(typeof window.html2canvas!=="function"){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
- const JsPDF=window.jspdf?.jsPDF;
- if(!JsPDF){msg.textContent="โหลดเครื่องมือ PDF ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ";return;}
- button.disabled=true;msg.textContent="กำลังจัดทำเอกสาร A4 จำนวน 2 หน้า...";
+ const printWindow=window.open("","_blank");
+ if(!printWindow){msg.textContent="เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่";return;}
+ button.disabled=true;msg.textContent="กำลังจัดเตรียมเอกสาร A4 จำนวน 2 หน้า...";
  let root;
  try{
   root=buildPdfPages();
   root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
   await document.fonts.ready;
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const imgs=[...root.querySelectorAll("img")];
+  await Promise.all(imgs.map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
   const pages=[...root.querySelectorAll(".pdf-page")];
-  if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
-  const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-  // Pin each page to the visible viewport before capture. This prevents the
-  // phone's current scroll position from being baked into the exported image.
-  root.style.position="fixed";root.style.left="0";root.style.top="0";root.style.zIndex="999999";
-  for(let i=0;i<pages.length;i++){
-   msg.textContent="กำลังประมวลผลหน้า "+(i+1)+" จาก 2...";
-   const page=pages[i],saved={position:page.style.position,top:page.style.top,left:page.style.left,zIndex:page.style.zIndex};
-   page.style.position="fixed";page.style.top="0";page.style.left="0";page.style.zIndex="1000000";
-   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   const canvas=await window.html2canvas(page,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,page.scrollWidth),windowHeight:Math.max(document.documentElement.clientHeight,page.scrollHeight)});
-   page.style.position=saved.position;page.style.top=saved.top;page.style.left=saved.left;page.style.zIndex=saved.zIndex;
-   if(!canvas||canvas.width<500||canvas.height<700)throw new Error("ภาพหน้า "+(i+1)+" ไม่สมบูรณ์");
-   if(i>0)pdf.addPage("a4","portrait");
-   pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
-   canvas.width=1;canvas.height=1;
-  }
-  if(pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้างหน้า PDF ไม่ครบ 2 หน้า");
-  pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
-  msg.textContent="บันทึก PDF A4 เรียบร้อย จำนวน 2 หน้า";
- }catch(err){msg.textContent="สร้าง PDF ไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");}
- finally{root?.remove();button.disabled=false;}
+  if(pages.length!==2)throw new Error("เอกสารต้องมี 2 หน้าเท่านั้น");
+  const permitNo=String(activePermit.work_permits?.permit_no||"Work-Permit").replace(/[^a-zA-Z0-9_-]/g,"_");
+  const pageHtml=pages.map(p=>p.outerHTML).join("");
+  const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><style>${styleText}
+   @page{size:A4 portrait;margin:0}
+   html,body{margin:0!important;padding:0!important;width:210mm!important;min-width:210mm!important;background:#fff!important}
+   body{display:block!important;font-family:Tahoma,Arial,sans-serif!important}
+   .pdf-root{position:static!important;left:auto!important;top:auto!important;width:210mm!important;margin:0!important;padding:0!important;overflow:visible!important;z-index:auto!important}
+   .pdf-page{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:9mm 10mm!important;overflow:hidden!important;box-sizing:border-box!important;break-after:page!important;page-break-after:always!important}
+   .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
+   .pdf-content{display:block!important;position:static!important;transform:none!important;zoom:1!important;width:100%!important;height:auto!important;margin:0!important;padding:0!important}
+   .pdf-head{margin-top:0!important}
+   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+   </style></head><body><main class="pdf-root">${pageHtml}</main><script>
+   window.onload=async()=>{try{await document.fonts.ready;}catch(e){}const imgs=[...document.images];await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));setTimeout(()=>window.print(),500)};
+   <\/script></body></html>`);
+  printWindow.document.close();
+  msg.textContent="เปิดเอกสาร A4 จำนวน 2 หน้าแล้ว กรุณาเลือก Save as PDF / บันทึกเป็น PDF";
+ }catch(err){
+  printWindow.close();
+  msg.textContent="สร้างเอกสารไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");
+ }finally{root?.remove();button.disabled=false;}
 };
 $("saveInspection").onclick=async()=>{
  const msg=$("inspectionMsg"),button=$("saveInspection");
