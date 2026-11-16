@@ -391,7 +391,8 @@ $("downloadInspectionPdf").onclick=async()=>{
    .pdf-root{position:static!important;left:auto!important;top:auto!important;width:210mm!important;margin:0!important;padding:0!important;overflow:visible!important;z-index:auto!important}
    .pdf-page{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:9mm 10mm!important;overflow:hidden!important;box-sizing:border-box!important;break-after:page!important;page-break-after:always!important}
    .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
-   .pdf-content{position:absolute!important;display:block!important;top:9mm!important;left:10mm!important;right:10mm!important;transform:none!important;zoom:1!important;width:auto!important;margin:0!important;padding:0!important;vertical-align:top!important}
+   .pdf-page{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:max-content!important;align-content:start!important;justify-content:start!important;place-content:start!important}
+   .pdf-content{position:static!important;display:block!important;align-self:start!important;justify-self:stretch!important;transform:none!important;zoom:1!important;width:100%!important;height:auto!important;margin:0!important;padding:0!important;vertical-align:top!important}
    .pdf-head{margin-top:0!important}
    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
    </style></head><body><main class="pdf-root">${pageHtml}</main><script>window.onload=async()=>{try{await document.fonts.load('10pt "Noto Sans Thai"');await document.fonts.ready;}catch(e){}setTimeout(()=>window.print(),300)};<\/script></body></html>`);
