@@ -544,7 +544,11 @@ $("pdfDownloadSelected").onclick=async()=>{
     ["yes","no","na"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(saved?.result_status===v)o.selected=true;sel.append(o);});
     row.append(sel);checkWrap.append(row);
    });
-   $("inspectionProblems").value="";$("inspectionCorrection").value="";
+   const savedNote=(checkResult.data||[]).map(x=>x.note||"").find(Boolean)||"";
+   const problemMatch=savedNote.match(/ปัญหา:\\s*([\\s\\S]*?)(?=\\nแก้ไข:|$)/);
+   const correctionMatch=savedNote.match(/แก้ไข:\\s*([\\s\\S]*)$/);
+   $("inspectionProblems").value=problemMatch?problemMatch[1].trim():"";
+   $("inspectionCorrection").value=correctionMatch?correctionMatch[1].trim():"";
    try{await exportCurrentPermitPdf();completed++;}
    finally{checkWrap.innerHTML=oldChecklist;$("inspectionProblems").value=oldProblems;$("inspectionCorrection").value=oldCorrection;}
    await new Promise(resolve=>setTimeout(resolve,350));
