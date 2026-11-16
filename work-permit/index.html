@@ -346,6 +346,50 @@ function buildPdfPages(){
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
   root.append(page1,page2);document.body.append(root);return root;
 }
+async function exportCurrentPermitPdf(){
+ if(typeof window.html2canvas!=="function")throw new Error("ไม่พบ html2canvas กรุณารีเฟรชหน้าเว็บ");
+ const JsPDF=await window.__jsPdfReady;
+ const root=buildPdfPages();
+ let frame;
+ try{
+  root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
+  await document.fonts.ready;
+  const pages=[...root.querySelectorAll(".pdf-page")];
+  if(pages.length!==2)throw new Error("เอกสารไม่ครบ 2 หน้า");
+  frame=document.createElement("iframe");
+  frame.setAttribute("aria-hidden","true");
+  frame.style.cssText="position:fixed;left:0;top:0;width:794px;height:1123px;border:0;opacity:0.01;pointer-events:none;z-index:-1";
+  document.body.appendChild(frame);
+  const doc=frame.contentDocument;
+  doc.open();
+  const styles=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+  doc.write("<!doctype html><html lang='th'><head><meta charset='utf-8'><style>"+styles+
+   "\nhtml,body{margin:0!important;padding:0!important;width:794px!important;background:#fff!important;overflow:hidden!important}"+
+   ".pdf-root{position:static!important;left:auto!important;top:auto!important;width:794px!important;margin:0!important;padding:0!important;overflow:visible!important}"+
+   ".pdf-page{width:794px!important;height:1123px!important;min-height:1123px!important;max-height:1123px!important;padding:34px 38px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;break-after:auto!important;page-break-after:auto!important}"+
+   ".pdf-content{width:100%!important;zoom:1!important;transform:none!important}"+
+   ".pdf-logo{max-width:90px!important;max-height:48px!important;object-fit:contain!important}"+
+   "*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body></body></html>");
+  doc.close();
+  const cloned=doc.createElement("main");cloned.className="pdf-root";cloned.innerHTML=pages.map(p=>p.innerHTML).map((html,i)=>'<section class="pdf-page">'+html+'</section>').join("");
+  doc.body.appendChild(cloned);
+  await doc.fonts.ready;
+  const images=[...doc.images];
+  await Promise.all(images.map(img=>{img.crossOrigin="anonymous";return img.decode?img.decode().catch(()=>{}):Promise.resolve();}));
+  await new Promise(resolve=>setTimeout(resolve,250));
+  const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+  for(let i=0;i<2;i++){
+   const page=cloned.children[i];
+   const canvas=await window.html2canvas(page,{scale:2,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,width:794,height:1123,windowWidth:794,windowHeight:1123});
+   if(!canvas||canvas.width<700||canvas.height<1000)throw new Error("หน้า "+(i+1)+" สร้างภาพไม่สมบูรณ์");
+   if(i)pdf.addPage("a4","portrait");
+   pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   canvas.width=1;canvas.height=1;
+  }
+  const permitNo=String(activePermit?.work_permits?.permit_no||"Work-Permit").replace(/[^a-zA-Z0-9_-]/g,"_");
+  pdf.save(permitNo+".pdf");
+ }finally{root.remove();frame?.remove();}
+}
 function fitPdfPages(root){
  const pages=[...root.querySelectorAll(".pdf-page")];
  pages.forEach((page,index)=>{
@@ -368,42 +412,11 @@ function fitPdfPages(root){
 }
 $("downloadInspectionPdf").onclick=async()=>{
  const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
- if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนบันทึก PDF";return;}
- const printWindow=window.open("","_blank");
- if(!printWindow){msg.textContent="เบราว์เซอร์บล็อกหน้าต่างเอกสาร กรุณาอนุญาต Pop-ups แล้วลองใหม่";return;}
- button.disabled=true;msg.textContent="กำลังจัดเตรียมเอกสาร A4 จำนวน 2 หน้า...";
- let root;
- try{
-  root=buildPdfPages();
-  root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
-  await document.fonts.ready;
-  const imgs=[...root.querySelectorAll("img")];
-  await Promise.all(imgs.map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
-  const pages=[...root.querySelectorAll(".pdf-page")];
-  if(pages.length!==2)throw new Error("เอกสารต้องมี 2 หน้าเท่านั้น");
-  const permitNo=String(activePermit.work_permits?.permit_no||"Work-Permit").replace(/[^a-zA-Z0-9_-]/g,"_");
-  const pageHtml=pages.map(p=>p.outerHTML).join("");
-  const styleText=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
-  printWindow.document.open();
-  printWindow.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${permitNo}</title><style>${styleText}
-   @page{size:A4 portrait;margin:0}
-   html,body{margin:0!important;padding:0!important;width:210mm!important;min-width:210mm!important;background:#fff!important}
-   body{display:block!important;font-family:Tahoma,Arial,sans-serif!important}
-   .pdf-root{position:static!important;left:auto!important;top:auto!important;width:210mm!important;margin:0!important;padding:0!important;overflow:visible!important;z-index:auto!important}
-   .pdf-page{display:block!important;position:relative!important;width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;margin:0!important;padding:9mm 10mm!important;overflow:hidden!important;box-sizing:border-box!important;break-after:page!important;page-break-after:always!important}
-   .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
-   .pdf-content{display:block!important;position:static!important;transform:none!important;zoom:1!important;width:100%!important;height:auto!important;margin:0!important;padding:0!important}
-   .pdf-head{margin-top:0!important}
-   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-   </style></head><body><main class="pdf-root">${pageHtml}</main><script>
-   window.onload=async()=>{try{await document.fonts.ready;}catch(e){}const imgs=[...document.images];await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));setTimeout(()=>window.print(),500)};
-   <\/script></body></html>`);
-  printWindow.document.close();
-  msg.textContent="เปิดเอกสาร A4 จำนวน 2 หน้าแล้ว กรุณาเลือก Save as PDF / บันทึกเป็น PDF";
- }catch(err){
-  printWindow.close();
-  msg.textContent="สร้างเอกสารไม่สำเร็จ: "+(err.message||"กรุณาลองอีกครั้ง");
- }finally{root?.remove();button.disabled=false;}
+ if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนดาวน์โหลด PDF";return;}
+ button.disabled=true;msg.textContent="กำลังสร้าง PDF A4 จำนวน 2 หน้า...";
+ try{await exportCurrentPermitPdf();msg.textContent="ดาวน์โหลด PDF เรียบร้อยแล้ว";}
+ catch(err){msg.textContent="ดาวน์โหลด PDF ไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
+ finally{button.disabled=false;}
 };
 $("saveInspection").onclick=async()=>{
  const msg=$("inspectionMsg"),button=$("saveInspection");
@@ -494,10 +507,10 @@ $("pdfDownloadSelected").onclick=async()=>{
  if(!ids.length){msg.textContent="กรุณาติ๊กเลือกใบ Work Permit อย่างน้อย 1 รายการ";return;}
  button.disabled=true;let completed=0;
  try{
-  await window.__html2pdfReady;const JsPDF=await window.__jsPdfReady;
+  await window.__html2pdfReady;await window.__jsPdfReady;
   for(const id of ids){
    const p=pdfPermitRows.find(x=>x.id===id);if(!p)continue;
-   msg.textContent="กำลังจัดทำ "+(p.permit_no||"Work Permit")+" ("+(completed+1)+"/"+ids.length+")";
+   msg.textContent="กำลังสร้าง "+(p.permit_no||"Work Permit")+" ("+(completed+1)+"/"+ids.length+")";
    const [workerResult,checkResult]=await Promise.all([
     db.from("work_permit_workers").select("full_name").eq("permit_id",id).order("created_at",{ascending:true}),
     db.from("work_permit_checklists").select("item_no,result_status,note").eq("permit_id",id).order("item_no",{ascending:true})
@@ -514,27 +527,15 @@ $("pdfDownloadSelected").onclick=async()=>{
     row.append(sel);checkWrap.append(row);
    });
    $("inspectionProblems").value="";$("inspectionCorrection").value="";
-   let root;
-   try{
-    root=buildPdfPages();root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());await document.fonts.ready;
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    fitPdfPages(root);
-    const pages=[...root.querySelectorAll(".pdf-page")];if(pages.length!==2)throw new Error("เอกสารต้องมี 2 หน้าเท่านั้น");
-    const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-    for(let i=0;i<pages.length;i++){
-     const canvas=await window.html2pdf().set({margin:0,html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false}}).from(pages[i]).toCanvas().get("canvas");
-     if(i>0)pdf.addPage("a4","portrait");
-     pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
-    }
-    pdf.save((p.permit_no||"Work-Permit")+".pdf");completed++;
-   }finally{
-    root?.remove();checkWrap.innerHTML=oldChecklist;$("inspectionProblems").value=oldProblems;$("inspectionCorrection").value=oldCorrection;
-   }
+   try{await exportCurrentPermitPdf();completed++;}
+   finally{checkWrap.innerHTML=oldChecklist;$("inspectionProblems").value=oldProblems;$("inspectionCorrection").value=oldCorrection;}
+   await new Promise(resolve=>setTimeout(resolve,350));
   }
   msg.textContent="ดาวน์โหลดเรียบร้อย "+completed+" จาก "+ids.length+" ไฟล์ PDF";
  }catch(err){msg.textContent="ดาวน์โหลดไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
  finally{button.disabled=false;}
 };
+
 
 async function loadStaff(){
  const list=$("staffList");list.textContent="กำลังโหลดคำขอ...";
