@@ -382,11 +382,20 @@ $("downloadInspectionPdf").onclick=async()=>{
   const pages=[...root.querySelectorAll(".pdf-page")];
   if(pages.length!==2)throw new Error("ไม่พบหน้าเอกสารครบ 2 หน้า");
   const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+  // Pin each page to the visible viewport before capture. This prevents the
+  // phone's current scroll position from being baked into the exported image.
+  root.style.position="fixed";root.style.left="0";root.style.top="0";root.style.zIndex="999999";
   for(let i=0;i<pages.length;i++){
-   const canvas=await window.html2canvas(pages[i],{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0});
-   if(!canvas.width||!canvas.height)throw new Error("ไม่สามารถแปลงหน้า "+(i+1)+" เป็นภาพได้");
+   msg.textContent="กำลังประมวลผลหน้า "+(i+1)+" จาก 2...";
+   const page=pages[i],saved={position:page.style.position,top:page.style.top,left:page.style.left,zIndex:page.style.zIndex};
+   page.style.position="fixed";page.style.top="0";page.style.left="0";page.style.zIndex="1000000";
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   const canvas=await window.html2canvas(page,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,page.scrollWidth),windowHeight:Math.max(document.documentElement.clientHeight,page.scrollHeight)});
+   page.style.position=saved.position;page.style.top=saved.top;page.style.left=saved.left;page.style.zIndex=saved.zIndex;
+   if(!canvas||canvas.width<500||canvas.height<700)throw new Error("ภาพหน้า "+(i+1)+" ไม่สมบูรณ์");
    if(i>0)pdf.addPage("a4","portrait");
    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   canvas.width=1;canvas.height=1;
   }
   if(pdf.internal.getNumberOfPages()!==2)throw new Error("ระบบสร้างหน้า PDF ไม่ครบ 2 หน้า");
   pdf.save((activePermit.work_permits?.permit_no||"Work-Permit")+".pdf");
