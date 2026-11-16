@@ -357,15 +357,14 @@ function fitPdfPages(root){
    page.appendChild(content);
   }
   content.style.fontFamily="Tahoma,Arial,sans-serif";
-  content.style.transform="none";content.style.width="100%";content.style.marginTop="0";
+  content.style.transform="none";content.style.width="100%";content.style.marginTop="0";content.style.zoom="1";
   
   const style=getComputedStyle(page);
   const available=page.clientHeight-parseFloat(style.paddingTop||0)-parseFloat(style.paddingBottom||0);
   const needed=content.scrollHeight;
-  // Enlarge the relatively short first page modestly; shrink only when a page would overflow.
+  // Use layout zoom rather than transform so mobile print engines keep content at the top of each A4 page.
   const scale=index===0?Math.min(1.3,available/Math.max(needed,1)):Math.min(1,available/Math.max(needed,1));
-  content.style.width=(100/scale)+"%";
-  content.style.transform="scale("+scale+")";
+  content.style.zoom=String(scale);
  });
 }
 $("downloadInspectionPdf").onclick=async()=>{
