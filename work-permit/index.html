@@ -22,6 +22,24 @@ window.__html2pdfReady=(async()=>{
  }
  throw new Error("ไม่สามารถโหลด html2pdf จาก CDN ทั้งสองแหล่งได้");
 })();
+window.__html2canvasReady=(async()=>{
+ if(typeof window.html2canvas==="function")return window.html2canvas;
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+  "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=()=>reject(new Error("โหลด html2canvas ไม่สำเร็จ"));
+    document.head.appendChild(script);
+   });
+   if(typeof window.html2canvas==="function")return window.html2canvas;
+  }catch(error){console.warn(error.message);}
+ }
+ throw new Error("โหลดตัวสร้างภาพ PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+})();
 window.__jsPdfReady=(async()=>{
  const getCtor=()=>window.jspdf?.jsPDF||window.jsPDF;
  if(getCtor())return getCtor();
@@ -347,7 +365,7 @@ function buildPdfPages(){
   root.append(page1,page2);document.body.append(root);return root;
 }
 async function exportCurrentPermitPdf(){
- if(typeof window.html2canvas!=="function")throw new Error("ไม่พบ html2canvas กรุณารีเฟรชหน้าเว็บ");
+ const html2canvas=await window.__html2canvasReady;
  const JsPDF=await window.__jsPdfReady;
  const root=buildPdfPages();
  let frame;
@@ -380,7 +398,7 @@ async function exportCurrentPermitPdf(){
   const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
   for(let i=0;i<2;i++){
    const page=cloned.children[i];
-   const canvas=await window.html2canvas(page,{scale:2,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,width:794,height:1123,windowWidth:794,windowHeight:1123});
+   const canvas=await html2canvas(page,{scale:2,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,width:794,height:1123,windowWidth:794,windowHeight:1123});
    if(!canvas||canvas.width<700||canvas.height<1000)throw new Error("หน้า "+(i+1)+" สร้างภาพไม่สมบูรณ์");
    if(i)pdf.addPage("a4","portrait");
    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
@@ -507,7 +525,7 @@ $("pdfDownloadSelected").onclick=async()=>{
  if(!ids.length){msg.textContent="กรุณาติ๊กเลือกใบ Work Permit อย่างน้อย 1 รายการ";return;}
  button.disabled=true;let completed=0;
  try{
-  await window.__html2pdfReady;await window.__jsPdfReady;
+  await window.__html2canvasReady;await window.__jsPdfReady;
   for(const id of ids){
    const p=pdfPermitRows.find(x=>x.id===id);if(!p)continue;
    msg.textContent="กำลังสร้าง "+(p.permit_no||"Work Permit")+" ("+(completed+1)+"/"+ids.length+")";
