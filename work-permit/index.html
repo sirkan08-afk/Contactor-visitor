@@ -84,7 +84,11 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 </style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
-<nav class="tabs"><button class="active" data-tab="request">ยื่นคำขอ</button><button data-tab="track">ติดตามคำขอ</button><button data-tab="staff">เจ้าหน้าที่ / ผู้ตรวจ</button><button data-tab="downloads">ดาวน์โหลด PDF</button></nav>
+<nav class="tabs" aria-label="เมนูหลัก">
+<button class="active" data-tab="request">ผู้รับเหมา · ยื่นคำขอ</button>
+<button data-tab="track">ผู้รับเหมา · ติดตามคำขอ</button>
+<button data-tab="staff">เจ้าหน้าที่ / ผู้ตรวจ</button>
+</nav>
 <section id="request" class="panel"><h2>แบบฟอร์มขออนุญาตทำงาน</h2><div class="notice">สแกน QR แล้วกรอกได้ทันที ไม่ต้องล็อกอิน และไม่ต้องแนบรูปในขั้นตอนนี้</div>
 <section id="contractorRules" class="panel">
 <h2>ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา</h2>
@@ -146,8 +150,8 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 <div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div>
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
-<section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
-<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffList"></div>
+<section id="track" class="panel hidden"><h2>ติดตามสถานะคำขอ</h2><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input id="trackPermitNo" name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
+<section id="staff" class="panel hidden"><h2>หน้าสำหรับเจ้าหน้าที่ / ผู้ตรวจ</h2><form id="loginForm" class="grid"><div class="field"><label>อีเมลเจ้าหน้าที่</label><input name="email" type="email" required></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffWorkspace" class="hidden"><div id="staffList"></div>
 <div id="downloadsPanel" class="card">
  <h3>ดาวน์โหลดเอกสาร Work Permit (PDF)</h3>
  <p class="muted">เลือกวันที่เพื่อแสดงใบอนุญาต จากนั้นติ๊กเลือกรายการที่ต้องการดาวน์โหลด สามารถเลือกได้หลายใบ</p>
@@ -179,7 +183,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 <div class="photo-stage"><h4>ภาพหลังเสร็จงาน / AFTER WORK</h4><input id="afterPhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="afterPreview" class="photo-grid"></div></div>
 <div class="row no-print"><button class="btn secondary" id="downloadInspectionPdf">บันทึก PDF (A4 2 หน้า)</button><button class="btn" id="saveInspection">บันทึกผลตรวจ</button></div>
 <div id="inspectionMsg" class="muted no-print"></div>
-</section></section>
+</section></div></section>
 <div id="pdfRenderRoot" aria-hidden="true"></div>
 <div class="demo"><b>สถานะการติดตั้ง:</b> หน้านี้เป็นส่วนติดต่อผู้ใช้ที่เตรียมไว้ การส่งคำขอจริงจะเปิดหลังติดตั้ง SQL Migration และ Edge Function ใน Supabase ก่อน ยังไม่ถือว่าเป็นระบบ Production</div>
 </main>
@@ -201,7 +205,13 @@ function renderWorkerNameFields(){
 }
 $("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
 renderWorkerNameFields();
-document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));["request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==(b.dataset.tab==="downloads"?"staff":b.dataset.tab)));if(b.dataset.tab==="downloads"){$("staffList").classList.add("hidden");$("inspection").classList.add("hidden");$("downloadsPanel").classList.remove("hidden");}else if(b.dataset.tab==="staff"){$("staffList").classList.remove("hidden");$("downloadsPanel").classList.remove("hidden");}else{$("downloadsPanel").classList.add("hidden");}}));
+function showMainView(view){
+ document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===view));
+ $("request").classList.toggle("hidden",view!=="request");
+ $("track").classList.toggle("hidden",view!=="track");
+ $("staff").classList.toggle("hidden",view!=="staff");
+}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>showMainView(b.dataset.tab)));
 const formObject=form=>Object.fromEntries(new FormData(form).entries());
 const permitStatusLabel={draft:"ฉบับร่าง",submitted:"ส่งคำขอแล้ว",under_review:"กำลังตรวจสอบ",approved:"ได้รับอนุญาตเรียบร้อย",rejected:"ไม่อนุญาต",revision_requested:"รอการแก้ไขข้อมูล",closed:"ปิดงานแล้ว"};
 const approvalStatusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",rejected:"ไม่อนุมัติ",revision_requested:"ขอแก้ไข"};
@@ -214,7 +224,10 @@ payload.tools="อุปกรณ์ที่นำเข้าทำงาน: 
 const workerNames=[...document.querySelectorAll("[data-worker-name]")].map(x=>x.value.trim()).filter(Boolean);
 payload.worker_names=workerNames;
 payload.work_description=(payload.work_description||"")+(workerNames.length?"\nรายชื่อผู้ปฏิบัติงาน:\n"+workerNames.map((n,i)=>(i+1)+". "+n).join("\n"):"");
-payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p><strong>สถานะ: รอการอนุมัติ</strong></p><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code><p class=\"muted\">กรุณาเก็บเลข Work Permit และรหัสติดตามไว้ เพื่อตรวจสอบผลการอนุมัติ</p>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);form.reset();if(window.turnstile)window.turnstile.reset();}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
+payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p><strong>สถานะ: รอการอนุมัติ</strong></p><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code><p class=\"muted\">กรุณาเก็บเลข Work Permit และรหัสติดตามไว้ เพื่อตรวจสอบผลการอนุมัติ</p>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);
+const newPermitNo=data.permit?.permit_no||data.permit_no||"";
+form.reset();if(window.turnstile)window.turnstile.reset();
+if(newPermitNo){$("trackPermitNo").value=newPermitNo;showMainView("track");$("trackMsg").textContent="ส่งคำขอสำเร็จแล้ว ระบบกรอกเลข Work Permit ให้โดยอัตโนมัติ กรุณากดตรวจสอบสถานะ";}}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
 $("trackForm").addEventListener("submit",async e=>{
  e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";
  try{
@@ -230,7 +243,7 @@ $("trackForm").addEventListener("submit",async e=>{
   msg.append(card);
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
 });
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";await loadStaff();$("downloadsPanel").classList.remove("hidden");initPdfPicker();await loadPdfPermitList();});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const {error}=await db.auth.signInWithPassword({email:f.email,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("staffWorkspace").classList.remove("hidden");showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
 let activePermit=null; let selectedPhotos=[];
 const checklistItems=[
 "พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
