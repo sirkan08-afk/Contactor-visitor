@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#174d40">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Work Permit">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon.svg"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>U Khaochichan | Work Permit</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+window.__html2pdfReady=(async()=>{
+ if(typeof window.html2pdf==="function")return true;
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js",
+  "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=()=>reject(new Error("โหลด "+url+" ไม่สำเร็จ"));
+    document.head.appendChild(script);
+   });
+   if(typeof window.html2pdf==="function")return true;
+  }catch(error){console.warn(error.message);}
+ }
+ throw new Error("ไม่สามารถโหลด html2pdf จาก CDN ทั้งสองแหล่งได้");
+})();
+window.__html2canvasReady=(async()=>{
+ if(typeof window.html2canvas==="function")return window.html2canvas;
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+  "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=()=>reject(new Error("โหลด html2canvas ไม่สำเร็จ"));
+    document.head.appendChild(script);
+   });
+   if(typeof window.html2canvas==="function")return window.html2canvas;
+  }catch(error){console.warn(error.message);}
+ }
+ throw new Error("โหลดตัวสร้างภาพ PDF ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+})();
+window.__jsPdfReady=(async()=>{
+ const getCtor=()=>window.jspdf?.jsPDF||window.jsPDF;
+ if(getCtor())return getCtor();
+ const urls=[
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
+ ];
+ for(const url of urls){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=reject;document.head.appendChild(script);
+   });
+   if(getCtor())return getCtor();
+  }catch(error){console.warn("jsPDF CDN failed",url);}
+ }
+ throw new Error("โหลด jsPDF ไม่สำเร็จ");
+})();
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+:root{--green:#174d40;--green2:#23745c;--ink:#20332d;--muted:#65766f;--line:#dce6e0;--bg:#f2f6f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,sans-serif}.hero{background:linear-gradient(120deg,#123a32,#246a53);color:#fff;padding:24px max(18px,calc((100% - 980px)/2))}.hero small{letter-spacing:.08em}.hero h1{margin:8px 0 4px;font-size:28px}.wrap{max-width:980px;margin:20px auto;padding:0 14px}.role-choice{min-height:76px;font-size:18px!important}.role-choice.secondary{background:#eeeeee!important;color:#222!important;border:1px solid #d2d2d2!important}@media(max-width:620px){.role-choice{min-height:68px}} .tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button,.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--green2);color:#fff;font-weight:700;font-size:15px;cursor:pointer}.tabs button{background:#e1ece6;color:#285044}.tabs button.active{background:var(--green);color:#fff}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px;box-shadow:0 3px 12px #183c2b0a}.hidden{display:none!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.full{grid-column:1/-1}input,select,textarea{width:100%;padding:12px;border:1px solid #cbd8d1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:85px}.notice{padding:12px;background:#edf6f0;border-radius:10px;margin:10px 0}.muted{color:var(--muted);font-size:13px}.card{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0}.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.pill{display:inline-block;border-radius:30px;padding:4px 10px;background:#e7f2ec;color:#1d654a;font-size:12px;font-weight:700}.pill.warn{background:#fff3d9;color:#875d00}.pill.bad{background:#fbe7e5;color:#a32c24}.btn.secondary{background:#e8efeb;color:#23483c}.btn.danger{background:#a9342d}.progress{height:8px;border-radius:10px;background:#e6eee9;overflow:hidden}.progress span{display:block;height:100%;background:#27946c;width:30%}#msg{white-space:pre-wrap}.demo{background:#fff6df;border:1px solid #f0d89a;color:#77530a;padding:10px;border-radius:10px;margin-top:12px}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero h1{font-size:24px}}
+.inspect-grid{display:grid;grid-template-columns:1fr;gap:8px}.inspect-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;border-radius:10px}.inspect-item select{max-width:160px}.photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.photo-grid img{width:100%;height:120px;object-fit:cover;border-radius:8px}.mini{padding:8px 11px;font-size:13px}.print-only{display:none}@media print{body{background:#fff}.hero,.tabs,#request,#track,#staff,.demo,.no-print{display:none!important}#inspection{display:block!important;border:0;box-shadow:none;margin:0;padding:0}.print-only{display:block}.appendix{page-break-before:always}.inspect-item{break-inside:avoid}}
+/* Work Permit two-page A4 export */
+.photo-stage{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.photo-stage h4{margin:0 0 8px;color:var(--green)}.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.photo-grid img{width:100%;height:120px;object-fit:cover;border:1px solid var(--line);border-radius:8px}.photo-grid input{margin-top:5px;font-size:13px;padding:7px}.pdf-root{position:absolute;left:0;top:0;width:210mm;background:#fff;color:#172820;z-index:99999;display:block;transform:none;margin:0;padding:0;overflow:visible}.pdf-page{width:210mm;height:297mm;padding:9mm 10mm;background:#fff;overflow:hidden;page-break-after:always;break-after:page;font-family:Tahoma,Arial,sans-serif;font-size:9pt;line-height:1.22;box-sizing:border-box}.pdf-page:last-child{page-break-after:auto;break-after:auto}.pdf-content{transform-origin:top left;width:100%}.pdf-head{position:relative;text-align:center;border-bottom:2px solid #174d40;padding:0 20mm 3mm;margin-bottom:3mm;min-height:20mm}.pdf-logo{position:absolute;left:0;top:0;width:18mm;height:18mm;object-fit:contain}.pdf-head h1{font-size:15pt;margin:0 0 1mm;color:#174d40}.pdf-head p{margin:0;font-size:8pt}.pdf-section{background:#eaf2ed;border:1px solid #9db8a9;padding:1.5mm 2mm;font-weight:bold;margin:2mm 0 1.5mm}.pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4mm 4mm}.pdf-worker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4mm 3mm}.pdf-worker-cell{border-bottom:1px dotted #7f9187;min-height:6mm;padding:1mm 0;font-size:8pt;overflow-wrap:anywhere}.pdf-field{border-bottom:1px dotted #7f9187;min-height:6mm;padding:1mm 0}.pdf-field b{font-size:8pt}.pdf-field span{display:inline-block;min-width:20mm}.pdf-small{font-size:7.2pt}.pdf-checks{display:grid;grid-template-columns:1fr 1fr;gap:1mm 3mm}.pdf-check{font-size:7.2pt;display:flex;gap:1mm;align-items:flex-start}.pdf-sign{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;margin-top:3mm}.pdf-sign div{border:1px solid #9aaca1;min-height:18mm;padding:2mm;text-align:center;font-size:7pt}.pdf-sign>.sign-text{display:block;border:1px solid #9aaca1!important;min-height:18mm;padding:2mm;margin:0;white-space:pre-line;text-align:center;font-size:7pt;line-height:1.5;box-sizing:border-box}.pdf-table{width:100%;border-collapse:collapse;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #899b90;padding:1.1mm;font-size:7.3pt;vertical-align:middle}.pdf-table th{background:#eaf2ed;text-align:center}.pdf-table .num{width:8mm;text-align:center}
+.pdf-table th:nth-child(1),.pdf-table td:nth-child(1){width:8mm}
+.pdf-table th:nth-child(2),.pdf-table td:nth-child(2){width:95mm;text-align:left;overflow-wrap:anywhere;word-break:break-word}
+.pdf-table th:nth-child(3),.pdf-table td:nth-child(3),.pdf-table th:nth-child(4),.pdf-table td:nth-child(4),.pdf-table th:nth-child(5),.pdf-table td:nth-child(5){width:8mm;text-align:center;padding:0.5mm;font-size:6.5pt}
+.pdf-table th:nth-child(6),.pdf-table td:nth-child(6){width:31mm;overflow-wrap:anywhere;word-break:break-word}
+.pdf-table th:nth-child(7),.pdf-table td:nth-child(7){width:32mm;overflow-wrap:anywhere;word-break:break-word}
+.pdf-table th{font-size:6.7pt;line-height:1.1;padding:1mm}
+.pdf-table td{line-height:1.2;padding:1.2mm}.pdf-photo-grid,.pdf-photo-box{display:none!important}.pdf-photo-box{height:35mm;border:1px solid #9aaca1;padding:1.5mm;overflow:hidden}.pdf-photo-box img{width:100%;height:27mm;object-fit:contain}.pdf-photo-title{font-weight:bold;font-size:8pt;margin-bottom:1mm}.pdf-note{border:1px solid #9aaca1;min-height:8mm;padding:1.5mm;font-size:7.2pt;white-space:pre-wrap;overflow-wrap:anywhere}.pdf-footer{margin-top:2mm;text-align:right;font-size:7pt;color:#52645a}
+
+/* Neutral paper-white / black / light-gray Excel-like theme */
+:root{--green:#333333;--green2:#555555;--ink:#111111;--muted:#666666;--line:#d6d6d6;--bg:#ffffff}
+body{background:#ffffff!important;color:#111111!important}
+.hero{background:#ffffff!important;color:#111111!important;border-bottom:1px solid #d9d9d9}
+.hero h1,.hero small{color:#111111!important}
+.tabs{gap:6px}
+.tabs button{background:#eeeeee!important;color:#333333!important;border:1px solid #d5d5d5!important;border-radius:6px!important}
+.tabs button.active{background:#dcdcdc!important;color:#111111!important;border-color:#bdbdbd!important}
+.panel,.card{background:#ffffff!important;color:#111111!important;border:1px solid #d6d6d6!important;box-shadow:none!important;border-radius:6px!important}
+.btn{background:#555555!important;color:#ffffff!important;border-radius:6px!important}
+.btn.secondary{background:#eeeeee!important;color:#222222!important;border:1px solid #d2d2d2!important}
+input,select,textarea{background:#ffffff!important;color:#111111!important;border:1px solid #c9c9c9!important;border-radius:4px!important}
+.notice{background:#f3f3f3!important;color:#111111!important;border:1px solid #dddddd}
+.pill{background:#eeeeee!important;color:#222222!important}
+.progress{background:#e5e5e5!important}.progress span{background:#777777!important}
+.demo{background:#f5f5f5!important;color:#222222!important;border-color:#dddddd!important}
+.photo-stage{border-color:#d6d6d6!important}.photo-stage h4{color:#222222!important}
+.pdf-root{color:#111111!important;background:#ffffff!important}
+.pdf-page{background:#ffffff!important;color:#111111!important}
+.pdf-head{border-bottom:2px solid #555555!important}
+.pdf-head h1{color:#111111!important}
+.pdf-section{background:#eeeeee!important;border:1px solid #cfcfcf!important;color:#111111!important}
+.pdf-table th{background:#eeeeee!important;color:#111111!important}
+.pdf-table th,.pdf-table td{border-color:#bdbdbd!important;color:#111111!important}
+.pdf-sign div,.pdf-sign>.sign-text,.pdf-note{border-color:#bdbdbd!important;color:#111111!important}
+.pdf-footer{color:#666666!important}.pdf-declaration{margin-top:3mm;padding:2.2mm 2.5mm;border:1px solid #9aaca1;background:#f7faf8;font-size:8pt;line-height:1.45;text-align:justify;break-inside:avoid}.pdf-sign-line{height:6mm;border-bottom:1px solid #333;margin:0 5mm 1mm}.pdf-worker-sign-name{font-size:7pt;line-height:1.2;overflow-wrap:anywhere}
+.permit-detail-panel{display:block!important;background:#fff;padding:12px 14px;margin:8px 0;border:1px solid #dce5df;border-radius:10px}.permit-detail-panel[hidden]{display:none!important}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.5}.permit-detail-line:last-child{border-bottom:0}.permit-detail-toggle[aria-expanded="true"]{background:#e8f2ec}\n.permit-detail-toggle{display:block;width:100%;text-align:left;border:0;background:#f3f6f4;border-radius:10px;padding:13px 15px;font:inherit;font-weight:700;color:#20352b;cursor:pointer;margin:4px 0 10px}.permit-detail-panel{border:1px solid #dce5df;border-radius:10px;padding:12px 14px;margin:0 0 12px;background:#fff}.permit-detail-panel[hidden]{display:none}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.55;overflow-wrap:anywhere}.permit-detail-line:last-child{border-bottom:0}.permit-detail-line strong{color:#34483d}#installAppBtn{display:inline-flex!important;align-items:center;gap:8px;border:1px solid #bdbdbd!important;background:#f2f2f2!important;color:#111!important}</style></head><body>
+<header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา<div style="margin-top:12px"><button id="installAppBtn" class="btn secondary mini" type="button" aria-label="ติดตั้งแอป Work Permit">ติดตั้งแอป Work Permit</button></div></header>
+<main class="wrap">
+<section id="home" class="panel">
+ <h2>เลือกประเภทผู้ใช้งาน</h2>
+ <p class="muted">กรุณาเลือกเมนูตามประเภทการใช้งาน</p>
+ <div class="grid">
+  <button class="btn role-choice" type="button" onclick="showMainView('request')">ผู้รับเหมา</button>
+  <button class="btn role-choice secondary" type="button" onclick="showMainView('staff')">เจ้าหน้าที่ / ผู้ตรวจ</button>
+ </div>
+</section>
+<section id="request" class="panel hidden">
+ <div class="row"><h2>แบบฟอร์มขออนุญาตทำงาน</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><h2>แบบฟอร์มขออนุญาตทำงาน</h2><div class="notice">สแกน QR แล้วกรอกได้ทันที ไม่ต้องล็อกอิน และไม่ต้องแนบรูปในขั้นตอนนี้</div>
+<section id="contractorRules" class="panel">
+<h2>ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา</h2>
+<p>การเข้าปฏิบัติงานในพื้นที่โรงแรม ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน</p>
+<h3>1. การใช้น้ำมัน, สารเคมี</h3><ol><li>ไม่ถ่ายน้ำมันเครื่อง หรือสารไวไฟ ใกล้บริเวณที่อาจก่อให้เกิดอัคคีภัย</li><li>ก่อนถ่ายน้ำมันต้องเตรียมอุปกรณ์ให้พร้อม เช่น อุปกรณ์สำหรับถ่ายเท ถาดรองป้องกันการหกรั่วไหล เศษผ้าสำหรับเช็ด เป็นต้น</li></ol>
+<h3>2. การดำเนินการเมื่อเกิดเหตุฉุกเฉิน</h3><ol><li>กรณีพบเห็นเหตุการณ์ เช่น น้ำมันหรือสารเคมีหกรั่วไหล แก๊สรั่ว มีกลิ่นผิดปกติ หรือเกิดเหตุเพลิงไหม้ ต้องรีบแจ้งต่อเจ้าของพื้นที่หรือเจ้าหน้าที่ความปลอดภัยทราบทันที</li><li>กรณีที่อยู่ในเหตุการณ์ฉุกเฉิน และต้องอพยพจากพื้นที่ หากไม่ทราบเส้นทางหนีไฟ ให้เดินตามเจ้าของพื้นที่ไปยังจุดรวมพล</li></ol>
+<h3>3. การสูบบุหรี่</h3><ol><li>ให้สูบบุหรี่ในพื้นที่ที่บริษัทฯจัดให้เท่านั้น และหลังสูบเสร็จให้ดับก้นบุหรี่ให้สนิท ทิ้งลงในถังบุหรี่ที่จัดเตรียมไว้ให้</li><li>ห้ามทิ้งขยะลงที่เขี่ยบุหรี่เพราะอาจจะทำให้เกิดอัคคีภัยได้</li></ol>
+<h3>4. ข้อปฏิบัติทั่วไปเกี่ยวกับความปลอดภัยในการทำงาน</h3><ol>
+<li>ห้ามสวมรองเท้าแตะ หรือรองเท้าฟองน้ำเข้ามาทำงานภายในโรงแรม ยู พัทยา</li>
+<li>ผู้รับเหมา จะต้องเตรียมถังดับเพลิงไว้ใกล้พื้นที่การปฏิบัติงาน กรณีทำงานเสี่ยงต่อการเกิดอัคคีภัย</li>
+<li>จะต้องติดป้าย "เขตอันตราย หรือกั้นพื้นที่ขาว-แดง ในพื้นที่กำลังก่อสร้าง หรือติดตั้งนั่งร้าน"</li>
+<li>ผู้รับเหมาจะต้องจัดพื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร</li>
+<li>ในกรณีที่จำเป็นต้องใช้สารไวไฟในการทำงาน เช่น ทินเนอร์ น้ำมัน จะต้องวางให้ห่างจากแหล่งที่มีประกายไฟอย่างน้อย 8 เมตร และต้องติดป้าย "มีสารไวไฟ ห้ามก่อประกายไฟ"</li>
+<li>ในกรณีที่จำเป็นต้องตัดกระแสไฟ/ ก๊าซ หรือสารไวไฟตามท่อ จะต้องมีป้ายกำกับ "กำลังซ่อมบำรุง ห้ามเปิดสวิตซ์" หรือ "กำลังซ่อมบำรุงห้ามเดินเครื่อง" ตลอดระยะเวลาที่ปฏิบัติงาน</li>
+<li>ผู้รับเหมาจะต้องสวมเครื่องป้องกันอันตรายส่วนบุคคลที่เหมาะสมตามลักษณะงาน</li>
+<li>เมื่อทำงานเรียบร้อย จะต้องเก็บทำความสะอาดพื้นที่การทำงานและเก็บขยะที่เกิดจากการทำงานกลับไปด้วย</li>
+<li>ห้ามปฏิบัติงานบนที่สูงมากกว่า 2 เมตร ภายนอกอาคารหรือบนหลังคาโรงงาน เมื่อมีเหตุฝนตก ลมพายุกรรโชกรุนแรง</li>
+<li>ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุกๆ วันศุกร์ของสัปดาห์ จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work permit ทางเจ้าของงานจะส่งให้ทางอีเมลล์</li>
+</ol>
+<label class="check" style="margin-top:14px;font-weight:700"><input id="rulesAcknowledged" type="checkbox"> ข้าพเจ้าได้อ่านและรับทราบระเบียบความปลอดภัยสำหรับผู้รับเหมาแล้ว และยินยอมปฏิบัติตามทุกข้อ</label>
+<p class="muted">กรุณาติ๊กยืนยันการรับทราบก่อนส่งคำขอ Work Permit</p>
+</section>
+<form id="requestForm" class="grid">
+<div class="field"><label>ชื่อผู้รับเหมา / ผู้ยื่นคำขอ *</label><input name="applicant_name" required maxlength="160"></div>
+<div class="field"><label>ชื่อผู้ควบคุมงาน *</label><input name="supervisor_name" required maxlength="160"></div>
+<div class="field"><label>บริษัทผู้รับเหมา *</label><input name="company_name" required></div>
+<div class="field"><label>เบอร์ติดต่อ *</label><input name="contact_phone" required inputmode="tel"></div>
+<div class="field"><label>แผนกเจ้าของพื้นที่</label><select name="department"><option>Engineering</option><option>Housekeeping</option><option>F&B</option><option>Front Office</option><option>Other</option></select></div>
+<div class="field full"><label>ประเภทงานที่ต้องปฏิบัติ * (เลือกได้มากกว่า 1 รายการ)</label><div id="workTypeChoices" class="pdf-checks">
+<label class="check"><input type="checkbox" data-work-type value="งานตัดด้วยแก๊ส">งานตัดด้วยแก๊ส</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตัดด้วยเครื่อง">งานตัดด้วยเครื่อง</label>
+<label class="check"><input type="checkbox" data-work-type value="งานเจียร">งานเจียร</label>
+<label class="check"><input type="checkbox" data-work-type value="งานไฟฟ้า">งานไฟฟ้า</label>
+<label class="check"><input type="checkbox" data-work-type value="งานเชื่อม">งานเชื่อม</label>
+<label class="check"><input type="checkbox" data-work-type value="งานขุด/งานเจาะ">งานขุด/งานเจาะ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานอื่นๆ">งานอื่นๆ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทาสี">งานทาสี</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทำความสะอาด">งานทำความสะอาด</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตรวจสอบ/เช็ค">งานตรวจสอบ/เช็ค</label>
+<label class="check"><input type="checkbox" data-work-type value="งานบนนั่งร้าน">งานบนนั่งร้าน</label>
+<label class="check"><input type="checkbox" data-work-type value="งานรื้อถอนอาคาร / สิ่งก่อสร้าง">งานรื้อถอนอาคาร / สิ่งก่อสร้าง</label>
+<label class="check"><input type="checkbox" data-work-type value="งานตอกเสาเข็ม / ปั้นจั่น">งานตอกเสาเข็ม / ปั้นจั่น</label>
+<label class="check"><input type="checkbox" data-work-type value="ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป">ทำงานบนที่สูงตั้งแต่ 2 เมตรขึ้นไป</label>
+<label class="check"><input type="checkbox" data-work-type value="งานทั่วไปอื่นๆ">งานทั่วไปอื่นๆ</label>
+<label class="check"><input type="checkbox" data-work-type value="งานในพื้นที่อับอากาศ">งานในพื้นที่อับอากาศ</label>
+</div></div>
+<div class="field full"><label>ชื่องาน *</label><input name="work_title" required></div>
+<div class="field full"><label>รายละเอียด / วิธีปฏิบัติงาน</label><textarea name="work_description"></textarea></div>
+<div class="field"><label>สถานที่ทำงาน *</label><input name="work_location" required></div>
+<div class="field"><label>จำนวนผู้ปฏิบัติงาน *</label><input name="team_size" type="number" min="1" max="200" value="1" required></div>
+<div class="field full"><label>รายชื่อผู้ปฏิบัติงาน (กรอกตามจำนวนคน)</label><div id="workerNameFields" class="grid"></div></div>
+<div class="field"><label>วันที่เริ่ม *</label><input name="start_date" type="date" required></div>
+<div class="field"><label>วันที่สิ้นสุด</label><input name="end_date" type="date"></div>
+<div class="field"><label>เวลาเริ่ม</label><input name="start_time" type="time"></div>
+<div class="field"><label>เวลาสิ้นสุด</label><input name="end_time" type="time"></div>
+<div class="field full"><label>รายการอุปกรณ์ที่นำเข้ามาทำงาน (เลือกได้หลายรายการ)</label><div id="equipmentChoices" class="pdf-checks"><label class="check"><input type="checkbox" data-equipment value="เครื่องตัด">เครื่องตัด</label><label class="check"><input type="checkbox" data-equipment value="เครื่องเจียร">เครื่องเจียร</label><label class="check"><input type="checkbox" data-equipment value="เครื่องเชื่อมไฟฟ้า / แก๊ส">เครื่องเชื่อมไฟฟ้า / แก๊ส</label><label class="check"><input type="checkbox" data-equipment value="ถังแก๊สสำหรับงานเชื่อม">ถังแก๊สสำหรับงานเชื่อม</label><label class="check"><input type="checkbox" data-equipment value="สว่านไฟฟ้า">สว่านไฟฟ้า</label><label class="check"><input type="checkbox" data-equipment value="นั่งร้าน">นั่งร้าน</label><label class="check"><input type="checkbox" data-equipment value="บันได">บันได</label><label class="check"><input type="checkbox" data-equipment value="ถังดับเพลิง">ถังดับเพลิง</label><label class="check"><input type="checkbox" data-equipment value="ผ้ากันสะเก็ดไฟ">ผ้ากันสะเก็ดไฟ</label><label class="check"><input type="checkbox" data-equipment value="ป้ายเตือน / ป้ายระวัง">ป้ายเตือน / ป้ายระวัง</label></div></div>
+<div class="field full"><label>อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE) (เลือกได้หลายรายการ)</label><div id="ppeChoices" class="pdf-checks"><label class="check"><input type="checkbox" data-ppe value="หมวกนิรภัย">หมวกนิรภัย</label><label class="check"><input type="checkbox" data-ppe value="ผ้าปิดจมูก">ผ้าปิดจมูก</label><label class="check"><input type="checkbox" data-ppe value="ถุงมือผ้า">ถุงมือผ้า</label><label class="check"><input type="checkbox" data-ppe value="ชุดกันสารเคมี">ชุดกันสารเคมี</label><label class="check"><input type="checkbox" data-ppe value="ถุงมือหนัง">ถุงมือหนัง</label><label class="check"><input type="checkbox" data-ppe value="หน้ากากเชื่อม">หน้ากากเชื่อม</label><label class="check"><input type="checkbox" data-ppe value="แว่นตานิรภัย">แว่นตานิรภัย</label><label class="check"><input type="checkbox" data-ppe value="รองเท้าบู๊ท">รองเท้าบู๊ท</label><label class="check"><input type="checkbox" data-ppe value="อุปกรณ์ลดเสียง">อุปกรณ์ลดเสียง</label><label class="check"><input type="checkbox" data-ppe value="รองเท้าเซฟตี้">รองเท้าเซฟตี้</label><label class="check"><input type="checkbox" data-ppe value="เข็มขัดนิรภัย">เข็มขัดนิรภัย</label><label class="check"><input type="checkbox" data-ppe value="กระบังหน้า">กระบังหน้า</label><label class="check"><input type="checkbox" data-ppe value="ถังอ๊อกซิเจน">ถังอ๊อกซิเจน</label><label class="check"><input type="checkbox" data-ppe value="ชุด SCBA">ชุด SCBA</label><label class="check"><input type="checkbox" data-ppe value="ชุดเป่าอากาศ">ชุดเป่าอากาศ</label><label class="check"><input type="checkbox" data-ppe value="อื่นๆ">อื่นๆ</label></div></div>
+<div class="field full"><label>อุปกรณ์อื่น ๆ / จำนวน / รายละเอียดเพิ่มเติม</label><textarea id="otherTools" placeholder="ระบุอุปกรณ์เพิ่มเติมหรือจำนวน"></textarea></div>
+<div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div>
+<div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
+</form></section>
+<section id="track" class="panel hidden"><div class="row"><h2>ติดตามสถานะคำขอ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input id="trackPermitNo" name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
+<section id="staff" class="panel hidden"><div class="row"><h2>เจ้าหน้าที่ / ผู้ตรวจ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><form id="loginForm" class="grid"><div class="field"><label>User ID / รหัสพนักงาน</label><input id="staffUserId" name="staff_user_id" type="text" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="เช่น SEC001 หรือ ADMIN001"></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required autocomplete="current-password"></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffWorkspace" class="hidden"><div id="staffList"></div>
+<div id="downloadsPanel" class="card">
+ <h3>ดาวน์โหลดเอกสาร Work Permit (PDF)</h3>
+ <p class="muted">เลือกวันที่เพื่อแสดงใบอนุญาต จากนั้นติ๊กเลือกรายการที่ต้องการดาวน์โหลด สามารถเลือกได้หลายใบ</p>
+ <div class="grid">
+  <div class="field"><label>วันที่เริ่มต้น</label><input type="date" id="pdfFrom"></div>
+  <div class="field"><label>วันที่สิ้นสุด</label><input type="date" id="pdfTo"></div>
+ </div>
+ <div class="row" style="margin:10px 0">
+  <button class="btn secondary" type="button" id="pdfSearch">ค้นหารายการ</button>
+  <button class="btn secondary" type="button" id="pdfSelectAll">เลือกทั้งหมด</button>
+  <button class="btn secondary" type="button" id="pdfClearAll">ยกเลิกทั้งหมด</button>
+  <button class="btn" type="button" id="pdfDownloadSelected">ดาวน์โหลด PDF ที่เลือก</button>
+ </div>
+ <div id="pdfSelectionCount" class="muted">เลือก 0 รายการ</div>
+ <div id="pdfPermitList"></div>
+ <div id="pdfDownloadMsg" class="muted"></div>
+</div>
+<section id="inspection" class="hidden panel">
+<div class="row"><h2>ตรวจหน้างาน / Inspection</h2><button class="btn secondary no-print" id="backToList">กลับรายการ</button></div>
+<div id="permitSummary" class="card"></div>
+<h3>Checklist ตรวจความปลอดภัย 16 ข้อ</h3>
+<div id="checklist" class="inspect-grid"></div>
+<div class="grid">
+ <div class="field"><label>ปัญหาที่พบ / Problems found</label><textarea id="inspectionProblems"></textarea></div>
+ <div class="field"><label>ดำเนินการแก้ไข / Corrective action</label><textarea id="inspectionCorrection"></textarea></div>
+</div>
+<div class="row no-print"><button class="btn secondary" id="downloadInspectionPdf">บันทึก PDF (A4 2 หน้า)</button><button class="btn" id="saveInspection">บันทึกผลตรวจ</button></div>
+<div id="inspectionMsg" class="muted no-print"></div>
+</section></div></section>
+<div id="pdfRenderRoot" aria-hidden="true"></div>
+<div class="demo"><b>สถานะการติดตั้ง:</b> หน้านี้เป็นส่วนติดต่อผู้ใช้ที่เตรียมไว้ การส่งคำขอจริงจะเปิดหลังติดตั้ง SQL Migration และ Edge Function ใน Supabase ก่อน ยังไม่ถือว่าเป็นระบบ Production</div>
+</main>
+<script>
+const SUPABASE_URL="https://nldoneixnuapuzpeeznl.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=id=>document.getElementById(id);
+function renderWorkerNameFields(){
+ const count=Math.max(1,Math.min(200,Number($("requestForm").elements.team_size.value)||1));
+ const host=$("workerNameFields"),old=[...host.querySelectorAll("input")].map(x=>x.value);
+ host.innerHTML="";
+ for(let i=1;i<=count;i++){
+  const wrap=document.createElement("div");wrap.className="field";
+  const label=document.createElement("label");label.textContent="ชื่อผู้ปฏิบัติงาน "+i;
+  const input=document.createElement("input");input.type="text";input.maxLength=160;input.dataset.workerName=String(i);input.placeholder="กรอกชื่อคนที่ "+i;input.value=old[i-1]||"";
+  wrap.append(label,input);host.append(wrap);
+ }
+}
+$("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
+renderWorkerNameFields();
+function showMainView(view){
+ ["home","request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==view));
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+const formObject=form=>Object.fromEntries(new FormData(form).entries());
+const permitStatusLabel={draft:"ฉบับร่าง",submitted:"ส่งคำขอแล้ว",under_review:"กำลังตรวจสอบ",approved:"ได้รับอนุญาตเรียบร้อย",rejected:"ไม่อนุญาต",revision_requested:"รอการแก้ไขข้อมูล",closed:"ปิดงานแล้ว"};
+const approvalStatusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",rejected:"ไม่อนุมัติ",revision_requested:"ขอแก้ไข"};
+$("requestForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget;const msg=$("requestMsg");if(!$("rulesAcknowledged").checked){$("rulesAcknowledged").focus();msg.textContent="กรุณาอ่านและติ๊กยืนยันการรับทราบระเบียบความปลอดภัยก่อนส่งคำขอ";return;}msg.textContent="กำลังส่งคำขอ...";const payload=formObject(e.currentTarget);payload.team_size=Number(payload.team_size);
+payload.work_type=[...document.querySelectorAll("[data-work-type]:checked")].map(x=>x.value).join(" / ");
+if(!payload.work_type){msg.textContent="กรุณาเลือกประเภทงานอย่างน้อย 1 รายการ";return;}
+const selectedEquipment=[...document.querySelectorAll("[data-equipment]:checked")].map(x=>x.value);
+const selectedPpe=[...document.querySelectorAll("[data-ppe]:checked")].map(x=>x.value);
+payload.tools="อุปกรณ์ที่นำเข้าทำงาน: "+(selectedEquipment.join(", ")||"-")+"\nPPE: "+(selectedPpe.join(", ")||"-")+"\nเพิ่มเติม: "+$("otherTools").value.trim();
+const workerNames=[...document.querySelectorAll("[data-worker-name]")].map(x=>x.value.trim()).filter(Boolean);
+payload.worker_names=workerNames;
+payload.work_description=(payload.work_description||"")+(workerNames.length?"\nรายชื่อผู้ปฏิบัติงาน:\n"+workerNames.map((n,i)=>(i+1)+". "+n).join("\n"):"");
+payload.contact_name=payload.applicant_name;payload.turnstile_token=payload["cf-turnstile-response"];if(!payload.turnstile_token){msg.textContent="กรุณารอให้ระบบตรวจสอบความปลอดภัยก่อนส่งคำขอ";return;}delete payload["cf-turnstile-response"];try{const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"submit",...payload}});if(error)throw error;if(!data?.success)throw new Error(data?.error||"ส่งคำขอไม่สำเร็จ");msg.innerHTML="";const box=document.createElement("div");box.className="card";box.innerHTML="<b>ส่งคำขอเรียบร้อย</b><p><strong>สถานะ: รอการอนุมัติ</strong></p><p>เลข Work Permit: <strong></strong></p><p>รหัสติดตาม (เก็บไว้เป็นความลับ):</p><code></code><p class=\"muted\">กรุณาเก็บเลข Work Permit และรหัสติดตามไว้ เพื่อตรวจสอบผลการอนุมัติ</p>";box.querySelector("strong").textContent=data.permit?.permit_no||data.permit_no||"ระบบยังไม่ส่งเลขกลับมา";box.querySelector("code").textContent=data.tracking_code||"ยังไม่มีรหัสติดตามจาก Edge Function";msg.append(box);
+const newPermitNo=data.permit?.permit_no||data.permit_no||"";
+form.reset();if(window.turnstile)window.turnstile.reset();
+if(newPermitNo){$("trackPermitNo").value=newPermitNo;showMainView("track");$("trackMsg").textContent="ส่งคำขอสำเร็จแล้ว ระบบกรอกเลข Work Permit ให้โดยอัตโนมัติ กรุณากดตรวจสอบสถานะ";}}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
+$("trackForm").addEventListener("submit",async e=>{
+ e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";
+ try{
+  const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});
+  if(error)throw error;if(data.error)throw new Error(data.error);
+  msg.innerHTML="";
+  const card=document.createElement("div");card.className="card";
+  const h=document.createElement("h3");h.textContent=data.permit.permit_no+" · "+data.permit.work_title;card.append(h);
+  const approval=(data.approvals||[]).find(a=>a.department==="SECURITY");
+  const overall=approval?.status==="approved"?"อนุมัติแล้ว":approval?.status==="rejected"?"ไม่อนุญาต":approval?.status==="revision_requested"?"รอแก้ไขข้อมูล":"รอ Security อนุมัติ";
+  const status=document.createElement("p");status.textContent="สถานะรวม: "+overall;card.append(status);
+  const detail=document.createElement("p");detail.textContent="SECURITY: "+(approvalStatusLabel[approval?.status]||"รออนุมัติ");card.append(detail);
+  msg.append(card);
+ }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
+});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const rawUser=(f.staff_user_id||"").trim().replace(/@patrol\.com$/i,"");const loginEmail=rawUser.toLowerCase()+"@patrol.com";$("staffMsg").textContent="กำลังเข้าสู่ระบบ...";const {error}=await db.auth.signInWithPassword({email:loginEmail,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("loginForm").style.display="none";$("staffWorkspace").classList.remove("hidden");$("staffWorkspace").style.display="block";$("staffMsg").textContent="";showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
+let activePermit=null;
+const checklistItems=[
+"พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
+"มีการกั้นพื้นที่การทำงาน และมีธงขาว-แดง หรือสัญลักษณ์กั้นอาณาเขตอย่างชัดเจน",
+"มีการใช้ผ้าสำหรับกันสะเก็ดไฟ หรืออุปกรณ์กั้นอื่นๆ ขณะทำงานที่ก่อให้เกิดประกายไฟ",
+"มีอุปกรณ์ป้องกันไฟไหลย้อนกลับ (Fash Back) (ในกรณีงานเชื่อมแก๊ส)",
+"มีถังดับเพลิงพร้อมต่อการระงับเหตุฉุกเฉิน",
+"มีอุปกรณ์ป้องกันอันตรายส่วนบุคคลที่เหมาะสมกับลักษณะงาน และถูกต้องขณะปฏิบัติงาน",
+"อุปกรณ์ที่ใช้ในการปฏิบัติงานวางเป็นระเบียบ ไม่ก่อให้เกิดอันตรายต่อบุคคลรอบข้าง",
+"อุปกรณ์ที่ใช้ในการปฏิบัติงานอยู่ในสภาพดี ไม่ชำรุด",
+"การตั้งนั่งร้าน/ บันได ไม่มีสิ่งกีดขวางการทำงานและทางเดินรถ",
+"สภาพนั่งร้าน/ บันได อยู่ในสภาพดี ตั้งตรง ไม่เอียง ข้อต่อยึดมั่นคงแข็งแรง",
+"มีการควบคุมการหกรั่วไหลของสารเคมี (กรณีที่ทำงานกับสารเคมี)",
+"มีการสำรวจระบบท่อ ไฟฟ้า หรืออุปกรณ์อื่น (ระบบสาธารณูปโภค) ก่อนทำการขุดเจาะ",
+"ตัดกระแสไฟฟ้า กรณีที่ทำงานใกล้เครื่องจักรหรืออุปกรณ์ไฟฟ้าและติดป้ายเตือน(Log out, Tag out)",
+"มีการติดตั้งป้ายเตือนอันตรายที่เกี่ยวข้องกับการทำงาน",
+"ไม่มีการหก, รั่วไหลของยานพาหนะ หรือ สารเคมี",
+"หลังจากการปฏิบัติงานเสร็จสิ้น ไม่มีการทิ้งขยะตามพื้นที่ปฏิบัติงาน"
+];
+async function openInspection(item){
+ activePermit=item;
+ $("staffList").classList.add("hidden");$("inspection").classList.remove("hidden");
+ const p=item.work_permits||{};
+ $("permitSummary").textContent=[p.permit_no,p.company_name,p.work_title,p.work_location,p.start_date].filter(Boolean).join(" · ");
+ $("checklist").innerHTML="";
+ checklistItems.forEach((label,i)=>{
+  const row=document.createElement("div");row.className="inspect-item";
+  const span=document.createElement("span");span.textContent=(i+1)+". "+label;
+  const sel=document.createElement("select");sel.dataset.item=String(i+1);
+  const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="-- เลือกผลตรวจ --";placeholder.selected=true;sel.append(placeholder);["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});
+  row.append(span,sel);$("checklist").append(row);
+ });
+ $("inspectionProblems").value="";$("inspectionCorrection").value="";$("inspectionNotes")?.remove();
+ $("inspectionMsg").textContent="กำลังโหลดผลตรวจเดิม...";
+ const {data:savedRows,error:savedError}=await db.from("work_permit_checklists").select("item_no,result_status,is_checked,note").eq("permit_id",item.permit_id);
+ if(savedError){$("inspectionMsg").textContent="โหลดผลตรวจเดิมไม่ได้: "+savedError.message;return;}
+ const savedMap=new Map((savedRows||[]).map(row=>[Number(row.item_no),row]));
+ [...$("checklist").querySelectorAll("select[data-item]")].forEach(sel=>{const row=savedMap.get(Number(sel.dataset.item));if(row){sel.value=row.result_status||(row.is_checked===true?"yes":row.is_checked===false?"no":"");if(row.note){const note=String(row.note);if(note.includes("ปัญหา:"))$("inspectionProblems").value=note.split("ปัญหา:")[1].split("\n")[0].trim();if(note.includes("แก้ไข:"))$("inspectionCorrection").value=note.split("แก้ไข:")[1].trim();}}});
+ $("inspectionMsg").textContent=savedRows?.length?"โหลดผลตรวจเดิมแล้ว":"ยังไม่มีผลตรวจที่บันทึกไว้";
+}
+$("backToList").onclick=()=>{$("inspection").classList.add("hidden");$("staffList").classList.remove("hidden")};
+function pdfEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+function addField(parent,label,value){const d=pdfEl("div","pdf-field");const b=pdfEl("b","",label+" : ");d.append(b,document.createTextNode(value||" "));parent.append(d);}
+function buildPdfPages(){
+ const p=activePermit?.work_permits||{},root=pdfEl("div","pdf-root");
+ const page1=pdfEl("div","pdf-page"),head=pdfEl("div","pdf-head");
+ const logo1=pdfEl("img","pdf-logo");logo1.src="https://raw.githubusercontent.com/sirkan08-afk/Contactor-visitor/work-permit-online/patrol/logo.svg";logo1.alt="U Khao Chi Chan Pattaya";head.append(logo1);
+ head.append(pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","WORK PERMIT FOR SUB-CONTRACTOR · U KHAO CHI CHAN PATTAYA"));
+ page1.append(head);
+ const sec=(t)=>page1.append(pdfEl("div","pdf-section",t));
+ sec("ส่วนที่ 1 : ข้อมูลเบื้องต้นของผู้รับเหมา (Sub-Contractor Detail)");
+ let grid=pdfEl("div","pdf-grid");
+ [["บริษัท (Company)",p.company_name],["พื้นที่ / สถานที่ปฏิบัติงาน",p.work_location],["จำนวนผู้ปฏิบัติงาน",p.team_size],["ผู้ยื่นคำขอ (Applicant)",p.applicant_name||p.contact_name],["ผู้ควบคุมงาน (Supervisor)",p.supervisor_name],["วันที่เข้าปฏิบัติงาน",p.start_date],["ลักษณะงาน / รายละเอียดงาน",p.work_title||p.work_description],["ตั้งแต่เวลา",p.start_time],["บุคคลที่ต้องการติดต่อ",p.contact_name||p.applicant_name]].forEach(x=>addField(grid,x[0],x[1]));page1.append(grid);
+ sec("รายชื่อผู้รับเหมาที่เข้ามาปฏิบัติงาน (Sub-Contractor name)");
+ const desc=p.work_description||"";
+ const workerMatch=desc.match(/รายชื่อผู้ปฏิบัติงาน:\s*([\s\S]*)$/);
+ const legacyWorkerNames=workerMatch?workerMatch[1].trim().split(/\r?\n/).flatMap(line=>line.split(/(?=\s*\d+\.\s*)/)).map(x=>x.replace(/^\s*\d+\.\s*/,"").trim()).filter(Boolean):[];
+ const workerNames=Array.isArray(p.workers)&&p.workers.length?p.workers:legacyWorkerNames;
+ const names=pdfEl("div","pdf-worker-grid");workerNames.forEach((name,i)=>{const cell=pdfEl("div","pdf-worker-cell");cell.textContent=(i+1)+". "+name;names.append(cell);});if(!workerNames.length){const cell=pdfEl("div","pdf-worker-cell","ไม่ได้ระบุชื่อผู้ปฏิบัติงาน");names.append(cell);}page1.append(names);
+ sec("ส่วนที่ 2 : ประเภทงานที่ต้องปฏิบัติ (Type of working)");
+ const toolText=p.tools||"";
+ const eqMatch=toolText.match(/อุปกรณ์ที่นำเข้าทำงาน:\s*([^\n]*)/),ppeMatch=toolText.match(/PPE:\s*([^\n]*)/),otherMatch=toolText.match(/เพิ่มเติม:\s*([\s\S]*)/);
+ const splitValues=value=>(value||"").split(/[,;|]/).map(x=>x.trim()).filter(x=>x&&x!=="-");
+ const chosenTypes=new Set((p.work_type||"").split(" / ").map(x=>x.trim()).filter(Boolean));
+ const chosenEquipment=new Set(splitValues(eqMatch?.[1]));
+ const chosenPpe=new Set(splitValues(ppeMatch?.[1]));
+ const appendChoices=(container,selector,selected)=>{document.querySelectorAll(selector).forEach(input=>{const label=input.closest("label");const text=(input.value||label?.textContent||"").trim();if(text)container.append(pdfEl("div","pdf-check",(selected.has(text)?"☑ ":"□ ")+text));});};
+ const checks=pdfEl("div","pdf-checks");appendChoices(checks,"[data-work-type]",chosenTypes);page1.append(checks);
+ sec("รายการอุปกรณ์ที่นำเข้ามาทำงาน / อุปกรณ์ป้องกันเสริม");
+ const eq=pdfEl("div","pdf-checks");appendChoices(eq,"[data-equipment]",chosenEquipment);page1.append(eq);
+ sec("อุปกรณ์ป้องกันอันตรายส่วนบุคคล (Personal Protective Equipment)");
+ const pp=pdfEl("div","pdf-checks");appendChoices(pp,"[data-ppe]",chosenPpe);page1.append(pp);
+ if(otherMatch?.[1]&&otherMatch[1].trim()!=="-")page1.append(pdfEl("div","pdf-small","อุปกรณ์เพิ่มเติม: "+otherMatch[1]));
+ sec("ส่วนที่ 3 : ลำดับการขออนุญาตก่อนเข้าทำงาน และหลังเสร็จงาน");
+ const sign=pdfEl("div","pdf-sign");const applicantName=p.applicant_name||p.contact_name||p.supervisor_name||"-";const applicantDate=(p.start_date||"").slice(0,10).split("-").reverse().map((v,i)=>i===2?v.slice(-2):v).join("/");const addSignBox=(text)=>{const box=pdfEl("div","sign-text",text);box.style.cssText="border:1px solid #9aaca1;min-height:18mm;padding:2mm;margin:0;white-space:pre-line;text-align:center;font-size:7pt;line-height:1.5;box-sizing:border-box;display:block";return box;};sign.append(addSignBox("ผู้ขออนุญาต / ผู้ควบคุม\n"+applicantName+"\nวันที่ "+(applicantDate||"-")));[["เจ้าของงาน (Job Owner)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"],["เจ้าของพื้นที่ (Area Owner)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"],["เจ้าหน้าที่ความปลอดภัย (Safety Officer)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"]].forEach(lines=>sign.append(addSignBox(lines.join("\n"))));page1.append(sign);
+ page1.append(pdfEl("div","pdf-small","หมายเหตุ: ให้ผู้รับเหมาติดใบอนุญาตไว้บริเวณพื้นที่ปฏิบัติงาน และต้องปฏิบัติตามมาตรการความปลอดภัยของโรงแรม"));
+ page1.append(pdfEl("div","pdf-footer","หน้า 1 / 2"));
+ const page2=pdfEl("div","pdf-page"),h2=pdfEl("div","pdf-head");const logo2=pdfEl("img","pdf-logo");logo2.src="https://raw.githubusercontent.com/sirkan08-afk/Contactor-visitor/work-permit-online/patrol/logo.svg";logo2.alt="U Khao Chi Chan Pattaya";h2.append(logo2,pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","รายการตรวจสอบความปลอดภัย (Checking Detail)"));page2.append(h2);
+ const meta=pdfEl("div","pdf-grid");[["เลขที่ใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["พื้นที่",p.work_location],["วันที่",p.start_date]].forEach(x=>addField(meta,x[0],x[1]));page2.append(meta);
+ const table=pdfEl("table","pdf-table"),thead=pdfEl("thead"),tr=pdfEl("tr");["ลำดับ","รายการตรวจสอบ (Checking Detail)","ใช่","ไม่ใช่","ไม่เกี่ยวข้อง","ปัญหาที่พบ","ดำเนินการแก้ไข"].forEach((t,i)=>tr.append(pdfEl("th","",t)));thead.append(tr);table.append(thead);
+ const tbody=pdfEl("tbody"),sels=[...$("checklist").querySelectorAll("select[data-item]")];
+ checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
+ page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",$("inspectionProblems").value.trim()||"-"));
+ page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
+ // Contractor safety rules: replace the short declaration with the complete rules on page 2.
+ const declaration=pdfEl("div","pdf-declaration pdf-safety-rules");
+ declaration.style.cssText="margin-top:1.5mm;padding:1.5mm 2mm;border:1px solid #9aaca1;background:#fff;font-size:6.4pt;line-height:1.16;text-align:left;break-inside:avoid";
+ const rulesTitle=pdfEl("div","","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา");
+ rulesTitle.style.cssText="font-size:8pt;font-weight:bold;text-align:center;margin-bottom:1mm";
+ declaration.append(rulesTitle);
+ const rulesIntro=pdfEl("div","","การเข้าปฏิบัติงานในพื้นที่โรงแรม ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน");
+ rulesIntro.style.cssText="margin-bottom:1mm";
+ declaration.append(rulesIntro);
+ const ruleGroups=[
+  ["1. การใช้น้ำมัน, สารเคมี",[
+   "ไม่ถ่ายน้ำมันเครื่อง หรือสารไวไฟ ใกล้บริเวณที่อาจก่อให้เกิดอัคคีภัย",
+   "ก่อนถ่ายน้ำมันต้องเตรียมอุปกรณ์ให้พร้อม เช่น อุปกรณ์สำหรับถ่ายเท ถาดรองป้องกันการหกรั่วไหล เศษผ้าสำหรับเช็ด เป็นต้น"
+  ]],
+  ["2. การดำเนินการเมื่อเกิดเหตุฉุกเฉิน",[
+   "กรณีพบเห็นเหตุการณ์ เช่น น้ำมันหรือสารเคมีหกรั่วไหล แก๊สรั่ว มีกลิ่นผิดปกติ หรือเกิดเหตุเพลิงไหม้ ต้องรีบแจ้งต่อเจ้าของพื้นที่หรือเจ้าหน้าที่ความปลอดภัยทราบทันที",
+   "กรณีที่อยู่ในเหตุการณ์ฉุกเฉิน และต้องอพยพจากพื้นที่ หากไม่ทราบเส้นทางหนีไฟ ให้เดินตามเจ้าของพื้นที่ไปยังจุดรวมพล"
+  ]],
+  ["3. การสูบบุหรี่",[
+   "ให้สูบบุหรี่ในพื้นที่ที่บริษัทฯ จัดให้เท่านั้น และหลังสูบเสร็จให้ดับก้นบุหรี่ให้สนิท ทิ้งลงในถังบุหรี่ที่จัดเตรียมไว้ให้",
+   "ห้ามทิ้งขยะลงที่เขี่ยบุหรี่ เพราะอาจจะทำให้เกิดอัคคีภัยได้"
+  ]],
+  ["4. ข้อปฏิบัติทั่วไปเกี่ยวกับความปลอดภัยในการทำงาน",[
+   "ห้ามสวมรองเท้าแตะ หรือรองเท้าฟองน้ำเข้ามาทำงานภายในโรงแรม ยู พัทยา",
+   "ผู้รับเหมาจะต้องเตรียมถังดับเพลิงไว้ใกล้พื้นที่การปฏิบัติงาน กรณีทำงานเสี่ยงต่อการเกิดอัคคีภัย",
+   "จะต้องติดป้าย “เขตอันตราย” หรือกั้นพื้นที่ขาว-แดง ในพื้นที่กำลังก่อสร้าง หรือติดตั้งนั่งร้าน",
+   "ผู้รับเหมาจะต้องจัดพื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร",
+   "ในกรณีที่จำเป็นต้องใช้สารไวไฟในการทำงาน เช่น ทินเนอร์ น้ำมัน จะต้องวางให้ห่างจากแหล่งที่มีประกายไฟอย่างน้อย 8 เมตร และต้องติดป้าย “มีสารไวไฟ ห้ามก่อประกายไฟ”",
+   "ในกรณีที่จำเป็นต้องตัดกระแสไฟ/ก๊าซ หรือสารไวไฟตามท่อ จะต้องมีป้ายกำกับ “กำลังซ่อมบำรุง ห้ามเปิดสวิตช์” หรือ “กำลังซ่อมบำรุงห้ามเดินเครื่อง” ตลอดระยะเวลาที่ปฏิบัติงาน",
+   "ผู้รับเหมาจะต้องสวมเครื่องป้องกันอันตรายส่วนบุคคลที่เหมาะสมตามลักษณะงาน",
+   "เมื่อทำงานเรียบร้อย จะต้องเก็บทำความสะอาดพื้นที่การทำงานและเก็บขยะที่เกิดจากการทำงานกลับไปด้วย",
+   "ห้ามปฏิบัติงานบนที่สูงมากกว่า 2 เมตร ภายนอกอาคารหรือบนหลังคาโรงงาน เมื่อมีเหตุฝนตก ลมพายุกรรโชกรุนแรง",
+   "ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work Permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุก ๆ วันศุกร์ของสัปดาห์จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work Permit ทางเจ้าของงานจะส่งให้ทางอีเมล"
+  ]]
+ ];
+ ruleGroups.forEach(([heading,items])=>{
+  const group=pdfEl("div","pdf-rule-group");
+  group.style.cssText="margin:0 0 0.8mm";
+  const h=pdfEl("div","","");
+  h.textContent=heading;
+  h.style.cssText="font-weight:bold;margin:0.4mm 0 0.2mm";
+  group.append(h);
+  items.forEach((item,index)=>{
+   const line=pdfEl("div","","");
+   line.textContent=(index+1)+". "+item;
+   line.style.cssText="padding-left:3mm;text-indent:-3mm;margin:0.1mm 0";
+   group.append(line);
+  });
+  declaration.append(group);
+ });
+ page2.append(declaration);
+ // Page 2: one signature block for the applicant only. No team-member names/signatures.
+ const applicantSignature=pdfEl("div","pdf-applicant-signature");
+ applicantSignature.style.cssText="display:block!important;float:none!important;position:relative!important;width:72mm!important;margin:2.5mm auto 0!important;padding:0!important;grid-template-columns:none!important;columns:1!important;text-align:center!important;break-inside:avoid!important";
+ const applicantLine=pdfEl("div","","");
+ applicantLine.style.cssText="display:block!important;width:62mm!important;height:9mm!important;margin:0 auto 1mm!important;border-bottom:1px solid #222!important";
+ const applicantLabel=pdfEl("div","","ลงชื่อผู้ยื่นคำขอ: "+applicantName);
+ applicantLabel.style.cssText="display:block!important;width:100%!important;font-size:8pt!important;text-align:center!important";
+ applicantSignature.append(applicantLine,applicantLabel);
+ page2.append(applicantSignature);
+ page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
+  root.append(page1,page2);document.body.append(root);return root;
+}
+async function exportCurrentPermitPdf(){
+ const html2canvas=await window.__html2canvasReady;
+ const JsPDF=await window.__jsPdfReady;
+ const root=buildPdfPages();
+ // Fit page content into the fixed A4 canvas before cloning it for html2canvas.
+ // Page 2 contains the complete contractor safety rules, so it must be scaled as a whole instead of being clipped.
+ fitPdfPages(root);
+ // Signature is generated directly as one applicant-only block in buildPdfPages().
+ let frame;
+ try{
+  root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
+  await document.fonts.ready;
+  const pages=[...root.querySelectorAll(".pdf-page")];
+  if(pages.length!==2)throw new Error("เอกสารไม่ครบ 2 หน้า");
+  frame=document.createElement("iframe");
+  frame.setAttribute("aria-hidden","true");
+  frame.style.cssText="position:fixed;left:0;top:0;width:794px;height:1123px;border:0;opacity:0.01;pointer-events:none;z-index:-1";
+  document.body.appendChild(frame);
+  const doc=frame.contentDocument;
+  doc.open();
+  const styles=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+  doc.write("<!doctype html><html lang='th'><head><meta charset='utf-8'><style>"+styles+
+   "\nhtml,body{margin:0!important;padding:0!important;width:794px!important;background:#fff!important;overflow:hidden!important}"+
+   ".pdf-root{position:static!important;left:auto!important;top:auto!important;width:794px!important;margin:0!important;padding:0!important;overflow:visible!important}"+
+   ".pdf-page{width:794px!important;height:1123px!important;min-height:1123px!important;max-height:1123px!important;padding:34px 38px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;break-after:auto!important;page-break-after:auto!important}"+
+   ".pdf-content{width:100%!important;zoom:1!important;transform:none!important}"+
+   ".pdf-logo{max-width:90px!important;max-height:48px!important;object-fit:contain!important}"+
+   "*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body></body></html>");
+  doc.close();
+  const cloned=doc.createElement("main");cloned.className="pdf-root";cloned.innerHTML=pages.map(p=>p.innerHTML).map((html,i)=>'<section class="pdf-page">'+html+'</section>').join("");
+  doc.body.appendChild(cloned);
+  await doc.fonts.ready;
+  const images=[...doc.images];
+  await Promise.all(images.map(img=>{img.crossOrigin="anonymous";return img.decode?img.decode().catch(()=>{}):Promise.resolve();}));
+  await new Promise(resolve=>setTimeout(resolve,250));
+  const pdf=new JsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+  for(let i=0;i<2;i++){
+   const page=cloned.children[i];
+   const canvas=await html2canvas(page,{scale:2,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,width:794,height:1123,windowWidth:794,windowHeight:1123});
+   if(!canvas||canvas.width<700||canvas.height<1000)throw new Error("หน้า "+(i+1)+" สร้างภาพไม่สมบูรณ์");
+   if(i)pdf.addPage("a4","portrait");
+   pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
+   canvas.width=1;canvas.height=1;
+  }
+  const permitNo=String(activePermit?.work_permits?.permit_no||"Work-Permit").replace(/[^a-zA-Z0-9_-]/g,"_");
+  pdf.save(permitNo+".pdf");
+ }finally{root.remove();frame?.remove();}
+}
+function fitPdfPages(root){
+ const pages=[...root.querySelectorAll(".pdf-page")];
+ pages.forEach((page,index)=>{
+  let content=page.querySelector(".pdf-content");
+  if(!content){
+   content=document.createElement("div");content.className="pdf-content";
+   while(page.firstChild)content.appendChild(page.firstChild);
+   page.appendChild(content);
+  }
+  content.style.fontFamily="Tahoma,Arial,sans-serif";
+  content.style.transform="none";content.style.width="100%";content.style.marginTop="0";content.style.zoom="1";
+  
+  const style=getComputedStyle(page);
+  const available=page.clientHeight-parseFloat(style.paddingTop||0)-parseFloat(style.paddingBottom||0);
+  const needed=content.scrollHeight;
+  // Use layout zoom rather than transform so mobile print engines keep content at the top of each A4 page.
+  const scale=index===0?Math.min(1.3,available/Math.max(needed,1)):Math.min(1,available/Math.max(needed,1));
+  content.style.zoom=String(Math.max(0.55,scale));
+  content.style.transformOrigin="top left";
+ });
+}
+$("downloadInspectionPdf").onclick=async()=>{
+ const button=$("downloadInspectionPdf"),msg=$("inspectionMsg");
+ if(!activePermit){msg.textContent="กรุณาเปิดใบอนุญาตก่อนดาวน์โหลด PDF";return;}
+ button.disabled=true;msg.textContent="กำลังสร้าง PDF A4 จำนวน 2 หน้า...";
+ try{await exportCurrentPermitPdf();msg.textContent="ดาวน์โหลด PDF เรียบร้อยแล้ว";}
+ catch(err){msg.textContent="ดาวน์โหลด PDF ไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
+ finally{button.disabled=false;}
+};
+$("saveInspection").onclick=async()=>{
+ const msg=$("inspectionMsg"),button=$("saveInspection");
+ if(!activePermit?.permit_id){msg.textContent="ไม่พบเลขอ้างอิงใบอนุญาต กรุณากลับไปเปิดรายการใหม่";return;}
+ button.disabled=true;msg.textContent="กำลังบันทึกผลตรวจ...";
+ try{
+  const {data:authData,error:authError}=await db.auth.getUser();
+  if(authError||!authData?.user)throw new Error("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+  const user=authData.user;
+  const {data:roleRow,error:roleError}=await db.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
+  if(roleError||!roleRow)throw new Error("ไม่พบสิทธิ์เจ้าหน้าที่");
+  if(!["ADMIN","SAFETY","SECURITY"].includes(roleRow.role))throw new Error("บัญชีนี้ไม่มีสิทธิ์บันทึกผล Inspection");
+  const inspectedAt=new Date().toISOString(),problems=$("inspectionProblems").value.trim(),correction=$("inspectionCorrection").value.trim();
+  const rows=[...$("checklist").querySelectorAll("select[data-item]")];
+  if(rows.length!==16)throw new Error("Checklist ไม่ครบ 16 ข้อ กรุณาเปิดรายการตรวจใหม่");
+  if(rows.some(sel=>!["yes","no","na"].includes(sel.value)))throw new Error("กรุณาเลือกผลตรวจให้ครบทั้ง 16 ข้อก่อนบันทึก");
+  for(const sel of rows){
+   const itemNo=Number(sel.dataset.item),status=sel.value;
+   const {data:existing,error:findError}=await db.from("work_permit_checklists").select("id").eq("permit_id",activePermit.permit_id).eq("item_no",itemNo).maybeSingle();
+   if(findError)throw findError;
+   const payload={permit_id:activePermit.permit_id,item_no:itemNo,item_title:checklistItems[itemNo-1],is_checked:status==="yes",result_status:status,note:[problems&&("ปัญหา: "+problems),correction&&("แก้ไข: "+correction)].filter(Boolean).join("\n")||null,inspector_id:user.id,inspected_at:inspectedAt};
+   const result=existing?await db.from("work_permit_checklists").update(payload).eq("id",existing.id):await db.from("work_permit_checklists").insert(payload);
+   if(result.error)throw result.error;
+  }
+  msg.textContent="บันทึกผลตรวจ 16 ข้อเรียบร้อยแล้ว";
+ }catch(err){msg.textContent="บันทึกไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด กรุณาลองอีกครั้ง");}
+ finally{button.disabled=false;}
+};
+
+// ===== PDF document picker: separate from the main request / approval workflow =====
+let pdfPermitRows=[];
+function bangkokDateValue(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok"}).format(new Date());}
+function initPdfPicker(){const d=bangkokDateValue();$("pdfFrom").value=d;$("pdfTo").value=d;}
+function updatePdfSelectionCount(){const n=document.querySelectorAll(".pdf-permit-check:checked").length;$("pdfSelectionCount").textContent="เลือก "+n+" รายการ";}
+async function loadPdfPermitList(){
+ const wrap=$("pdfPermitList"),msg=$("pdfDownloadMsg");wrap.textContent="กำลังโหลดรายการ...";
+ const from=$("pdfFrom").value,to=$("pdfTo").value;
+ if(!from||!to||from>to){wrap.textContent="กรุณาเลือกช่วงวันที่ให้ถูกต้อง";return;}
+ try{
+  // Read permits directly; approval timestamps/department filters must not hide submitted permits.
+  const {data,error}=await db.from("work_permits").select("*").order("created_at",{ascending:false});
+  if(error)throw error;
+  const dayInBangkok=value=>{
+   if(!value)return "";
+   const d=new Date(value);
+   return Number.isNaN(d.getTime())?"":new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+  };
+  pdfPermitRows=(data||[]).filter(p=>{
+   const submitted=dayInBangkok(p.created_at);
+   const workDate=String(p.start_date||"").slice(0,10);
+   return (submitted>=from&&submitted<=to)||(workDate>=from&&workDate<=to);
+  });
+  wrap.innerHTML="";
+  if(!pdfPermitRows.length){
+   wrap.textContent="ไม่พบใบ Work Permit ในช่วงวันที่เลือก";
+   msg.textContent="อ่านใบอนุญาตได้ "+(data||[]).length+" รายการ แต่ไม่พบวันที่ยื่นคำขอหรือวันที่เริ่มงานในช่วง "+from+" ถึง "+to;
+   updatePdfSelectionCount();return;
+  }
+  // Load worker names for the expandable preview in the PDF download picker.
+  const permitIds=pdfPermitRows.map(p=>p.id);
+  const workerLookup=await db.from("work_permit_workers").select("permit_id,full_name").in("permit_id",permitIds).order("created_at",{ascending:true});
+  if(workerLookup.error)throw workerLookup.error;
+  const workersByPermit={};
+  (workerLookup.data||[]).forEach(w=>{(workersByPermit[w.permit_id]??=[]).push(w.full_name);});
+  pdfPermitRows.forEach(p=>{
+   const card=document.createElement("article");card.className="card";card.style.cssText="margin:8px 0;padding:12px";
+   const head=document.createElement("div");head.style.cssText="display:flex;align-items:flex-start;gap:12px";
+   const cb=document.createElement("input");cb.type="checkbox";cb.className="pdf-permit-check";cb.value=p.id;cb.style.cssText="width:20px;height:20px;flex:0 0 auto;margin-top:4px";
+   cb.addEventListener("change",updatePdfSelectionCount);
+   const title=document.createElement("button");title.type="button";title.style.cssText="flex:1;text-align:left;border:0;background:transparent;padding:0;font:inherit;line-height:1.6;cursor:pointer;color:inherit";
+   const created=dayInBangkok(p.created_at);
+   const titleText=[p.permit_no,p.work_title,p.company_name,"วันที่ยื่น "+created,"วันเริ่ม "+(p.start_date||""),permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
+   title.textContent=titleText+"　＋ ดูรายละเอียด";
+   const panel=document.createElement("div");panel.hidden=true;panel.style.cssText="display:none;margin:12px 0 0 32px;padding:12px;border:1px solid #dce5df;border-radius:8px;background:#fbfdfb";
+   const addPreview=(label,value)=>{
+    if(value===null||value===undefined||String(value).trim()==="")return;
+    const line=document.createElement("div");line.style.cssText="padding:5px 0;border-bottom:1px solid #edf1ee;line-height:1.5;overflow-wrap:anywhere";
+    const strong=document.createElement("strong");strong.textContent=label+" : ";
+    const val=document.createElement("span");val.textContent=String(value);
+    line.append(strong,val);panel.append(line);
+   };
+   addPreview("เลขที่ Work Permit",p.permit_no);
+   addPreview("บริษัท",p.company_name);
+   addPreview("ผู้ยื่นคำขอ",p.applicant_name||p.contact_name);
+   addPreview("ผู้ควบคุมงาน",p.supervisor_name);
+   addPreview("ผู้ติดต่อ",p.contact_name);
+   addPreview("ชื่องาน",p.work_title);
+   addPreview("รายละเอียดงาน",p.work_description);
+   addPreview("ประเภทงาน",p.work_type);
+   addPreview("พื้นที่ปฏิบัติงาน",p.work_location);
+   addPreview("จำนวนผู้ปฏิบัติงาน",p.team_size);
+   const names=(workersByPermit[p.id]||[]).filter(Boolean);
+   if(names.length)addPreview("รายชื่อผู้ปฏิบัติงาน",names.map((n,i)=>(i+1)+". "+n).join("　"));
+   addPreview("วันที่เริ่มงาน",p.start_date);
+   addPreview("วันที่สิ้นสุด",p.end_date);
+   addPreview("เวลา",[p.start_time,p.end_time].filter(Boolean).join(" - "));
+   addPreview("อุปกรณ์ / PPE",p.tools);
+   title.addEventListener("click",()=>{
+    const open=panel.hidden;
+    panel.hidden=!open;
+    panel.style.display=open?"block":"none";
+    title.textContent=titleText+(open?"　－ ซ่อนรายละเอียด":"　＋ ดูรายละเอียด");
+   });
+   head.append(cb,title);card.append(head,panel);wrap.append(card);
+  });
+  msg.textContent="พบ "+pdfPermitRows.length+" ใบ Work Permit";updatePdfSelectionCount();
+ }catch(err){pdfPermitRows=[];wrap.textContent="โหลดรายการไม่สำเร็จ";msg.textContent=err.message||"เกิดข้อผิดพลาด";updatePdfSelectionCount();}
+}
+$("pdfSearch").onclick=loadPdfPermitList;
+$("pdfSelectAll").onclick=()=>{document.querySelectorAll(".pdf-permit-check").forEach(x=>x.checked=true);updatePdfSelectionCount();};
+$("pdfClearAll").onclick=()=>{document.querySelectorAll(".pdf-permit-check").forEach(x=>x.checked=false);updatePdfSelectionCount();};
+$("pdfDownloadSelected").onclick=async()=>{
+ const ids=[...document.querySelectorAll(".pdf-permit-check:checked")].map(x=>x.value);
+ const msg=$("pdfDownloadMsg"),button=$("pdfDownloadSelected");
+ if(!ids.length){msg.textContent="กรุณาติ๊กเลือกใบ Work Permit อย่างน้อย 1 รายการ";return;}
+ button.disabled=true;let completed=0;
+ try{
+  await window.__html2canvasReady;await window.__jsPdfReady;
+  for(const id of ids){
+   const p=pdfPermitRows.find(x=>x.id===id);if(!p)continue;
+   msg.textContent="กำลังสร้าง "+(p.permit_no||"Work Permit")+" ("+(completed+1)+"/"+ids.length+")";
+   const [workerResult,checkResult]=await Promise.all([
+    db.from("work_permit_workers").select("full_name").eq("permit_id",id).order("created_at",{ascending:true}),
+    db.from("work_permit_checklists").select("item_no,result_status,note").eq("permit_id",id).order("item_no",{ascending:true})
+   ]);
+   if(workerResult.error)throw workerResult.error;if(checkResult.error)throw checkResult.error;
+   activePermit={work_permits:{...p,workers:(workerResult.data||[]).map(w=>w.full_name).filter(Boolean)}};
+   const checkWrap=$("checklist"),oldChecklist=checkWrap.innerHTML,oldProblems=$("inspectionProblems").value,oldCorrection=$("inspectionCorrection").value;
+   checkWrap.innerHTML="";
+   checklistItems.forEach((label,i)=>{
+    const row=document.createElement("div"),sel=document.createElement("select");sel.dataset.item=String(i+1);
+    const saved=(checkResult.data||[]).find(x=>Number(x.item_no)===i+1);
+    ["yes","no","na"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(saved?.result_status===v)o.selected=true;sel.append(o);});
+    row.append(sel);checkWrap.append(row);
+   });
+   const savedNote=(checkResult.data||[]).map(x=>x.note||"").find(Boolean)||"";
+   const problemMatch=savedNote.match(/ปัญหา:\\s*([\\s\\S]*?)(?=\\nแก้ไข:|$)/);
+   const correctionMatch=savedNote.match(/แก้ไข:\\s*([\\s\\S]*)$/);
+   $("inspectionProblems").value=problemMatch?problemMatch[1].trim():"";
+   $("inspectionCorrection").value=correctionMatch?correctionMatch[1].trim():"";
+   try{await exportCurrentPermitPdf();completed++;}
+   finally{checkWrap.innerHTML=oldChecklist;$("inspectionProblems").value=oldProblems;$("inspectionCorrection").value=oldCorrection;}
+   await new Promise(resolve=>setTimeout(resolve,350));
+  }
+  msg.textContent="ดาวน์โหลดเรียบร้อย "+completed+" จาก "+ids.length+" ไฟล์ PDF";
+ }catch(err){msg.textContent="ดาวน์โหลดไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด");}
+ finally{button.disabled=false;}
+};
+
+
+async function loadStaff(){
+ const list=$("staffList");list.textContent="กำลังโหลดคำขอ...";
+ const {data:auth}=await db.auth.getUser();
+ if(!auth.user){list.textContent="กรุณาเข้าสู่ระบบ";return;}
+ const {data:roleRow,error:roleError}=await db.from("user_roles").select("role").eq("user_id",auth.user.id).maybeSingle();
+ if(roleError||!roleRow){list.textContent="ไม่พบสิทธิ์เจ้าหน้าที่ใน user_roles";return;}
+ const role=roleRow.role;
+ let query=db.from("work_permit_department_approvals")
+   .select("id,department,status,permit_id,created_at")
+   .order("created_at",{ascending:true});
+ if(role==="ADMIN"){
+   // Admin sees all approval departments, grouped into one card per permit.
+ }else{
+   query=query.eq("department",role).eq("status","pending");
+ }
+ const {data:items,error}=await query;
+ if(error){list.textContent="โหลดรายการไม่ได้: "+error.message;return;}
+ const permitIds=[...new Set((items||[]).map(x=>x.permit_id).filter(Boolean))];
+ let permitMap={};
+ if(permitIds.length){
+   const {data:permits,error:permitError}=await db.from("work_permits").select("*").in("id",permitIds);
+   if(permitError){list.textContent="พบรายการอนุมัติ "+items.length+" รายการ แต่โหลดรายละเอียดใบอนุญาตไม่ได้: "+permitError.message;return;}
+   permitMap=Object.fromEntries((permits||[]).map(p=>[p.id,p]));
+ }
+ let workerMap={};
+ if(permitIds.length){
+   const {data:workers,error:workerError}=await db.from("work_permit_workers")
+     .select("permit_id,full_name,created_at")
+     .in("permit_id",permitIds)
+     .order("created_at",{ascending:true});
+   if(workerError){list.textContent="โหลดรายชื่อผู้ปฏิบัติงานไม่ได้: "+workerError.message;return;}
+   for(const w of (workers||[])){
+     if(!workerMap[w.permit_id])workerMap[w.permit_id]=[];
+     if(w.full_name)workerMap[w.permit_id].push(w.full_name);
+   }
+ }
+ const grouped=new Map();
+ for(const item of (items||[])){
+   if(!grouped.has(item.permit_id))grouped.set(item.permit_id,[]);
+   grouped.get(item.permit_id).push(item);
+ }
+ const pendingCount=(items||[]).filter(x=>x.status==="pending").length;
+ list.innerHTML="<h3>รายการ Work Permit"+(role==="ADMIN"?" ที่อยู่ในระบบ":" รอตรวจอนุมัติ")+" ("+(role==="ADMIN"?grouped.size:pendingCount)+")</h3>";
+ if(!grouped.size){list.append(document.createTextNode("ไม่มีรายการที่ต้องดำเนินการ"));return;}
+ const statusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",revision_requested:"ขอแก้ไข",rejected:"ไม่อนุมัติ"};
+ for(const [permitId,approvals] of grouped){
+   const p=permitMap[permitId]||{};
+   p.workers=workerMap[permitId]||[];
+   const card=document.createElement("article");card.className="card";
+   const title=document.createElement("button");
+   title.type="button";title.className="permit-detail-toggle";
+   title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+"　＋ ดูรายละเอียด";
+   const detailPanel=document.createElement("div");detailPanel.className="permit-detail-panel";detailPanel.hidden=true;detailPanel.style.display="none";
+   const addDetail=(label,value)=>{
+     if(value===null||value===undefined||String(value).trim()==="")return;
+     const line=document.createElement("div");line.className="permit-detail-line";
+     const strong=document.createElement("strong");strong.textContent=label+" : ";
+     const val=document.createElement("span");val.textContent=String(value);
+     line.append(strong,val);detailPanel.append(line);
+   };
+   const addDetailList=(label,values)=>{
+     const clean=(values||[]).filter(x=>x&&String(x).trim());
+     if(!clean.length)return;
+     addDetail(label,clean.map((x,i)=>(i+1)+". "+x).join("　"));
+   };
+   addDetail("เลขที่ Work Permit",p.permit_no);
+   addDetail("บริษัท",p.company_name);
+   addDetail("ผู้ยื่นคำขอ",p.applicant_name||p.contact_name);
+   addDetail("ผู้ควบคุมงาน",p.supervisor_name);
+   addDetail("ผู้ติดต่อ",p.contact_name);
+   addDetail("ชื่องาน",p.work_title);
+   addDetail("รายละเอียดงาน",p.work_description);
+   addDetail("ประเภทงาน",p.work_type);
+   addDetail("พื้นที่ปฏิบัติงาน",p.work_location);
+   addDetail("จำนวนผู้ปฏิบัติงาน",p.team_size);
+   addDetailList("รายชื่อผู้ปฏิบัติงาน",p.workers);
+   addDetail("วันที่เริ่มงาน",p.start_date);
+   addDetail("วันที่สิ้นสุด",p.end_date);
+   addDetail("เวลา",[p.start_time,p.end_time].filter(Boolean).join(" - "));
+   addDetail("อุปกรณ์ / PPE",p.tools);
+   // Toggle details explicitly; use !important to override any page-level hidden styles.
+   detailPanel.setAttribute("hidden","");
+   detailPanel.style.setProperty("display","none","important");
+   title.setAttribute("aria-expanded","false");
+   title.addEventListener("click",(event)=>{
+     event.preventDefault();
+     event.stopPropagation();
+     const willOpen=detailPanel.hasAttribute("hidden");
+     if(willOpen){
+       detailPanel.removeAttribute("hidden");
+       detailPanel.style.setProperty("display","block","important");
+     }else{
+       detailPanel.setAttribute("hidden","");
+       detailPanel.style.setProperty("display","none","important");
+     }
+     title.setAttribute("aria-expanded",String(willOpen));
+     title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+(willOpen?"　－ ซ่อนรายละเอียด":"　＋ ดูรายละเอียด");
+   });
+   card.append(title,detailPanel);
+   const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";
+   open.onclick=()=>openInspection({...approvals.find(x=>x.status==="pending")||approvals[0],work_permits:p});
+   card.append(open);
+   const detail=document.createElement("p");detail.textContent=[p.company_name,p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
+   const statusBox=document.createElement("div");statusBox.className="card";
+   const statusTitle=document.createElement("strong");statusTitle.textContent="สถานะการอนุมัติ";statusBox.append(statusTitle);
+   for(const item of approvals){
+     const row=document.createElement("div");row.className="row";row.style.padding="7px 0";row.style.borderTop="1px solid #e5ece7";
+     const label=document.createElement("span");label.textContent=item.department+" : "+(statusLabel[item.status]||item.status);row.append(label);
+     if(item.status==="pending"){
+       const actions=document.createElement("div");actions.className="row";
+       [["approved","อนุญาต"],["revision_requested","ขอแก้ไข"],["rejected","ไม่อนุญาต"]].forEach(([action,text])=>{
+         const b=document.createElement("button");b.className="btn mini "+(action==="rejected"?"danger":"secondary");b.textContent=text;
+         b.onclick=()=>approve(item,action);actions.append(b);
+       });
+       row.append(actions);
+     }
+     statusBox.append(row);
+   }
+   card.append(statusBox);list.append(card);
+ }
+}
+async function approve(item,status){const comment=prompt("หมายเหตุ (ถ้ามี):")||null;const {error}=await db.from("work_permit_department_approvals").update({status,comment,actor_id:(await db.auth.getUser()).data.user.id,acted_at:new Date().toISOString()}).eq("id",item.id);if(error){alert("บันทึกไม่สำเร็จ: "+error.message);return;}alert("บันทึกผลของฝ่ายเรียบร้อย");await loadStaff();}
+async function restoreStaffSession(){
+ try{
+  const {data,error}=await db.auth.getSession();
+  if(error)throw error;
+  if(!data.session)return;
+  $("loginForm").classList.add("hidden");
+  $("loginForm").style.display="none";
+  $("staffWorkspace").classList.remove("hidden");
+  $("staffWorkspace").style.display="block";
+  $("staffMsg").textContent="";
+  showMainView("staff");
+  await loadStaff();
+  initPdfPicker();
+  await loadPdfPermitList();
+ }catch(error){
+  console.error("Restore staff session failed",error);
+  $("staffMsg").textContent="ตรวจสอบสถานะการเข้าสู่ระบบไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่";
+ }
+}
+db.auth.onAuthStateChange((event)=>{
+ if(event==="SIGNED_OUT"){
+  $("loginForm").classList.remove("hidden");
+  $("loginForm").style.display="";
+  $("staffWorkspace").classList.add("hidden");
+  $("staffWorkspace").style.display="none";
+  $("staffMsg").textContent="ออกจากระบบแล้ว";
+ }
+});
+window.addEventListener("DOMContentLoaded",restoreStaffSession);
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("./service-worker.js",{scope:"./"})
+   .then(reg=>console.log("Work Permit PWA ready",reg.scope))
+   .catch(err=>console.warn("PWA service worker registration failed",err));
+ });
+}
+
+const installButton=document.getElementById("installAppBtn");
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",event=>{
+ event.preventDefault();
+ deferredInstallPrompt=event;
+ if(installButton)installButton.hidden=false;
+});
+window.addEventListener("appinstalled",()=>{
+ deferredInstallPrompt=null;
+ if(installButton){installButton.textContent="ติดตั้งแอปแล้ว";installButton.disabled=true;}
+});
+if(installButton){
+ installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+   deferredInstallPrompt.prompt();
+   const choice=await deferredInstallPrompt.userChoice;
+   if(choice?.outcome==="accepted"){installButton.textContent="กำลังติดตั้ง...";}
+   deferredInstallPrompt=null;
+   return;
+  }
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isIOS){
+   alert("ติดตั้งบน iPhone: แตะปุ่มแชร์ใน Safari แล้วเลือก Add to Home Screen (เพิ่มไปยังหน้าจอโฮม)");
+  }else{
+   alert("ติดตั้งบน Android: เปิดเว็บไซต์นี้ด้วย Google Chrome แตะเมนู ⋮ แล้วเลือก Install app หรือ Add to Home screen หากยังไม่พบเมนู ให้เปิดหน้าเว็บค้างไว้สักครู่แล้วลองอีกครั้ง");
+  }
+ });
+}
+</script></body></html>
