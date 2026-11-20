@@ -1,4 +1,4 @@
-const CACHE_NAME = "work-permit-shell-v10";
+const CACHE_NAME = "work-permit-shell-v11";
 const APP_BASE = new URL("./", self.registration.scope);
 const APP_SHELL = [
   new URL("./", APP_BASE).href,
