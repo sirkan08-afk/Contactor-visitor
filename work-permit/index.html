@@ -98,7 +98,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 .pdf-table th{background:#eeeeee!important;color:#111111!important}
 .pdf-table th,.pdf-table td{border-color:#bdbdbd!important;color:#111111!important}
 .pdf-sign div,.pdf-sign>.sign-text,.pdf-note{border-color:#bdbdbd!important;color:#111111!important}
-.pdf-footer{color:#666666!important}
+.pdf-footer{color:#666666!important}.pdf-declaration{margin-top:3mm;padding:2.2mm 2.5mm;border:1px solid #9aaca1;background:#f7faf8;font-size:8pt;line-height:1.45;text-align:justify;break-inside:avoid}.pdf-worker-signatures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2mm 3mm;margin-top:3mm;break-inside:avoid}.pdf-worker-signature{min-height:11mm;text-align:center;break-inside:avoid}.pdf-sign-line{height:6mm;border-bottom:1px solid #333;margin:0 5mm 1mm}.pdf-worker-sign-name{font-size:7pt;line-height:1.2;overflow-wrap:anywhere}
 </style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
@@ -361,6 +361,13 @@ function buildPdfPages(){
  checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
  page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",$("inspectionProblems").value.trim()||"-"));
  page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
+ const declaration=pdfEl("div","pdf-declaration");
+ declaration.textContent="ข้าพเจ้ายินดีปฏิบัติตามกฎที่ทางโรงแรม ยู เขาชีจรรย์ กำหนดทุกประการ หากมีความผิดพลาดหรือเกิดความเสียหายต่อทรัพย์สินจากการปฏิบัติงานของข้าพเจ้า ข้าพเจ้ายินดีชดใช้ตามความเสียหายที่ทางโรงแรมเรียกร้องหรือกำหนดไว้";
+ page2.append(declaration);
+ const workerSignatures=pdfEl("div","pdf-worker-signatures");
+ workerNames.forEach((name,i)=>{const box=pdfEl("div","pdf-worker-signature");box.append(pdfEl("div","pdf-sign-line",""));box.append(pdfEl("div","pdf-worker-sign-name",(i+1)+". "+name));workerSignatures.append(box);});
+ if(!workerNames.length){const box=pdfEl("div","pdf-worker-signature");box.append(pdfEl("div","pdf-sign-line",""));box.append(pdfEl("div","pdf-worker-sign-name","ผู้รับเหมา"));workerSignatures.append(box);}
+ page2.append(workerSignatures);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
   root.append(page1,page2);document.body.append(root);return root;
 }
