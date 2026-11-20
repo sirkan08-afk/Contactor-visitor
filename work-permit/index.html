@@ -428,6 +428,9 @@ async function exportCurrentPermitPdf(){
  const html2canvas=await window.__html2canvasReady;
  const JsPDF=await window.__jsPdfReady;
  const root=buildPdfPages();
+ // Fit page content into the fixed A4 canvas before cloning it for html2canvas.
+ // Page 2 contains the complete contractor safety rules, so it must be scaled as a whole instead of being clipped.
+ fitPdfPages(root);
  // Signature is generated directly as one applicant-only block in buildPdfPages().
  let frame;
  try{
