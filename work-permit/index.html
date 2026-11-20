@@ -541,13 +541,52 @@ async function loadPdfPermitList(){
    msg.textContent="อ่านใบอนุญาตได้ "+(data||[]).length+" รายการ แต่ไม่พบวันที่ยื่นคำขอหรือวันที่เริ่มงานในช่วง "+from+" ถึง "+to;
    updatePdfSelectionCount();return;
   }
+  // Load worker names for the expandable preview in the PDF download picker.
+  const permitIds=pdfPermitRows.map(p=>p.id);
+  const workerLookup=await db.from("work_permit_workers").select("permit_id,full_name").in("permit_id",permitIds).order("created_at",{ascending:true});
+  if(workerLookup.error)throw workerLookup.error;
+  const workersByPermit={};
+  (workerLookup.data||[]).forEach(w=>{(workersByPermit[w.permit_id]??=[]).push(w.full_name);});
   pdfPermitRows.forEach(p=>{
-   const label=document.createElement("label");label.className="card row";label.style.cssText="display:flex;justify-content:flex-start;gap:12px;align-items:center";
-   const cb=document.createElement("input");cb.type="checkbox";cb.className="pdf-permit-check";cb.value=p.id;cb.style.cssText="width:20px;height:20px";
+   const card=document.createElement("article");card.className="card";card.style.cssText="margin:8px 0;padding:12px";
+   const head=document.createElement("div");head.style.cssText="display:flex;align-items:flex-start;gap:12px";
+   const cb=document.createElement("input");cb.type="checkbox";cb.className="pdf-permit-check";cb.value=p.id;cb.style.cssText="width:20px;height:20px;flex:0 0 auto;margin-top:4px";
    cb.addEventListener("change",updatePdfSelectionCount);
+   const title=document.createElement("button");title.type="button";title.style.cssText="flex:1;text-align:left;border:0;background:transparent;padding:0;font:inherit;line-height:1.6;cursor:pointer;color:inherit";
    const created=dayInBangkok(p.created_at);
-   const info=document.createElement("span");info.textContent=[p.permit_no,p.work_title,p.company_name,"วันที่ยื่น "+created,"วันเริ่ม "+(p.start_date||""),permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
-   label.append(cb,info);wrap.append(label);
+   const titleText=[p.permit_no,p.work_title,p.company_name,"วันที่ยื่น "+created,"วันเริ่ม "+(p.start_date||""),permitStatusLabel[p.status]||p.status].filter(Boolean).join(" · ");
+   title.textContent=titleText+"　＋ ดูรายละเอียด";
+   const panel=document.createElement("div");panel.hidden=true;panel.style.cssText="display:none;margin:12px 0 0 32px;padding:12px;border:1px solid #dce5df;border-radius:8px;background:#fbfdfb";
+   const addPreview=(label,value)=>{
+    if(value===null||value===undefined||String(value).trim()==="")return;
+    const line=document.createElement("div");line.style.cssText="padding:5px 0;border-bottom:1px solid #edf1ee;line-height:1.5;overflow-wrap:anywhere";
+    const strong=document.createElement("strong");strong.textContent=label+" : ";
+    const val=document.createElement("span");val.textContent=String(value);
+    line.append(strong,val);panel.append(line);
+   };
+   addPreview("เลขที่ Work Permit",p.permit_no);
+   addPreview("บริษัท",p.company_name);
+   addPreview("ผู้ยื่นคำขอ",p.applicant_name||p.contact_name);
+   addPreview("ผู้ควบคุมงาน",p.supervisor_name);
+   addPreview("ผู้ติดต่อ",p.contact_name);
+   addPreview("ชื่องาน",p.work_title);
+   addPreview("รายละเอียดงาน",p.work_description);
+   addPreview("ประเภทงาน",p.work_type);
+   addPreview("พื้นที่ปฏิบัติงาน",p.work_location);
+   addPreview("จำนวนผู้ปฏิบัติงาน",p.team_size);
+   const names=(workersByPermit[p.id]||[]).filter(Boolean);
+   if(names.length)addPreview("รายชื่อผู้ปฏิบัติงาน",names.map((n,i)=>(i+1)+". "+n).join("　"));
+   addPreview("วันที่เริ่มงาน",p.start_date);
+   addPreview("วันที่สิ้นสุด",p.end_date);
+   addPreview("เวลา",[p.start_time,p.end_time].filter(Boolean).join(" - "));
+   addPreview("อุปกรณ์ / PPE",p.tools);
+   title.addEventListener("click",()=>{
+    const open=panel.hidden;
+    panel.hidden=!open;
+    panel.style.display=open?"block":"none";
+    title.textContent=titleText+(open?"　－ ซ่อนรายละเอียด":"　＋ ดูรายละเอียด");
+   });
+   head.append(cb,title);card.append(head,panel);wrap.append(card);
   });
   msg.textContent="พบ "+pdfPermitRows.length+" ใบ Work Permit";updatePdfSelectionCount();
  }catch(err){pdfPermitRows=[];wrap.textContent="โหลดรายการไม่สำเร็จ";msg.textContent=err.message||"เกิดข้อผิดพลาด";updatePdfSelectionCount();}
