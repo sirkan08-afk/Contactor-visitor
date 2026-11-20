@@ -364,12 +364,15 @@ function buildPdfPages(){
  const declaration=pdfEl("div","pdf-declaration");
  declaration.textContent="ข้าพเจ้ายินดีปฏิบัติตามกฎที่ทางโรงแรม ยู เขาชีจรรย์ กำหนดทุกประการ หากมีความผิดพลาดหรือเกิดความเสียหายต่อทรัพย์สินจากการปฏิบัติงานของข้าพเจ้า ข้าพเจ้ายินดีชดใช้ตามความเสียหายที่ทางโรงแรมเรียกร้องหรือกำหนดไว้";
  page2.append(declaration);
- const workerSignatures=pdfEl("div","pdf-worker-signatures");
- const applicantSignature=pdfEl("div","pdf-worker-signature");
- applicantSignature.append(pdfEl("div","pdf-sign-line",""));
- applicantSignature.append(pdfEl("div","pdf-worker-sign-name","ลงชื่อผู้ยื่นคำขอ: "+applicantName));
- workerSignatures.append(applicantSignature);
- page2.append(workerSignatures);
+ // Page 2: one signature block for the applicant only. No team-member names/signatures.
+ const applicantSignature=pdfEl("div","pdf-applicant-signature");
+ applicantSignature.style.cssText="display:block!important;float:none!important;position:relative!important;width:72mm!important;margin:5mm auto 0!important;padding:0!important;grid-template-columns:none!important;columns:1!important;text-align:center!important;break-inside:avoid!important";
+ const applicantLine=pdfEl("div","","");
+ applicantLine.style.cssText="display:block!important;width:62mm!important;height:9mm!important;margin:0 auto 1mm!important;border-bottom:1px solid #222!important";
+ const applicantLabel=pdfEl("div","","ลงชื่อผู้ยื่นคำขอ: "+applicantName);
+ applicantLabel.style.cssText="display:block!important;width:100%!important;font-size:8pt!important;text-align:center!important";
+ applicantSignature.append(applicantLine,applicantLabel);
+ page2.append(applicantSignature);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
   root.append(page1,page2);document.body.append(root);return root;
 }
@@ -377,22 +380,7 @@ async function exportCurrentPermitPdf(){
  const html2canvas=await window.__html2canvasReady;
  const JsPDF=await window.__jsPdfReady;
  const root=buildPdfPages();
- // Enforce exactly one applicant signature in every PDF export.
- const signatureArea=root.querySelector(".pdf-worker-signatures");
- if(signatureArea){
-  const permit=activePermit?.work_permits||{};
-  const applicant=permit.applicant_name||permit.contact_name||permit.supervisor_name||"-";
-  signatureArea.replaceChildren();
-  signatureArea.style.cssText="display:block;width:100%;margin-top:3mm";
-  const signature=pdfEl("div","pdf-worker-signature");
-  signature.style.cssText="width:70mm;max-width:100%;min-height:14mm;text-align:center;margin:0 auto;break-inside:avoid";
-  const line=pdfEl("div","pdf-sign-line","");
-  line.style.cssText="height:8mm;border-bottom:1px solid #333;margin:0 5mm 1mm";
-  const label=pdfEl("div","pdf-worker-sign-name","ลงชื่อผู้ยื่นคำขอ: "+applicant);
-  label.style.cssText="font-size:8pt;line-height:1.3";
-  signature.append(line,label);
-  signatureArea.append(signature);
- }
+ // Signature is generated directly as one applicant-only block in buildPdfPages().
  let frame;
  try{
   root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
