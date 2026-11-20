@@ -377,6 +377,22 @@ async function exportCurrentPermitPdf(){
  const html2canvas=await window.__html2canvasReady;
  const JsPDF=await window.__jsPdfReady;
  const root=buildPdfPages();
+ // Enforce exactly one applicant signature in every PDF export.
+ const signatureArea=root.querySelector(".pdf-worker-signatures");
+ if(signatureArea){
+  const permit=activePermit?.work_permits||{};
+  const applicant=permit.applicant_name||permit.contact_name||permit.supervisor_name||"-";
+  signatureArea.replaceChildren();
+  signatureArea.style.cssText="display:block;width:100%;margin-top:3mm";
+  const signature=pdfEl("div","pdf-worker-signature");
+  signature.style.cssText="width:70mm;max-width:100%;min-height:14mm;text-align:center;margin:0 auto;break-inside:avoid";
+  const line=pdfEl("div","pdf-sign-line","");
+  line.style.cssText="height:8mm;border-bottom:1px solid #333;margin:0 5mm 1mm";
+  const label=pdfEl("div","pdf-worker-sign-name","ลงชื่อผู้ยื่นคำขอ: "+applicant);
+  label.style.cssText="font-size:8pt;line-height:1.3";
+  signature.append(line,label);
+  signatureArea.append(signature);
+ }
  let frame;
  try{
   root.querySelectorAll(".pdf-photo-grid,.pdf-photo-box").forEach(el=>el.remove());
