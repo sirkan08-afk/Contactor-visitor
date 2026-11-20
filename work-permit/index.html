@@ -181,7 +181,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
 <section id="track" class="panel hidden"><div class="row"><h2>ติดตามสถานะคำขอ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input id="trackPermitNo" name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
-<section id="staff" class="panel hidden"><div class="row"><h2>เจ้าหน้าที่ / ผู้ตรวจ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><form id="loginForm" class="grid"><div class="field"><label>User ID / รหัสพนักงาน</label><input id="staffUserId" name="staff_user_id" type="text" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="เช่น SEC001 หรือ ADMIN001"></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required autocomplete="current-password"></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffWorkspace" class="hidden"><div id="staffList"></div>
+<section id="staff" class="panel hidden"><div class="row"><h2>เจ้าหน้าที่ / ผู้ตรวจ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><form id="loginForm" class="grid"><div class="field"><label>User ID / รหัสพนักงาน</label><input id="staffUserId" name="staff_user_id" type="text" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="เช่น SEC001 หรือ ADMIN001"></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required autocomplete="current-password"></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffWorkspace" class="hidden"><div class="card" id="staffDatePanel"><div class="field"><label for="staffSubmitDate"><strong>รายการวันที่ยื่น Work Permit</strong></label><input type="date" id="staffSubmitDate"><span class="muted">แสดงเฉพาะใบ Work Permit ที่ยื่นในวันที่เลือก ข้อมูลวันก่อนหน้ายังคงเก็บไว้และเลือกดูย้อนหลังได้</span></div><button class="btn secondary mini" type="button" id="staffTodayBtn" style="margin-top:8px">วันนี้</button></div><div id="staffList"></div>
 <div id="downloadsPanel" class="card">
  <h3>ดาวน์โหลดเอกสาร Work Permit (PDF)</h3>
  <p class="muted">เลือกวันที่เพื่อแสดงใบอนุญาต จากนั้นติ๊กเลือกรายการที่ต้องการดาวน์โหลด สามารถเลือกได้หลายใบ</p>
@@ -654,6 +654,9 @@ async function loadStaff(){
  const {data:roleRow,error:roleError}=await db.from("user_roles").select("role").eq("user_id",auth.user.id).maybeSingle();
  if(roleError||!roleRow){list.textContent="ไม่พบสิทธิ์เจ้าหน้าที่ใน user_roles";return;}
  const role=roleRow.role;
+ const dateInput=$("staffSubmitDate");
+ if(dateInput&&!dateInput.value)dateInput.value=bangkokDateValue();
+ const selectedSubmitDate=dateInput?.value||bangkokDateValue();
  let query=db.from("work_permit_department_approvals")
    .select("id,department,status,permit_id,created_at")
    .order("created_at",{ascending:true});
@@ -671,11 +674,18 @@ async function loadStaff(){
    if(permitError){list.textContent="พบรายการอนุมัติ "+items.length+" รายการ แต่โหลดรายละเอียดใบอนุญาตไม่ได้: "+permitError.message;return;}
    permitMap=Object.fromEntries((permits||[]).map(p=>[p.id,p]));
  }
+ const submittedOnBangkokDate=value=>{
+   if(!value)return "";
+   const d=new Date(value);
+   return Number.isNaN(d.getTime())?"":new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+ };
+ const dailyItems=(items||[]).filter(item=>submittedOnBangkokDate(permitMap[item.permit_id]?.created_at)===selectedSubmitDate);
+ const dailyPermitIds=[...new Set(dailyItems.map(x=>x.permit_id).filter(Boolean))];
  let workerMap={};
- if(permitIds.length){
+ if(dailyPermitIds.length){
    const {data:workers,error:workerError}=await db.from("work_permit_workers")
      .select("permit_id,full_name,created_at")
-     .in("permit_id",permitIds)
+     .in("permit_id",dailyPermitIds)
      .order("created_at",{ascending:true});
    if(workerError){list.textContent="โหลดรายชื่อผู้ปฏิบัติงานไม่ได้: "+workerError.message;return;}
    for(const w of (workers||[])){
@@ -684,12 +694,12 @@ async function loadStaff(){
    }
  }
  const grouped=new Map();
- for(const item of (items||[])){
+ for(const item of dailyItems){
    if(!grouped.has(item.permit_id))grouped.set(item.permit_id,[]);
    grouped.get(item.permit_id).push(item);
  }
  const pendingCount=(items||[]).filter(x=>x.status==="pending").length;
- list.innerHTML="<h3>รายการ Work Permit"+(role==="ADMIN"?" ที่อยู่ในระบบ":" รอตรวจอนุมัติ")+" ("+(role==="ADMIN"?grouped.size:pendingCount)+")</h3>";
+ list.innerHTML="<h3>รายการ Work Permit วันที่ยื่น "+selectedSubmitDate+(role==="ADMIN"?"":" รอตรวจอนุมัติ")+" ("+(role==="ADMIN"?grouped.size:pendingCount)+")</h3>";
  if(!grouped.size){list.append(document.createTextNode("ไม่มีรายการที่ต้องดำเนินการ"));return;}
  const statusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",revision_requested:"ขอแก้ไข",rejected:"ไม่อนุมัติ"};
  for(const [permitId,approvals] of grouped){
@@ -832,7 +842,13 @@ db.auth.onAuthStateChange((event)=>{
   $("staffMsg").textContent="ออกจากระบบแล้ว";
  }
 });
-window.addEventListener("DOMContentLoaded",restoreStaffSession);
+window.addEventListener("DOMContentLoaded",()=>{
+ const dateInput=document.getElementById("staffSubmitDate");
+ if(dateInput){dateInput.value=bangkokDateValue();dateInput.addEventListener("change",()=>loadStaff());}
+ const todayButton=document.getElementById("staffTodayBtn");
+ if(todayButton)todayButton.addEventListener("click",()=>{if(dateInput)dateInput.value=bangkokDateValue();loadStaff();});
+ restoreStaffSession();
+});
 
 const installButton=document.getElementById("installAppBtn");
 let deferredInstallPrompt=null;
