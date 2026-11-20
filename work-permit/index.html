@@ -99,7 +99,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 .pdf-table th,.pdf-table td{border-color:#bdbdbd!important;color:#111111!important}
 .pdf-sign div,.pdf-sign>.sign-text,.pdf-note{border-color:#bdbdbd!important;color:#111111!important}
 .pdf-footer{color:#666666!important}.pdf-declaration{margin-top:3mm;padding:2.2mm 2.5mm;border:1px solid #9aaca1;background:#f7faf8;font-size:8pt;line-height:1.45;text-align:justify;break-inside:avoid}.pdf-sign-line{height:6mm;border-bottom:1px solid #333;margin:0 5mm 1mm}.pdf-worker-sign-name{font-size:7pt;line-height:1.2;overflow-wrap:anywhere}
-</style></head><body>
+.permit-detail-toggle{display:block;width:100%;text-align:left;border:0;background:#f3f6f4;border-radius:10px;padding:13px 15px;font:inherit;font-weight:700;color:#20352b;cursor:pointer;margin:4px 0 10px}.permit-detail-panel{border:1px solid #dce5df;border-radius:10px;padding:12px 14px;margin:0 0 12px;background:#fff}.permit-detail-panel[hidden]{display:none}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.55;overflow-wrap:anywhere}.permit-detail-line:last-child{border-bottom:0}.permit-detail-line strong{color:#34483d}</style></head><body>
 <header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
 <main class="wrap">
 <section id="home" class="panel">
@@ -200,9 +200,6 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
  <div class="field"><label>ปัญหาที่พบ / Problems found</label><textarea id="inspectionProblems"></textarea></div>
  <div class="field"><label>ดำเนินการแก้ไข / Corrective action</label><textarea id="inspectionCorrection"></textarea></div>
 </div>
-<h3>ภาพถ่ายตรวจสอบหน้างาน</h3>
-<div class="photo-stage"><h4>ภาพก่อนเริ่มงาน / BEFORE WORK</h4><input id="beforePhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="beforePreview" class="photo-grid"></div></div>
-<div class="photo-stage"><h4>ภาพหลังเสร็จงาน / AFTER WORK</h4><input id="afterPhotos" type="file" accept="image/*" capture="environment" multiple class="no-print"><div id="afterPreview" class="photo-grid"></div></div>
 <div class="row no-print"><button class="btn secondary" id="downloadInspectionPdf">บันทึก PDF (A4 2 หน้า)</button><button class="btn" id="saveInspection">บันทึกผลตรวจ</button></div>
 <div id="inspectionMsg" class="muted no-print"></div>
 </section></div></section>
@@ -263,7 +260,7 @@ $("trackForm").addEventListener("submit",async e=>{
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
 });
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const rawUser=(f.user||"").trim();const loginEmail=rawUser.includes("@")?rawUser:rawUser.toLowerCase()+"@patrol.com";$("staffMsg").textContent="กำลังเข้าสู่ระบบ...";const {error}=await db.auth.signInWithPassword({email:loginEmail,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("staffWorkspace").classList.remove("hidden");showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
-let activePermit=null; let selectedPhotos=[];
+let activePermit=null;
 const checklistItems=[
 "พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
 "มีการกั้นพื้นที่การทำงาน และมีธงขาว-แดง หรือสัญลักษณ์กั้นอาณาเขตอย่างชัดเจน",
@@ -283,7 +280,7 @@ const checklistItems=[
 "หลังจากการปฏิบัติงานเสร็จสิ้น ไม่มีการทิ้งขยะตามพื้นที่ปฏิบัติงาน"
 ];
 async function openInspection(item){
- activePermit=item;selectedPhotos=[];
+ activePermit=item;
  $("staffList").classList.add("hidden");$("inspection").classList.remove("hidden");
  const p=item.work_permits||{};
  $("permitSummary").textContent=[p.permit_no,p.company_name,p.work_title,p.work_location,p.start_date].filter(Boolean).join(" · ");
@@ -295,7 +292,6 @@ async function openInspection(item){
   const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="-- เลือกผลตรวจ --";placeholder.selected=true;sel.append(placeholder);["ใช่","ไม่ใช่","ไม่เกี่ยวข้อง"].forEach((v,j)=>{const o=document.createElement("option");o.value=["yes","no","na"][j];o.textContent=v;sel.append(o)});
   row.append(span,sel);$("checklist").append(row);
  });
- ["before","after"].forEach(stage=>{$(stage+"Photos").value="";$(stage+"Preview").innerHTML="";});
  $("inspectionProblems").value="";$("inspectionCorrection").value="";$("inspectionNotes")?.remove();
  $("inspectionMsg").textContent="กำลังโหลดผลตรวจเดิม...";
  const {data:savedRows,error:savedError}=await db.from("work_permit_checklists").select("item_no,result_status,is_checked,note").eq("permit_id",item.permit_id);
@@ -305,19 +301,6 @@ async function openInspection(item){
  $("inspectionMsg").textContent=savedRows?.length?"โหลดผลตรวจเดิมแล้ว":"ยังไม่มีผลตรวจที่บันทึกไว้";
 }
 $("backToList").onclick=()=>{$("inspection").classList.add("hidden");$("staffList").classList.remove("hidden")};
-["before","after"].forEach(stage=>{
- $(stage+"Photos").addEventListener("change",e=>{
-  const added=[...e.target.files].map(file=>({file,url:URL.createObjectURL(file),stage}));
-  selectedPhotos.push(...added);renderPhotos(stage);e.target.value="";
- });
-});
-function renderPhotos(stage){
- const box=$(stage+"Preview");box.innerHTML="";
- selectedPhotos.filter(p=>p.stage===stage).forEach((p)=>{
-  const i=selectedPhotos.indexOf(p),wrap=document.createElement("div"),img=document.createElement("img"),cap=document.createElement("input");
-  img.src=p.url;cap.placeholder="คำอธิบายภาพ";cap.dataset.caption=String(i);wrap.append(img,cap);box.append(wrap);
- });
-}
 function pdfEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
 function addField(parent,label,value){const d=pdfEl("div","pdf-field");const b=pdfEl("b","",label+" : ");d.append(b,document.createTextNode(value||" "));parent.append(d);}
 function buildPdfPages(){
@@ -524,19 +507,7 @@ $("saveInspection").onclick=async()=>{
    const result=existing?await db.from("work_permit_checklists").update(payload).eq("id",existing.id):await db.from("work_permit_checklists").insert(payload);
    if(result.error)throw result.error;
   }
-  for(let i=0;i<selectedPhotos.length;i++){
-   const photo=selectedPhotos[i],file=photo.file;
-   if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("รองรับเฉพาะภาพ JPG, PNG หรือ WEBP");
-   if(file.size>10*1024*1024)throw new Error("รูปภาพแต่ละไฟล์ต้องมีขนาดไม่เกิน 10 MB");
-   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-90)||"evidence.jpg";
-   const path=activePermit.permit_id+"/"+user.id+"/"+photo.stage+"_"+Date.now()+"_"+i+"_"+safeName;
-   const {error:uploadError}=await db.storage.from("work-permit-inspections").upload(path,file,{contentType:file.type,upsert:false});
-   if(uploadError)throw uploadError;
-   const caption=photo.stage.toUpperCase()+" WORK"+(($("photoPreview")?.querySelector('input[data-caption="'+i+'"]')?.value||"").trim()?": "+$("photoPreview").querySelector('input[data-caption="'+i+'"]').value.trim():"");
-   const {error:recordError}=await db.from("work_permit_inspection_photos").insert({permit_id:activePermit.permit_id,storage_path:path,caption,uploaded_by:user.id});
-   if(recordError)throw recordError;
-  }
-  msg.textContent="บันทึกผลตรวจ 16 ข้อ"+(selectedPhotos.length?" และรูปหลักฐาน "+selectedPhotos.length+" ภาพ":"")+" เรียบร้อยแล้ว";
+  msg.textContent="บันทึกผลตรวจ 16 ข้อเรียบร้อยแล้ว";
  }catch(err){msg.textContent="บันทึกไม่สำเร็จ: "+(err.message||"เกิดข้อผิดพลาด กรุณาลองอีกครั้ง");}
  finally{button.disabled=false;}
 };
@@ -600,7 +571,6 @@ $("pdfDownloadSelected").onclick=async()=>{
    ]);
    if(workerResult.error)throw workerResult.error;if(checkResult.error)throw checkResult.error;
    activePermit={work_permits:{...p,workers:(workerResult.data||[]).map(w=>w.full_name).filter(Boolean)}};
-   selectedPhotos=[];
    const checkWrap=$("checklist"),oldChecklist=checkWrap.innerHTML,oldProblems=$("inspectionProblems").value,oldCorrection=$("inspectionCorrection").value;
    checkWrap.innerHTML="";
    checklistItems.forEach((label,i)=>{
@@ -673,13 +643,46 @@ async function loadStaff(){
    const p=permitMap[permitId]||{};
    p.workers=workerMap[permitId]||[];
    const card=document.createElement("article");card.className="card";
-   const title=document.createElement("h3");
-   title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน");
-   card.append(title);
+   const title=document.createElement("button");
+   title.type="button";title.className="permit-detail-toggle";
+   title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+"　＋ ดูรายละเอียด";
+   const detailPanel=document.createElement("div");detailPanel.className="permit-detail-panel";detailPanel.hidden=true;
+   const addDetail=(label,value)=>{
+     if(value===null||value===undefined||String(value).trim()==="")return;
+     const line=document.createElement("div");line.className="permit-detail-line";
+     const strong=document.createElement("strong");strong.textContent=label+" : ";
+     const val=document.createElement("span");val.textContent=String(value);
+     line.append(strong,val);detailPanel.append(line);
+   };
+   const addDetailList=(label,values)=>{
+     const clean=(values||[]).filter(x=>x&&String(x).trim());
+     if(!clean.length)return;
+     addDetail(label,clean.map((x,i)=>(i+1)+". "+x).join("　"));
+   };
+   addDetail("เลขที่ Work Permit",p.permit_no);
+   addDetail("บริษัท",p.company_name);
+   addDetail("ผู้ยื่นคำขอ",p.applicant_name||p.contact_name);
+   addDetail("ผู้ควบคุมงาน",p.supervisor_name);
+   addDetail("ผู้ติดต่อ",p.contact_name);
+   addDetail("ชื่องาน",p.work_title);
+   addDetail("รายละเอียดงาน",p.work_description);
+   addDetail("ประเภทงาน",p.work_type);
+   addDetail("พื้นที่ปฏิบัติงาน",p.work_location);
+   addDetail("จำนวนผู้ปฏิบัติงาน",p.team_size);
+   addDetailList("รายชื่อผู้ปฏิบัติงาน",p.workers);
+   addDetail("วันที่เริ่มงาน",p.start_date);
+   addDetail("วันที่สิ้นสุด",p.end_date);
+   addDetail("เวลา",[p.start_time,p.end_time].filter(Boolean).join(" - "));
+   addDetail("อุปกรณ์ / PPE",p.tools);
+   title.onclick=()=>{
+     detailPanel.hidden=!detailPanel.hidden;
+     title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+(detailPanel.hidden?"　＋ ดูรายละเอียด":"　－ ซ่อนรายละเอียด");
+   };
+   card.append(title,detailPanel);
    const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";
    open.onclick=()=>openInspection({...approvals.find(x=>x.status==="pending")||approvals[0],work_permits:p});
    card.append(open);
-   const detail=document.createElement("p");detail.textContent=[p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
+   const detail=document.createElement("p");detail.textContent=[p.company_name,p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
    const statusBox=document.createElement("div");statusBox.className="card";
    const statusTitle=document.createElement("strong");statusTitle.textContent="สถานะการอนุมัติ";statusBox.append(statusTitle);
    for(const item of approvals){
