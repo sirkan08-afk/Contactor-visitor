@@ -107,8 +107,8 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 .pdf-table th,.pdf-table td{border-color:#bdbdbd!important;color:#111111!important}
 .pdf-sign div,.pdf-sign>.sign-text,.pdf-note{border-color:#bdbdbd!important;color:#111111!important}
 .pdf-footer{color:#666666!important}.pdf-declaration{margin-top:3mm;padding:2.2mm 2.5mm;border:1px solid #9aaca1;background:#f7faf8;font-size:8pt;line-height:1.45;text-align:justify;break-inside:avoid}.pdf-sign-line{height:6mm;border-bottom:1px solid #333;margin:0 5mm 1mm}.pdf-worker-sign-name{font-size:7pt;line-height:1.2;overflow-wrap:anywhere}
-.permit-detail-panel{display:block!important;background:#fff;padding:12px 14px;margin:8px 0;border:1px solid #dce5df;border-radius:10px}.permit-detail-panel[hidden]{display:none!important}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.5}.permit-detail-line:last-child{border-bottom:0}.permit-detail-toggle[aria-expanded="true"]{background:#e8f2ec}\n.permit-detail-toggle{display:block;width:100%;text-align:left;border:0;background:#f3f6f4;border-radius:10px;padding:13px 15px;font:inherit;font-weight:700;color:#20352b;cursor:pointer;margin:4px 0 10px}.permit-detail-panel{border:1px solid #dce5df;border-radius:10px;padding:12px 14px;margin:0 0 12px;background:#fff}.permit-detail-panel[hidden]{display:none}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.55;overflow-wrap:anywhere}.permit-detail-line:last-child{border-bottom:0}.permit-detail-line strong{color:#34483d}</style></head><body>
-<header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา</header>
+.permit-detail-panel{display:block!important;background:#fff;padding:12px 14px;margin:8px 0;border:1px solid #dce5df;border-radius:10px}.permit-detail-panel[hidden]{display:none!important}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.5}.permit-detail-line:last-child{border-bottom:0}.permit-detail-toggle[aria-expanded="true"]{background:#e8f2ec}\n.permit-detail-toggle{display:block;width:100%;text-align:left;border:0;background:#f3f6f4;border-radius:10px;padding:13px 15px;font:inherit;font-weight:700;color:#20352b;cursor:pointer;margin:4px 0 10px}.permit-detail-panel{border:1px solid #dce5df;border-radius:10px;padding:12px 14px;margin:0 0 12px;background:#fff}.permit-detail-panel[hidden]{display:none}.permit-detail-line{padding:7px 0;border-bottom:1px solid #edf1ee;line-height:1.55;overflow-wrap:anywhere}.permit-detail-line:last-child{border-bottom:0}.permit-detail-line strong{color:#34483d}#installAppBtn{display:inline-flex!important;align-items:center;gap:8px;border:1px solid #bdbdbd!important;background:#f2f2f2!important;color:#111!important}</style></head><body>
+<header class="hero"><small>U KHAOCHICHAN PATTAYA · SECURITY DEPARTMENT</small><h1>Work Permit</h1>ระบบยื่นคำขอ ตรวจหน้างาน และอนุมัติงานผู้รับเหมา<div style="margin-top:12px"><button id="installAppBtn" class="btn secondary mini" type="button" aria-label="ติดตั้งแอป Work Permit">ติดตั้งแอป Work Permit</button></div></header>
 <main class="wrap">
 <section id="home" class="panel">
  <h2>เลือกประเภทผู้ใช้งาน</h2>
@@ -797,6 +797,35 @@ if("serviceWorker" in navigator){
   navigator.serviceWorker.register("./service-worker.js",{scope:"./"})
    .then(reg=>console.log("Work Permit PWA ready",reg.scope))
    .catch(err=>console.warn("PWA service worker registration failed",err));
+ });
+}
+
+const installButton=document.getElementById("installAppBtn");
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",event=>{
+ event.preventDefault();
+ deferredInstallPrompt=event;
+ if(installButton)installButton.hidden=false;
+});
+window.addEventListener("appinstalled",()=>{
+ deferredInstallPrompt=null;
+ if(installButton){installButton.textContent="ติดตั้งแอปแล้ว";installButton.disabled=true;}
+});
+if(installButton){
+ installButton.addEventListener("click",async()=>{
+  if(deferredInstallPrompt){
+   deferredInstallPrompt.prompt();
+   const choice=await deferredInstallPrompt.userChoice;
+   if(choice?.outcome==="accepted"){installButton.textContent="กำลังติดตั้ง...";}
+   deferredInstallPrompt=null;
+   return;
+  }
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isIOS){
+   alert("ติดตั้งบน iPhone: แตะปุ่มแชร์ใน Safari แล้วเลือก Add to Home Screen (เพิ่มไปยังหน้าจอโฮม)");
+  }else{
+   alert("ติดตั้งบน Android: เปิดเว็บไซต์นี้ด้วย Google Chrome แตะเมนู ⋮ แล้วเลือก Install app หรือ Add to Home screen หากยังไม่พบเมนู ให้เปิดหน้าเว็บค้างไว้สักครู่แล้วลองอีกครั้ง");
+  }
  });
 }
 </script></body></html>
