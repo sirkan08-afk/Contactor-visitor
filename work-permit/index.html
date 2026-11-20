@@ -698,7 +698,7 @@ async function loadStaff(){
    if(!grouped.has(item.permit_id))grouped.set(item.permit_id,[]);
    grouped.get(item.permit_id).push(item);
  }
- const pendingCount=(items||[]).filter(x=>x.status==="pending").length;
+ const pendingCount=dailyItems.filter(x=>x.status==="pending").length;
  list.innerHTML="<h3>รายการ Work Permit วันที่ยื่น "+selectedSubmitDate+(role==="ADMIN"?"":" รอตรวจอนุมัติ")+" ("+(role==="ADMIN"?grouped.size:pendingCount)+")</h3>";
  if(!grouped.size){list.append(document.createTextNode("ไม่มีรายการที่ต้องดำเนินการ"));return;}
  const statusLabel={pending:"รออนุมัติ",approved:"อนุมัติแล้ว",revision_requested:"ขอแก้ไข",rejected:"ไม่อนุมัติ"};
