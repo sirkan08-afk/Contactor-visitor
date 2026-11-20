@@ -786,6 +786,13 @@ async function deleteWorkPermit(permitId,permitNo){
  const buttons=[...document.querySelectorAll("#staffList button")];
  buttons.forEach(b=>{if(b.textContent==="ลบถาวร")b.disabled=true;});
  try{
+  const {data:photoRows,error:photoQueryError}=await db.from("work_permit_inspection_photos").select("storage_path").eq("permit_id",permitId);
+  if(photoQueryError)throw photoQueryError;
+  const photoPaths=(photoRows||[]).map(x=>x.storage_path).filter(Boolean);
+  if(photoPaths.length){
+   const {error:storageError}=await db.storage.from("work-permit-inspections").remove(photoPaths);
+   if(storageError)throw storageError;
+  }
   const {data,error}=await db.rpc("admin_delete_work_permit",{p_permit_id:permitId});
   if(error)throw error;
   alert("ลบ Work Permit "+permitNo+" ถาวรเรียบร้อยแล้ว");
