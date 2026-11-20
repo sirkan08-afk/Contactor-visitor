@@ -792,13 +792,6 @@ db.auth.onAuthStateChange((event)=>{
  }
 });
 window.addEventListener("DOMContentLoaded",restoreStaffSession);
-if("serviceWorker" in navigator){
- window.addEventListener("load",()=>{
-  navigator.serviceWorker.register("./service-worker.js?v=10",{scope:"./"})
-   .then(reg=>console.log("Work Permit PWA ready",reg.scope))
-   .catch(err=>console.warn("PWA service worker registration failed",err));
- });
-}
 
 const installButton=document.getElementById("installAppBtn");
 let deferredInstallPrompt=null;
