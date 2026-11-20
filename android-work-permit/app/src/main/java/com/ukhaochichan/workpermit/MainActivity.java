@@ -56,8 +56,8 @@ public class MainActivity extends Activity {
 
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                // html2pdf.js creates a temporary blob URL. Convert it to base64
-                // and hand it to Android instead of passing blob: to DownloadManager.
+                // PDF exports may call this bridge directly with the permit-specific filename.
+                // Keep blob fallback support for any other generated document downloads.
                 String script = "(function(){if(window.__wpNativePdfHook)return;window.__wpNativePdfHook=true;" +
                     "document.addEventListener('click',function(e){" +
                     "var a=e.target&&e.target.closest?e.target.closest('a[download]'):null;" +
