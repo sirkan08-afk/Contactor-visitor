@@ -1,4 +1,4 @@
-const CACHE_NAME = "work-permit-shell-v7";
+const CACHE_NAME = "work-permit-shell-v8";
 const APP_BASE = "/Contactor-visitor/work-permit/";
 const APP_SHELL = [
   APP_BASE,
