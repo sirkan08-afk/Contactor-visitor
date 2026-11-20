@@ -459,8 +459,14 @@ async function exportCurrentPermitPdf(){
    pdf.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,210,297,undefined,"FAST");
    canvas.width=1;canvas.height=1;
   }
-  const permitNo=String(activePermit?.work_permits?.permit_no||"Work-Permit").replace(/[^a-zA-Z0-9_-]/g,"_");
-  pdf.save(permitNo+".pdf");
+  const permitNo=String(activePermit?.work_permits?.permit_no||"Work-Permit").trim().replace(/[^a-zA-Z0-9_-]/g,"_");
+  const fileName=permitNo+".pdf";
+  if(window.AndroidFileBridge&&typeof window.AndroidFileBridge.saveBase64File==="function"){
+   const dataUri=pdf.output("datauristring");
+   window.AndroidFileBridge.saveBase64File(dataUri.split(",")[1]||"","application/pdf",fileName);
+  }else{
+   pdf.save(fileName);
+  }
  }finally{root.remove();frame?.remove();}
 }
 function fitPdfPages(root){
