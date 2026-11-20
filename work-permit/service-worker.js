@@ -1,45 +1,46 @@
-const CACHE_NAME = "work-permit-shell-v3";
+const CACHE_NAME = "work-permit-shell-v6";
+const APP_BASE = "/Contactor-visitor/work-permit/";
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon.svg",
-  "./icon-192.png",
-  "./icon-512.png"
+  APP_BASE,
+  APP_BASE + "index.html",
+  APP_BASE + "manifest.webmanifest",
+  APP_BASE + "icon.svg",
+  APP_BASE + "icon-192.png",
+  APP_BASE + "icon-512.png"
 ];
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL);
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("work-permit-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))))
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith("work-permit-shell-") && key !== CACHE_NAME).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).then(response => {
+  if (url.pathname.startsWith(APP_BASE)) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request);
         if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(request, response.clone());
         }
         return response;
-      }).catch(() => caches.match("./index.html"))
-    );
-    return;
-  }
-  event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response && response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      } catch (error) {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        if (request.mode === "navigate") return caches.match(APP_BASE + "index.html");
+        throw error;
       }
-      return response;
-    }))
-  );
+    })());
+  }
 });
