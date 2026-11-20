@@ -361,8 +361,56 @@ function buildPdfPages(){
  checklistItems.forEach((label,i)=>{const r=pdfEl("tr"),sel=sels[i];r.append(pdfEl("td","num",String(i+1)),pdfEl("td","",label));["yes","no","na"].forEach(v=>r.append(pdfEl("td","result",sel?.value===v?"✓":"")));r.append(pdfEl("td","notes",""),pdfEl("td","fix",""));tbody.append(r)});table.append(tbody);page2.append(table);
  page2.append(pdfEl("div","pdf-section","ปัญหาที่พบ / Problems found"));page2.append(pdfEl("div","pdf-note",$("inspectionProblems").value.trim()||"-"));
  page2.append(pdfEl("div","pdf-section","ดำเนินการแก้ไข / Corrective action"));page2.append(pdfEl("div","pdf-note",$("inspectionCorrection").value.trim()||"-"));
- const declaration=pdfEl("div","pdf-declaration");
- declaration.textContent="ข้าพเจ้ายินดีปฏิบัติตามกฎที่ทางโรงแรม ยู เขาชีจรรย์ กำหนดทุกประการ หากมีความผิดพลาดหรือเกิดความเสียหายต่อทรัพย์สินจากการปฏิบัติงานของข้าพเจ้า ข้าพเจ้ายินดีชดใช้ตามความเสียหายที่ทางโรงแรมเรียกร้องหรือกำหนดไว้";
+ // Contractor safety rules: replace the short declaration with the complete rules on page 2.
+ const declaration=pdfEl("div","pdf-declaration pdf-safety-rules");
+ declaration.style.cssText="margin-top:2mm;padding:2mm 2.5mm;border:1px solid #9aaca1;background:#fff;font-size:6.2pt;line-height:1.2;text-align:left;break-inside:avoid";
+ const rulesTitle=pdfEl("div","","ระเบียบปฏิบัติงานเกี่ยวกับความปลอดภัยสำหรับผู้รับเหมา");
+ rulesTitle.style.cssText="font-size:8pt;font-weight:bold;text-align:center;margin-bottom:1mm";
+ declaration.append(rulesTitle);
+ const rulesIntro=pdfEl("div","","การเข้าปฏิบัติงานในพื้นที่โรงแรม ต้องแจ้งต่อพนักงานผู้รับผิดชอบงาน หรือผู้ที่เกี่ยวข้องก่อน");
+ rulesIntro.style.cssText="margin-bottom:1mm";
+ declaration.append(rulesIntro);
+ const ruleGroups=[
+  ["1. การใช้น้ำมัน, สารเคมี",[
+   "ไม่ถ่ายน้ำมันเครื่อง หรือสารไวไฟ ใกล้บริเวณที่อาจก่อให้เกิดอัคคีภัย",
+   "ก่อนถ่ายน้ำมันต้องเตรียมอุปกรณ์ให้พร้อม เช่น อุปกรณ์สำหรับถ่ายเท ถาดรองป้องกันการหกรั่วไหล เศษผ้าสำหรับเช็ด เป็นต้น"
+  ]],
+  ["2. การดำเนินการเมื่อเกิดเหตุฉุกเฉิน",[
+   "กรณีพบเห็นเหตุการณ์ เช่น น้ำมันหรือสารเคมีหกรั่วไหล แก๊สรั่ว มีกลิ่นผิดปกติ หรือเกิดเหตุเพลิงไหม้ ต้องรีบแจ้งต่อเจ้าของพื้นที่หรือเจ้าหน้าที่ความปลอดภัยทราบทันที",
+   "กรณีที่อยู่ในเหตุการณ์ฉุกเฉิน และต้องอพยพจากพื้นที่ หากไม่ทราบเส้นทางหนีไฟ ให้เดินตามเจ้าของพื้นที่ไปยังจุดรวมพล"
+  ]],
+  ["3. การสูบบุหรี่",[
+   "ให้สูบบุหรี่ในพื้นที่ที่บริษัทฯ จัดให้เท่านั้น และหลังสูบเสร็จให้ดับก้นบุหรี่ให้สนิท ทิ้งลงในถังบุหรี่ที่จัดเตรียมไว้ให้",
+   "ห้ามทิ้งขยะลงที่เขี่ยบุหรี่ เพราะอาจจะทำให้เกิดอัคคีภัยได้"
+  ]],
+  ["4. ข้อปฏิบัติทั่วไปเกี่ยวกับความปลอดภัยในการทำงาน",[
+   "ห้ามสวมรองเท้าแตะ หรือรองเท้าฟองน้ำเข้ามาทำงานภายในโรงแรม ยู พัทยา",
+   "ผู้รับเหมาจะต้องเตรียมถังดับเพลิงไว้ใกล้พื้นที่การปฏิบัติงาน กรณีทำงานเสี่ยงต่อการเกิดอัคคีภัย",
+   "จะต้องติดป้าย “เขตอันตราย” หรือกั้นพื้นที่ขาว-แดง ในพื้นที่กำลังก่อสร้าง หรือติดตั้งนั่งร้าน",
+   "ผู้รับเหมาจะต้องจัดพื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร",
+   "ในกรณีที่จำเป็นต้องใช้สารไวไฟในการทำงาน เช่น ทินเนอร์ น้ำมัน จะต้องวางให้ห่างจากแหล่งที่มีประกายไฟอย่างน้อย 8 เมตร และต้องติดป้าย “มีสารไวไฟ ห้ามก่อประกายไฟ”",
+   "ในกรณีที่จำเป็นต้องตัดกระแสไฟ/ก๊าซ หรือสารไวไฟตามท่อ จะต้องมีป้ายกำกับ “กำลังซ่อมบำรุง ห้ามเปิดสวิตช์” หรือ “กำลังซ่อมบำรุงห้ามเดินเครื่อง” ตลอดระยะเวลาที่ปฏิบัติงาน",
+   "ผู้รับเหมาจะต้องสวมเครื่องป้องกันอันตรายส่วนบุคคลที่เหมาะสมตามลักษณะงาน",
+   "เมื่อทำงานเรียบร้อย จะต้องเก็บทำความสะอาดพื้นที่การทำงานและเก็บขยะที่เกิดจากการทำงานกลับไปด้วย",
+   "ห้ามปฏิบัติงานบนที่สูงมากกว่า 2 เมตร ภายนอกอาคารหรือบนหลังคาโรงงาน เมื่อมีเหตุฝนตก ลมพายุกรรโชกรุนแรง",
+   "ผู้รับเหมาต้องขออนุญาตเข้าทำงาน (Work Permit) ล่วงหน้าอย่างน้อย 2 วัน หรือทุก ๆ วันศุกร์ของสัปดาห์จนกว่าจะจบงาน ยื่นต่อเจ้าหน้าที่ความปลอดภัยของบริษัท (จป.วิชาชีพ) เพื่อพิจารณาและอนุมัติก่อนดำเนินการ โดยเอกสาร Work Permit ทางเจ้าของงานจะส่งให้ทางอีเมล"
+  ]]
+ ];
+ ruleGroups.forEach(([heading,items])=>{
+  const group=pdfEl("div","pdf-rule-group");
+  group.style.cssText="margin:0 0 0.8mm";
+  const h=pdfEl("div","","");
+  h.textContent=heading;
+  h.style.cssText="font-weight:bold;margin:0.4mm 0 0.2mm";
+  group.append(h);
+  items.forEach((item,index)=>{
+   const line=pdfEl("div","","");
+   line.textContent=(index+1)+". "+item;
+   line.style.cssText="padding-left:3mm;text-indent:-3mm;margin:0.1mm 0";
+   group.append(line);
+  });
+  declaration.append(group);
+ });
  page2.append(declaration);
  // Page 2: one signature block for the applicant only. No team-member names/signatures.
  const applicantSignature=pdfEl("div","pdf-applicant-signature");
