@@ -828,4 +828,24 @@ if(installButton){
   }
  });
 }
+</script>
+<script>
+/* Independent PWA bootstrap: keep service-worker registration separate
+   from the main application script so app-code errors cannot block it. */
+(function () {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./service-worker.js?v=11", { scope: "./" })
+      .then(function (registration) {
+        console.info("Work Permit service worker scope:", registration.scope);
+        return navigator.serviceWorker.ready;
+      })
+      .then(function (registration) {
+        console.info("Work Permit service worker active:", !!registration.active);
+      })
+      .catch(function (error) {
+        console.error("Work Permit service worker registration failed:", error);
+      });
+  });
+})();
 </script></body></html>
