@@ -259,7 +259,7 @@ $("trackForm").addEventListener("submit",async e=>{
   msg.append(card);
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
 });
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const rawUser=(f.user||"").trim();const loginEmail=rawUser.includes("@")?rawUser:rawUser.toLowerCase()+"@patrol.com";$("staffMsg").textContent="กำลังเข้าสู่ระบบ...";const {error}=await db.auth.signInWithPassword({email:loginEmail,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("staffWorkspace").classList.remove("hidden");showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const rawUser=(f.user||"").trim();const loginEmail=rawUser.includes("@")?rawUser:rawUser.toLowerCase()+"@patrol.com";$("staffMsg").textContent="กำลังเข้าสู่ระบบ...";const {error}=await db.auth.signInWithPassword({email:loginEmail,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("loginForm").style.display="none";$("staffWorkspace").classList.remove("hidden");$("staffWorkspace").style.display="block";$("staffMsg").textContent="";showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
 let activePermit=null;
 const checklistItems=[
 "พื้นที่การทำงานห่างจากสารไวไฟอย่างน้อย 8 เมตร (ในกรณีที่ก่อให้เกิดประกายไฟ)",
@@ -646,7 +646,7 @@ async function loadStaff(){
    const title=document.createElement("button");
    title.type="button";title.className="permit-detail-toggle";
    title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+"　＋ ดูรายละเอียด";
-   const detailPanel=document.createElement("div");detailPanel.className="permit-detail-panel";detailPanel.hidden=true;
+   const detailPanel=document.createElement("div");detailPanel.className="permit-detail-panel";detailPanel.hidden=true;detailPanel.style.display="none";
    const addDetail=(label,value)=>{
      if(value===null||value===undefined||String(value).trim()==="")return;
      const line=document.createElement("div");line.className="permit-detail-line";
@@ -675,8 +675,11 @@ async function loadStaff(){
    addDetail("เวลา",[p.start_time,p.end_time].filter(Boolean).join(" - "));
    addDetail("อุปกรณ์ / PPE",p.tools);
    title.onclick=()=>{
-     detailPanel.hidden=!detailPanel.hidden;
-     title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+(detailPanel.hidden?"　＋ ดูรายละเอียด":"　－ ซ่อนรายละเอียด");
+     const willOpen=detailPanel.style.display==="none";
+     detailPanel.hidden=!willOpen;
+     detailPanel.style.display=willOpen?"block":"none";
+     title.setAttribute("aria-expanded",String(willOpen));
+     title.textContent=(p.permit_no||"ไม่พบเลขใบอนุญาต")+" · "+(p.work_title||p.company_name||"ไม่พบชื่องาน")+(willOpen?"　－ ซ่อนรายละเอียด":"　＋ ดูรายละเอียด");
    };
    card.append(title,detailPanel);
    const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";
