@@ -365,8 +365,10 @@ function buildPdfPages(){
  declaration.textContent="ข้าพเจ้ายินดีปฏิบัติตามกฎที่ทางโรงแรม ยู เขาชีจรรย์ กำหนดทุกประการ หากมีความผิดพลาดหรือเกิดความเสียหายต่อทรัพย์สินจากการปฏิบัติงานของข้าพเจ้า ข้าพเจ้ายินดีชดใช้ตามความเสียหายที่ทางโรงแรมเรียกร้องหรือกำหนดไว้";
  page2.append(declaration);
  const workerSignatures=pdfEl("div","pdf-worker-signatures");
- workerNames.forEach((name,i)=>{const box=pdfEl("div","pdf-worker-signature");box.append(pdfEl("div","pdf-sign-line",""));box.append(pdfEl("div","pdf-worker-sign-name",(i+1)+". "+name));workerSignatures.append(box);});
- if(!workerNames.length){const box=pdfEl("div","pdf-worker-signature");box.append(pdfEl("div","pdf-sign-line",""));box.append(pdfEl("div","pdf-worker-sign-name","ผู้รับเหมา"));workerSignatures.append(box);}
+ const applicantSignature=pdfEl("div","pdf-worker-signature");
+ applicantSignature.append(pdfEl("div","pdf-sign-line",""));
+ applicantSignature.append(pdfEl("div","pdf-worker-sign-name","ลงชื่อผู้ยื่นคำขอ: "+applicantName));
+ workerSignatures.append(applicantSignature);
  page2.append(workerSignatures);
  page2.append(pdfEl("div","pdf-footer","หน้า 2 / 2"));
   root.append(page1,page2);document.body.append(root);return root;
