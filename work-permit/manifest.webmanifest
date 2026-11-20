@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "U Khaochichan Work Permit",
+  "short_name": "Work Permit",
+  "description": "ระบบยื่นคำขอและตรวจสอบ Work Permit สำหรับผู้รับเหมาและเจ้าหน้าที่",
+  "lang": "th",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#174d40",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
