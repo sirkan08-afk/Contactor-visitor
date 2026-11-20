@@ -749,6 +749,15 @@ async function loadStaff(){
    const open=document.createElement("button");open.className="btn secondary mini";open.textContent="เปิดตรวจหน้างาน";
    open.onclick=()=>openInspection({...approvals.find(x=>x.status==="pending")||approvals[0],work_permits:p});
    card.append(open);
+   if(role==="ADMIN"){
+     const remove=document.createElement("button");
+     remove.className="btn danger mini";
+     remove.type="button";
+     remove.textContent="ลบถาวร";
+     remove.style.marginTop="8px";
+     remove.onclick=()=>deleteWorkPermit(p.id,p.permit_no||"");
+     card.append(remove);
+   }
    const detail=document.createElement("p");detail.textContent=[p.company_name,p.work_location,p.start_date].filter(Boolean).join(" | ")||"ไม่พบรายละเอียดใบอนุญาต";card.append(detail);
    const statusBox=document.createElement("div");statusBox.className="card";
    const statusTitle=document.createElement("strong");statusTitle.textContent="สถานะการอนุมัติ";statusBox.append(statusTitle);
@@ -767,6 +776,25 @@ async function loadStaff(){
    }
    card.append(statusBox);list.append(card);
  }
+}
+async function deleteWorkPermit(permitId,permitNo){
+ if(!permitId||!permitNo)return;
+ const first=confirm("ยืนยันลบถาวร Work Permit "+permitNo+" ?\\n\\nข้อมูลใบอนุญาตและข้อมูลที่เกี่ยวข้องจะถูกลบจากฐานข้อมูล และไม่สามารถกู้คืนได้");
+ if(!first)return;
+ const typed=prompt("เพื่อยืนยัน กรุณาพิมพ์เลข Work Permit นี้ให้ตรงกัน:\\n"+permitNo);
+ if(typed!==permitNo){alert("เลข Work Permit ไม่ตรงกัน ยกเลิกการลบ");return;}
+ const buttons=[...document.querySelectorAll("#staffList button")];
+ buttons.forEach(b=>{if(b.textContent==="ลบถาวร")b.disabled=true;});
+ try{
+  const {data,error}=await db.rpc("admin_delete_work_permit",{p_permit_id:permitId});
+  if(error)throw error;
+  alert("ลบ Work Permit "+permitNo+" ถาวรเรียบร้อยแล้ว");
+  await loadStaff();
+  await loadPdfPermitList();
+ }catch(error){
+  console.error("Delete Work Permit failed",error);
+  alert("ลบไม่สำเร็จ: "+(error.message||"กรุณาตรวจสอบสิทธิ์หรือการตั้งค่าฐานข้อมูล"));
+ }finally{buttons.forEach(b=>{if(b.textContent==="ลบถาวร")b.disabled=false;});}
 }
 async function approve(item,status){const comment=prompt("หมายเหตุ (ถ้ามี):")||null;const {error}=await db.from("work_permit_department_approvals").update({status,comment,actor_id:(await db.auth.getUser()).data.user.id,acted_at:new Date().toISOString()}).eq("id",item.id);if(error){alert("บันทึกไม่สำเร็จ: "+error.message);return;}alert("บันทึกผลของฝ่ายเรียบร้อย");await loadStaff();}
 async function restoreStaffSession(){
