@@ -209,7 +209,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 <script>
 const SUPABASE_URL="https://nldoneixnuapuzpeeznl.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 const $=id=>document.getElementById(id);
 function renderWorkerNameFields(){
  const count=Math.max(1,Math.min(200,Number($("requestForm").elements.team_size.value)||1));
@@ -755,4 +755,33 @@ async function loadStaff(){
  }
 }
 async function approve(item,status){const comment=prompt("หมายเหตุ (ถ้ามี):")||null;const {error}=await db.from("work_permit_department_approvals").update({status,comment,actor_id:(await db.auth.getUser()).data.user.id,acted_at:new Date().toISOString()}).eq("id",item.id);if(error){alert("บันทึกไม่สำเร็จ: "+error.message);return;}alert("บันทึกผลของฝ่ายเรียบร้อย");await loadStaff();}
+async function restoreStaffSession(){
+ try{
+  const {data,error}=await db.auth.getSession();
+  if(error)throw error;
+  if(!data.session)return;
+  $("loginForm").classList.add("hidden");
+  $("loginForm").style.display="none";
+  $("staffWorkspace").classList.remove("hidden");
+  $("staffWorkspace").style.display="block";
+  $("staffMsg").textContent="";
+  showMainView("staff");
+  await loadStaff();
+  initPdfPicker();
+  await loadPdfPermitList();
+ }catch(error){
+  console.error("Restore staff session failed",error);
+  $("staffMsg").textContent="ตรวจสอบสถานะการเข้าสู่ระบบไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่";
+ }
+}
+db.auth.onAuthStateChange((event)=>{
+ if(event==="SIGNED_OUT"){
+  $("loginForm").classList.remove("hidden");
+  $("loginForm").style.display="";
+  $("staffWorkspace").classList.add("hidden");
+  $("staffWorkspace").style.display="none";
+  $("staffMsg").textContent="ออกจากระบบแล้ว";
+ }
+});
+window.addEventListener("DOMContentLoaded",restoreStaffSession);
 </script></body></html>
