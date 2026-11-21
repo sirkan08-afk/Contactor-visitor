@@ -1,0 +1,5 @@
+# Supabase CLI configuration for this repository.
+# Public QR submission and WP-number-only tracking are protected inside the
+# Edge Function by Cloudflare Turnstile and server-side rate limiting.
+[functions.submit-work-permit]
+verify_jwt = false

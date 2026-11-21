@@ -1,0 +1,31 @@
+name: Work Permit Edge Function checks
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/submit-work-permit/**"
+      - "supabase/config.toml"
+      - ".github/workflows/work-permit-checks.yml"
+  push:
+    branches:
+      - security-hardening-wp-tracking
+    paths:
+      - "supabase/functions/submit-work-permit/**"
+      - "supabase/config.toml"
+      - ".github/workflows/work-permit-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  edge-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Work Permit Edge Function
+        run: deno check supabase/functions/submit-work-permit/index.ts
