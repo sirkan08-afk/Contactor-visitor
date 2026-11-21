@@ -180,7 +180,7 @@ input,select,textarea{background:#ffffff!important;color:#111111!important;borde
 <div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div>
 <div class="field full"><button class="btn" type="submit">ส่งคำขอ Work Permit</button><div id="requestMsg" class="muted">ระบบจะส่งคำขอผ่านบริการที่ปลอดภัยเมื่อ Deploy Edge Function และ Migration แล้ว</div></div>
 </form></section>
-<section id="track" class="panel hidden"><div class="row"><h2>ติดตามสถานะคำขอ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input id="trackPermitNo" name="permit_no" required placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><button class="btn">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
+<section id="track" class="panel hidden"><div class="row"><h2>ติดตามสถานะคำขอ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><p class="muted">กรอกเลข Work Permit เพื่อดูสถานะการอนุมัติจาก Security</p><form id="trackForm" class="grid"><div class="field full"><label>เลข Work Permit</label><input id="trackPermitNo" name="permit_no" required maxlength="60" autocomplete="off" autocapitalize="characters" placeholder="เช่น WP-261110-ELE01"></div><div class="field full"><div class="cf-turnstile" data-sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ" data-theme="light"></div></div><div class="field full"><button class="btn" type="submit">ตรวจสอบสถานะ</button></div></form><div id="trackMsg"></div></section>
 <section id="staff" class="panel hidden"><div class="row"><h2>เจ้าหน้าที่ / ผู้ตรวจ</h2><button class="btn secondary mini" type="button" onclick="showMainView('home')">กลับหน้าหลัก</button></div><form id="loginForm" class="grid"><div class="field"><label>User ID / รหัสพนักงาน</label><input id="staffUserId" name="staff_user_id" type="text" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="เช่น SEC001 หรือ ADMIN001"></div><div class="field"><label>รหัสผ่าน</label><input name="password" type="password" required autocomplete="current-password"></div><div class="field full"><button class="btn">เข้าสู่ระบบ</button></div></form><div id="staffMsg" class="muted"></div><div id="staffWorkspace" class="hidden"><div id="staffList"></div>
 <div id="downloadsPanel" class="card">
  <h3>ดาวน์โหลดเอกสาร Work Permit (PDF)</h3>
@@ -254,8 +254,13 @@ form.reset();if(window.turnstile)window.turnstile.reset();
 if(newPermitNo){$("trackPermitNo").value=newPermitNo;showMainView("track");$("trackMsg").textContent="ส่งคำขอสำเร็จแล้ว ระบบกรอกเลข Work Permit ให้โดยอัตโนมัติ กรุณากดตรวจสอบสถานะ";}}catch(err){msg.textContent="ยังส่งคำขอไม่ได้: "+(err.message||"กรุณาตรวจการติดตั้ง Migration และ Edge Function");}});
 $("trackForm").addEventListener("submit",async e=>{
  e.preventDefault();const msg=$("trackMsg");msg.textContent="กำลังตรวจสอบ...";
+ const payload=formObject(e.currentTarget);
+ payload.permit_no=(payload.permit_no||"").trim().toUpperCase();
+ payload.turnstile_token=payload["cf-turnstile-response"];
+ delete payload["cf-turnstile-response"];
+ if(!payload.turnstile_token){msg.textContent="กรุณายืนยันความปลอดภัยก่อนตรวจสอบสถานะ";return;}
  try{
-  const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...formObject(e.currentTarget)}});
+  const {data,error}=await db.functions.invoke("submit-work-permit",{body:{action:"track",...payload}});
   if(error)throw error;if(data.error)throw new Error(data.error);
   msg.innerHTML="";
   const card=document.createElement("div");card.className="card";
@@ -266,6 +271,7 @@ $("trackForm").addEventListener("submit",async e=>{
   const detail=document.createElement("p");detail.textContent="SECURITY: "+(approvalStatusLabel[approval?.status]||"รออนุมัติ");card.append(detail);
   msg.append(card);
  }catch(err){msg.textContent=err.message||"ตรวจสอบไม่สำเร็จ";}
+ finally{if(window.turnstile)window.turnstile.reset();}
 });
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=formObject(e.currentTarget);const rawUser=(f.staff_user_id||"").trim().replace(/@patrol\.com$/i,"");const loginEmail=rawUser.toLowerCase()+"@patrol.com";$("staffMsg").textContent="กำลังเข้าสู่ระบบ...";const {error}=await db.auth.signInWithPassword({email:loginEmail,password:f.password});if(error){$("staffMsg").textContent=error.message;return;}$("staffMsg").textContent="เข้าสู่ระบบสำเร็จ กำลังโหลดรายการ...";$("loginForm").classList.add("hidden");$("loginForm").style.display="none";$("staffWorkspace").classList.remove("hidden");$("staffWorkspace").style.display="block";$("staffMsg").textContent="";showMainView("staff");await loadStaff();initPdfPicker();await loadPdfPermitList();});
 let activePermit=null;
