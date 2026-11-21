@@ -52,7 +52,13 @@ async function enforceRateLimit(req: Request, action: "track" | "submit") {
     console.error("Missing RATE_LIMIT_SALT");
     return { allowed: false, configured: false };
   }
-  const ip = clean(req.headers.get("cf-connecting-ip") ?? "unknown-client", 100);
+  const ipHeader = req.headers.get("cf-connecting-ip");
+  if (!ipHeader || !ipHeader.trim()) {
+    // Do not put every visitor into one shared bucket when the trusted proxy header is absent.
+    console.error("Missing trusted cf-connecting-ip header; rate limiting cannot identify the client");
+    return { allowed: false, configured: false };
+  }
+  const ip = clean(ipHeader, 100);
   const ipHash = await sha256(salt + ":" + ip);
   const windowSeconds = 600;
   const windowStart = new Date(Math.floor(Date.now() / (windowSeconds * 1000)) * windowSeconds * 1000).toISOString();
