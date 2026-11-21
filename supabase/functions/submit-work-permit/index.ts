@@ -46,6 +46,29 @@ const secretKey = secretKeys.default;
 if (!supabaseUrl || !secretKey) throw new Error("Missing Supabase URL or default secret key");
 const admin = createClient(supabaseUrl, secretKey, { auth: { persistSession: false } });
 
+async function enforceRateLimit(req: Request, action: "track" | "submit") {
+  const salt = Deno.env.get("RATE_LIMIT_SALT");
+  if (!salt) {
+    console.error("Missing RATE_LIMIT_SALT");
+    return { allowed: false, configured: false };
+  }
+  const ip = clean(req.headers.get("cf-connecting-ip") ?? "unknown-client", 100);
+  const ipHash = await sha256(salt + ":" + ip);
+  const windowSeconds = 600;
+  const windowStart = new Date(Math.floor(Date.now() / (windowSeconds * 1000)) * windowSeconds * 1000).toISOString();
+  const maxRequests = action === "track" ? 10 : 5;
+  const { data, error } = await admin.rpc("consume_work_permit_public_limit", {
+    p_ip_hash: ipHash,
+    p_window_start: windowStart,
+    p_max_requests: maxRequests,
+  });
+  if (error) {
+    console.error("Rate limit RPC failed", error);
+    return { allowed: false, configured: true };
+  }
+  return { allowed: data === true, configured: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -58,6 +81,10 @@ Deno.serve(async (req) => {
     const token = clean(body.turnstile_token ?? body["cf-turnstile-response"], 2048);
     const captcha = await verifyTurnstile(token);
     if (!captcha.ok) return json({ error: captcha.message }, captcha.status);
+
+    const limit = await enforceRateLimit(req, action);
+    if (!limit.configured) return json({ error: "ระบบจำกัดการใช้งานยังไม่ได้ตั้งค่า" }, 503);
+    if (!limit.allowed) return json({ error: "มีการใช้งานบ่อยเกินไป กรุณารอ 10 นาทีแล้วลองใหม่" }, 429);
 
     const db = admin;
 
