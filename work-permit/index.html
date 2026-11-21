@@ -69,21 +69,24 @@ window.__jsPdfReady=(async()=>{
 </script>
 <script>
 window.__turnstileWidgetIds={request:null,track:null};
+window.__turnstileReady=false;
+window.__activeMainView="home";
+window.renderActiveTurnstile=()=>{
+ if(!window.__turnstileReady||!window.turnstile)return;
+ const sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ";
+ if(window.__activeMainView==="request"&&!window.__turnstileWidgetIds.request){
+  const el=document.getElementById("requestTurnstile");
+  if(el)window.__turnstileWidgetIds.request=window.turnstile.render(el,{sitekey,theme:"light"});
+ }
+ if(window.__activeMainView==="track"&&!window.__turnstileWidgetIds.track){
+  const el=document.getElementById("trackTurnstile");
+  if(el)window.__turnstileWidgetIds.track=window.turnstile.render(el,{sitekey,theme:"light"});
+ }
+};
 window.onTurnstileLoad=()=>{
- const renderWidgets=()=>{
-  if(!window.turnstile)return;
-  const sitekey="0x4AAAAAAFxwJAvR2KF-nKeQ";
-  const requestEl=document.getElementById("requestTurnstile");
-  const trackEl=document.getElementById("trackTurnstile");
-  if(requestEl&&!window.__turnstileWidgetIds.request){
-   window.__turnstileWidgetIds.request=window.turnstile.render(requestEl,{sitekey,theme:"light"});
-  }
-  if(trackEl&&!window.__turnstileWidgetIds.track){
-   window.__turnstileWidgetIds.track=window.turnstile.render(trackEl,{sitekey,theme:"light"});
-  }
- };
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",renderWidgets,{once:true});
- else renderWidgets();
+ window.__turnstileReady=true;
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>window.renderActiveTurnstile(),{once:true});
+ else window.renderActiveTurnstile();
 };
 </script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
@@ -252,7 +255,9 @@ function renderWorkerNameFields(){
 $("requestForm").elements.team_size.addEventListener("input",renderWorkerNameFields);
 renderWorkerNameFields();
 function showMainView(view){
+ window.__activeMainView=view;
  ["home","request","track","staff"].forEach(id=>$(id).classList.toggle("hidden",id!==view));
+ if(view==="request"||view==="track")window.renderActiveTurnstile?.();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 const formObject=form=>Object.fromEntries(new FormData(form).entries());
