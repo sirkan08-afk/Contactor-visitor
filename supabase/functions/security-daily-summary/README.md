@@ -4,15 +4,16 @@ This Edge Function aggregates daily counts from the Contractor Registration, Wor
 
 ## Required Supabase Edge Function secrets
 
-Deploy this function to the Supabase project used by Work Permit and Security Patrol (`nldoneixnuapuzpeeznl`) and set these secrets in that project's Edge Function secrets:
+Deploy this function to the Supabase project used by Work Permit and Security Patrol (`nldoneixnuapuzpeeznl`).
 
-- `SUPABASE_URL` — the shared Work Permit / Patrol project URL
-- `SUPABASE_ANON_KEY` — that project's publishable/anon key
-- `SUPABASE_SERVICE_ROLE_KEY` — that project's service role key
+Supabase provides the shared project's own URL and keys to Edge Functions as environment variables (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`). Do not try to create custom secrets with the reserved `SUPABASE_` prefix.
+
+Add only these two custom secrets in the shared project's Edge Function Secrets:
+
 - `CONTRACTOR_SUPABASE_URL` — Contractor project URL
-- `CONTRACTOR_SUPABASE_SERVICE_ROLE_KEY` — Contractor project's service role key
+- `CONTRACTOR_SUPABASE_SERVICE_ROLE_KEY` — Contractor project's service-role key
 
-Never place either service-role key in frontend code, GitHub Pages, or chat. Add them only in Supabase Dashboard > Edge Functions > Secrets (or via the Supabase CLI secrets command).
+Never place either service-role key in frontend code, GitHub Pages, or chat. Add the Contractor service-role key only in Supabase Dashboard > Edge Functions > Secrets (or via the Supabase CLI secrets command).
 
 ## Authorization
 
