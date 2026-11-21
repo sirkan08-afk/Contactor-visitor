@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     if (action !== "track" && action !== "submit") return json({ error: "Unknown action" }, 400);
 
     // Require a fresh Turnstile token for BOTH public tracking and public submissions.
-    const token = clean(payload.turnstile_token ?? body["cf-turnstile-response"], 2048);
+    const token = clean(payload.turnstile_token ?? payload["cf-turnstile-response"], 2048);
     const captcha = await verifyTurnstile(token);
     if (!captcha.ok) return json({ error: captcha.message }, captcha.status);
 
