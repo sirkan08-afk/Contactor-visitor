@@ -87,13 +87,12 @@ Deno.serve(async (req) => {
     stillOnSite: contractorRows.filter((row: { time_out?: string | null }) => !row.time_out).length,
   };
 
-  const [permitResult, pointResult, logResult, planResult] = await Promise.all([
+  const [permitResult, pointResult, logResult] = await Promise.all([
     admin.from("work_permits").select("id,status,created_at").gte("created_at", start).lt("created_at", end).limit(5000),
     admin.from("patrol_points").select("id").eq("active", true),
     admin.from("patrol_logs").select("id,point_id,status,round_time,created_at").gte("created_at", start).lt("created_at", end).limit(10000),
-    admin.from("patrol_day_plans").select("plan_type").eq("patrol_date", day).maybeSingle(),
   ]);
-  if (permitResult.error || pointResult.error || logResult.error || planResult.error) {
+  if (permitResult.error || pointResult.error || logResult.error) {
     return json({ error: "Security database query failed", code: "SECURITY_QUERY_FAILED" }, 502);
   }
 
@@ -112,7 +111,6 @@ Deno.serve(async (req) => {
     abnormal: logs.filter((row) => row.status === "abnormal").length,
     inaccessible: logs.filter((row) => row.status === "inaccessible").length,
     roundsRecorded: [...new Set(logs.map((row) => row.round_time).filter(Boolean))].sort(),
-    dayPlan: planResult.data?.plan_type || null,
   };
 
   return json({
