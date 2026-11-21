@@ -29,7 +29,7 @@ declare
 begin
   if p_ip_hash is null or length(p_ip_hash) <> 64
      or p_window_start is null
-     or p_max_requests < 1 or p_max_requests > 100 then
+     or p_max_requests is null or p_max_requests < 1 or p_max_requests > 100 then
     raise exception 'Invalid rate limit parameters';
   end if;
 
