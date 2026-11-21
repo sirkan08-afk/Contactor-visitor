@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
   const [permitResult, pointResult, logResult] = await Promise.all([
     admin.from("work_permits").select("id,permit_no,work_title,status,created_at").gte("created_at", start).lt("created_at", end).limit(5000),
     admin.from("patrol_points").select("id").eq("active", true),
-    admin.from("patrol_logs").select("id,point_id,status,round_time,created_at,notes,patrol_points(point_code,area_name,point_name)").gte("created_at", start).lt("created_at", end).order("round_time",{ascending:true}).order("created_at",{ascending:true}).limit(10000),
+    admin.from("patrol_logs").select("id,point_id,status,round_time,created_at,notes,patrol_points(point_code,area_name,point_name),patrol_profiles(full_name,employee_code)").gte("created_at", start).lt("created_at", end).order("round_time",{ascending:true}).order("created_at",{ascending:true}).limit(10000),
   ]);
   if (permitResult.error || pointResult.error || logResult.error) {
     return json({ error: "Security database query failed", code: "SECURITY_QUERY_FAILED" }, 502);
@@ -126,6 +126,8 @@ Deno.serve(async (req) => {
           pointName: row.patrol_points?.point_name || "",
           status: row.status,
           notes: row.notes || "",
+          reporterName: row.patrol_profiles?.full_name || "",
+          reporterId: row.patrol_profiles?.employee_code || "",
           recordedAt: row.created_at,
         })),
       };
