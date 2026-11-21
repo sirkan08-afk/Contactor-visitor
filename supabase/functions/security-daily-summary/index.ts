@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     Authorization: `Bearer ${contractorServiceKey}`,
   };
   const contractorQuery = new URLSearchParams({
-    select: "id,team_size,time_out",
+    select: "id,full_name,company_name,department,work_location,car_plate,team_size,time_in,time_out",
     work_date: `eq.${day}`,
     limit: "5000",
   });
@@ -85,12 +85,13 @@ Deno.serve(async (req) => {
     teamMembers: contractorRows.reduce((sum: number, row: { team_size?: number | string }) => sum + (Number(row.team_size) || 0), 0),
     checkedOut: contractorRows.filter((row: { time_out?: string | null }) => Boolean(row.time_out)).length,
     stillOnSite: contractorRows.filter((row: { time_out?: string | null }) => !row.time_out).length,
+    entriesList: contractorRows.map((row: Record<string, unknown>) => ({ fullName: row.full_name || "", companyName: row.company_name || "", department: row.department || "", workLocation: row.work_location || "", carPlate: row.car_plate || "", teamSize: Number(row.team_size) || 0, timeIn: row.time_in || null, timeOut: row.time_out || null })),
   };
 
   const [permitResult, pointResult, logResult] = await Promise.all([
-    admin.from("work_permits").select("id,status,created_at").gte("created_at", start).lt("created_at", end).limit(5000),
+    admin.from("work_permits").select("id,permit_no,work_title,status,created_at").gte("created_at", start).lt("created_at", end).limit(5000),
     admin.from("patrol_points").select("id").eq("active", true),
-    admin.from("patrol_logs").select("id,point_id,status,round_time,created_at").gte("created_at", start).lt("created_at", end).limit(10000),
+    admin.from("patrol_logs").select("id,point_id,status,round_time,created_at,notes,patrol_points(point_code,area_name,point_name)").gte("created_at", start).lt("created_at", end).order("round_time",{ascending:true}).order("created_at",{ascending:true}).limit(10000),
   ]);
   if (permitResult.error || pointResult.error || logResult.error) {
     return json({ error: "Security database query failed", code: "SECURITY_QUERY_FAILED" }, 502);
@@ -104,13 +105,31 @@ Deno.serve(async (req) => {
   }
 
   const logs = logResult.data || [];
+  const patrolRounds = [...new Set(logs.map((row) => row.round_time).filter(Boolean))].sort();
   const patrol = {
     activePoints: (pointResult.data || []).length,
     recordedChecks: logs.length,
     normal: logs.filter((row) => row.status === "normal").length,
     abnormal: logs.filter((row) => row.status === "abnormal").length,
     inaccessible: logs.filter((row) => row.status === "inaccessible").length,
-    roundsRecorded: [...new Set(logs.map((row) => row.round_time).filter(Boolean))].sort(),
+    roundsRecorded: patrolRounds,
+    rounds: patrolRounds.map((round) => {
+      const roundLogs = logs.filter((row) => row.round_time === round);
+      return {
+        roundTime: round,
+        normal: roundLogs.filter((row) => row.status === "normal").length,
+        abnormal: roundLogs.filter((row) => row.status === "abnormal").length,
+        inaccessible: roundLogs.filter((row) => row.status === "inaccessible").length,
+        entries: roundLogs.map((row) => ({
+          pointCode: row.patrol_points?.point_code || "",
+          areaName: row.patrol_points?.area_name || "",
+          pointName: row.patrol_points?.point_name || "",
+          status: row.status,
+          notes: row.notes || "",
+          recordedAt: row.created_at,
+        })),
+      };
+    }),
   };
 
   return json({
@@ -119,7 +138,7 @@ Deno.serve(async (req) => {
     generatedAt: new Date().toISOString(),
     generatedFor: { userId: authData.user.id, role: roleRow.role },
     contractor,
-    workPermit: { total: permits.length, statuses: statusCounts },
+    workPermit: { total: permits.length, statuses: statusCounts, entries: permits.map((row) => ({ permitNo: row.permit_no || "", workTitle: row.work_title || "", status: row.status || "unknown" })) },
     patrol,
     notes: [
       "Contractor totals are based on work_date.",
