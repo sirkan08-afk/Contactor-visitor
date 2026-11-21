@@ -79,12 +79,16 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   try {
-    const body = await req.json();
-    const action = clean(body.action, 20);
+    const body: unknown = await req.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return json({ error: "รูปแบบคำขอไม่ถูกต้อง" }, 400);
+    }
+    const payload = body as Record<string, unknown>;
+    const action = clean(payload.action, 20);
     if (action !== "track" && action !== "submit") return json({ error: "Unknown action" }, 400);
 
     // Require a fresh Turnstile token for BOTH public tracking and public submissions.
-    const token = clean(body.turnstile_token ?? body["cf-turnstile-response"], 2048);
+    const token = clean(payload.turnstile_token ?? body["cf-turnstile-response"], 2048);
     const captcha = await verifyTurnstile(token);
     if (!captcha.ok) return json({ error: captcha.message }, captcha.status);
 
@@ -95,7 +99,7 @@ Deno.serve(async (req) => {
     const db = admin;
 
     if (action === "track") {
-      const rawPermitNo = String(body.permit_no ?? "").trim();
+      const rawPermitNo = String(payload.permit_no ?? "").trim();
       if (rawPermitNo.length > 60) return json({ error: "รูปแบบเลข Work Permit ไม่ถูกต้อง" }, 400);
       const permitNo = rawPermitNo.toUpperCase();
       if (!/^WP-[A-Z0-9-]{6,30}$/.test(permitNo)) return json({ error: "รูปแบบเลข Work Permit ไม่ถูกต้อง" }, 400);
@@ -117,23 +121,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const applicant = clean(body.applicant_name, 160);
-    const supervisor = clean(body.supervisor_name, 160);
-    const company = clean(body.company_name, 180);
-    const phone = clean(body.contact_phone, 40);
-    const title = clean(body.work_title, 180);
-    const location = clean(body.work_location, 180);
-    const startDate = clean(body.start_date, 10);
-    const endDate = clean(body.end_date, 10);
-    const teamSize = Number(body.team_size);
+    const applicant = clean(payload.applicant_name, 160);
+    const supervisor = clean(payload.supervisor_name, 160);
+    const company = clean(payload.company_name, 180);
+    const phone = clean(payload.contact_phone, 40);
+    const title = clean(payload.work_title, 180);
+    const location = clean(payload.work_location, 180);
+    const startDate = clean(payload.start_date, 10);
+    const endDate = clean(payload.end_date, 10);
+    const teamSize = Number(payload.team_size);
     const validDate = (value: string) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
       const parsed = new Date(value + "T00:00:00Z");
       return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
     };
     const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
-    const rawStartTime = String(body.start_time ?? "").trim();
-    const rawEndTime = String(body.end_time ?? "").trim();
+    const rawStartTime = String(payload.start_time ?? "").trim();
+    const rawEndTime = String(payload.end_time ?? "").trim();
     if (!applicant || !supervisor || !company || !phone || !title || !location ||
         !validDate(startDate) ||
         (endDate && (!validDate(endDate) || endDate < startDate)) ||
@@ -143,7 +147,7 @@ Deno.serve(async (req) => {
       return json({ error: "กรุณากรอกข้อมูลที่จำเป็นให้ครบและตรวจสอบวันที่ เวลา และจำนวนคน" }, 400);
     }
 
-    const type = clean(body.work_type, 500);
+    const type = clean(payload.work_type, 500);
     const typeText = (type + " " + title).toLowerCase();
     const typeCode = /ไฟฟ้า|electrical/.test(typeText) ? "ELE" :
       /เชื่อม|weld/.test(typeText) ? "WLD" :
@@ -163,8 +167,8 @@ Deno.serve(async (req) => {
       permit_no: permitNo,
       company_name: company,
       work_title: title,
-      work_description: clean(body.work_description, 4000),
-      department: clean(body.department, 100),
+      work_description: clean(payload.work_description, 4000),
+      department: clean(payload.department, 100),
       work_location: location,
       start_date: startDate,
       end_date: endDate || null,
@@ -178,13 +182,13 @@ Deno.serve(async (req) => {
       applicant_name: applicant,
       supervisor_name: supervisor,
       work_type: type,
-      tools: clean(body.tools, 2000),
+      tools: clean(payload.tools, 2000),
       tracking_code_hash: trackingHash,
     }).select("id,permit_no").single();
     if (error) throw error;
 
-    const workerNames = Array.isArray(body.worker_names)
-      ? body.worker_names.map((name: unknown) => clean(name, 160)).filter(Boolean).slice(0, teamSize)
+    const workerNames = Array.isArray(payload.worker_names)
+      ? payload.worker_names.map((name: unknown) => clean(name, 160)).filter(Boolean).slice(0, teamSize)
       : [];
     if (workerNames.length) {
       const workerRows = workerNames.map((full_name: string) => ({
