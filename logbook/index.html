@@ -11,7 +11,8 @@
 <section class="panel"><div class="row" style="justify-content:space-between"><div><h2>รายงานประจำวัน</h2><div class="muted">รายงานแสดงรายการที่บันทึกอัตโนมัติแล้วเท่านั้น</div></div><div class="row"><button onclick="exportPdf('detailed')">Detailed PDF</button><button class="secondary" onclick="exportPdf('summary')">Summary PDF</button></div></div></section></section></main>
 <script>
 const URL="https://nldoneixnuapuzpeeznl.supabase.co",KEY="sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI";
-let db=null;\nif(window.supabase&&window.supabase.createClient){db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}else{document.addEventListener("DOMContentLoaded",()=>{$("loginStatus").textContent="โหลดระบบเชื่อมต่อไม่สำเร็จ กรุณารีเฟรชหน้าเว็บหรือตรวจสอบอินเทอร์เน็ต"})}
+let db=null;
+if(window.supabase&&window.supabase.createClient){db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}else{document.addEventListener("DOMContentLoaded",()=>{$("loginStatus").textContent="โหลดระบบเชื่อมต่อไม่สำเร็จ กรุณารีเฟรชหน้าเว็บหรือตรวจสอบอินเทอร์เน็ต"})}
 const $=id=>document.getElementById(id);let rows=[],filter="all";
 function today(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
