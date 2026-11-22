@@ -9,7 +9,7 @@ Deno.serve(async req=>{
  const token=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");if(!token)return json({error:"Authentication required"},401);
  const auth=createClient(url,anon,{auth:{persistSession:false,autoRefreshToken:false}});const {data:userData,error:authError}=await auth.auth.getUser(token);if(authError||!userData.user)return json({error:"Invalid or expired session"},401);
  const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
- const {data:role,error:roleError}=await admin.from("user_roles").select("role").eq("user_id",userData.user.id).maybeSingle();if(roleError||!role||!["ADMIN","SECURITY"].includes(String(role.role).toUpperCase()))return json({error:"Security staff permission required"},403);
+ const {data:profile,error:profileError}=await admin.from("patrol_profiles").select("id,role,employee_code").eq("id",userData.user.id).maybeSingle();if(profileError||!profile)return json({error:"ไม่พบโปรไฟล์เจ้าหน้าที่ใน patrol_profiles กรุณาตรวจสอบบัญชี Security Patrol"},403);
  let body:{action?:string;date?:string};try{body=await req.json()}catch{return json({error:"Invalid JSON"},400)}
  const day=String(body.date||"");if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return json({error:"Date must be YYYY-MM-DD"},400);
  const start=new Date(day+"T00:00:00+07:00"),end=new Date(start.getTime()+86400000);
