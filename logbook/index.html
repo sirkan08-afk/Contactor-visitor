@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10243a"><title>Security Logbook</title>
+<style>
+:root{--navy:#10243a;--blue:#1d4668;--bg:#f2f5f8;--line:#e1e7ed;--muted:#718096;--green:#16845b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172b3d;font-family:Arial,"Noto Sans Thai",sans-serif}
+header{background:var(--navy);color:#fff;padding:18px max(18px,calc((100% - 1100px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}header small{display:block;color:#c4d2df;margin-top:4px}
+main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px #10243a08}
+h1{font-size:21px;margin:0}h2{font-size:17px;margin:0 0 14px}.muted{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;color:#526579;font-weight:700}
+input,select,textarea{width:100%;border:1px solid #d7e0e8;border-radius:8px;padding:11px;font:inherit;font-size:14px;background:white;color:#172b3d}textarea{min-height:100px;resize:vertical}
+button{border:0;border-radius:8px;padding:11px 16px;background:var(--blue);color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#eaf0f6;color:#23415c}.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.status{font-size:12px;margin-top:10px;color:var(--muted)}.hidden{display:none!important}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.toolbar input{max-width:220px}
+.entry{border:1px solid var(--line);border-radius:11px;padding:15px;margin-top:11px;background:#fff}.entrytop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}.time{font-size:20px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}.tag{font-size:11px;background:#eaf0f6;color:#23415c;padding:5px 9px;border-radius:20px}.entry h3{font-size:15px;margin:10px 0 6px}.entry p{font-size:13px;line-height:1.65;margin:6px 0;white-space:pre-wrap}.entryfoot{border-top:1px solid #edf1f5;margin-top:10px;padding-top:8px;color:var(--muted);font-size:11px}
+@media(max-width:650px){main{margin:14px auto}.panel{padding:15px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}header{padding:14px 16px}}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
+<body><header><div><h1>SECURITY LOGBOOK</h1><small>Security Department · Real-time Event Recording</small></div><button id="logoutBtn" class="secondary hidden" onclick="logout()">ออกจากระบบ</button></header>
+<main>
+<section class="panel" id="loginPanel"><h2>เข้าสู่ระบบเจ้าหน้าที่</h2><div class="grid"><div class="field"><label>User ID</label><input id="userId" placeholder="SEC001"></div><div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password"></div></div><div class="actions"><button onclick="login()">เข้าสู่ระบบ</button></div><div class="status" id="loginStatus">ใช้บัญชีเจ้าหน้าที่ Security ชุดเดียวกับระบบ Patrol</div></section>
+<section id="appPanel" class="hidden">
+<div class="panel"><div class="toolbar"><div><h2>บันทึกเหตุการณ์ใหม่</h2><div class="muted">กรอกข้อมูลแล้วกดบันทึก ระบบจะประทับวันและเวลาให้อัตโนมัติ</div></div><span class="tag" id="staffLabel">—</span></div>
+<div class="grid" style="margin-top:16px">
+<div class="field"><label for="category">ประเภทเหตุการณ์</label><select id="category"><option>การประสานงาน</option><option>ผู้รับเหมา</option><option>เหตุการณ์ทั่วไป</option><option>อุบัติเหตุ / การบาดเจ็บ</option><option>ทรัพย์สินสูญหาย / พบทรัพย์สิน</option><option>เหตุฉุกเฉิน</option><option>แจ้งเพื่อทราบ</option><option>อื่น ๆ</option></select></div>
+<div class="field"><label for="subject">หัวข้อเหตุการณ์</label><input id="subject" maxlength="180" placeholder="เช่น แจ้งปิดวาล์วน้ำเพื่อซ่อมแซม"></div>
+<div class="field full"><label for="details">รายละเอียดเหตุการณ์</label><textarea id="details" placeholder="บันทึกว่าเกิดอะไรขึ้น ที่ไหน ใครแจ้ง และรายละเอียดที่เกี่ยวข้อง"></textarea></div>
+<div class="field full"><label for="action">การดำเนินการของ Security (ถ้ามี)</label><textarea id="action" style="min-height:75px" placeholder="เช่น รับทราบ แจ้งหัวหน้าเวร หรือประสานงานแผนกที่เกี่ยวข้อง"></textarea></div>
+</div><div class="actions"><button id="saveBtn" onclick="saveEntry()">บันทึกเหตุการณ์</button><button class="secondary" onclick="clearForm()">ล้างข้อมูล</button></div><div class="status" id="saveStatus"></div></div>
+<div class="panel"><div class="toolbar"><div><h2 style="margin:0">ประวัติการบันทึก</h2><div class="muted">แสดงเวลาที่กดบันทึกจริง เรียงจากรายการล่าสุด</div></div><input id="filterDate" type="date" aria-label="กรองวันที่" onchange="loadEntries()"></div><div id="entries"><p class="muted">กำลังโหลดรายการ...</p></div></div>
+</section></main>
+<script>
+const SUPABASE_URL="https://nldoneixnuapuzpeeznl.supabase.co";
+const SUPABASE_KEY="sb_publishable_igE41YhbVSgCQijy3nTCPg_3C-PyGiI";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+let staff=null;
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function bangkokDate(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
+function displayDate(v){return new Date(v).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"})}
+function displayTime(v){return new Date(v).toLocaleTimeString("th-TH",{timeZone:"Asia/Bangkok",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false})}
+async function init(){const {data:{session}}=await db.auth.getSession();if(session)await loadProfile()}
+async function login(){const id=$("userId").value.trim();const pass=$("password").value;if(!id||!pass){$("loginStatus").textContent="กรุณากรอก User ID และ Password";return} $("loginStatus").textContent="กำลังเข้าสู่ระบบ...";const email=id.includes("@")?id:id.toLowerCase()+"@patrol.com";const {error}=await db.auth.signInWithPassword({email,password:pass});if(error){$("loginStatus").textContent="เข้าสู่ระบบไม่สำเร็จ: "+error.message;return}await loadProfile()}
+async function loadProfile(){const {data:{user}}=await db.auth.getUser();if(!user)return;const {data,error}=await db.from("patrol_profiles").select("id,employee_code,full_name,role").eq("id",user.id).single();if(error){$("loginStatus").textContent="ไม่พบโปรไฟล์เจ้าหน้าที่ใน patrol_profiles: "+error.message;return}staff=data;$("loginPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("staffLabel").textContent=(data.employee_code||"")+(data.full_name?" · "+data.full_name:"");$("filterDate").value=bangkokDate();await loadEntries()}
+async function logout(){await db.auth.signOut();location.reload()}
+function clearForm(){$("subject").value="";$("details").value="";$("action").value="";$("category").value="การประสานงาน";$("saveStatus").textContent=""}
+async function saveEntry(){const subject=$("subject").value.trim(),details=$("details").value.trim();if(!subject||!details){$("saveStatus").textContent="กรุณากรอกหัวข้อและรายละเอียดเหตุการณ์";return}const btn=$("saveBtn");btn.disabled=true;$("saveStatus").textContent="กำลังบันทึก...";try{const {data,error}=await db.from("security_logbook_entries").insert({category:$("category").value,subject,details,action_taken:$("action").value.trim()||null,created_by:staff.id,employee_code:staff.employee_code,full_name:staff.full_name}).select("id,created_at").single();if(error)throw error;const savedAt=displayTime(data.created_at);$("saveStatus").textContent="บันทึกสำเร็จ เวลา "+savedAt+" น.";clearForm();$("saveStatus").textContent="บันทึกสำเร็จ เวลา "+savedAt+" น.";await loadEntries()}catch(e){$("saveStatus").textContent="บันทึกไม่สำเร็จ: "+e.message+" · ตรวจสอบว่าตั้งค่าตาราง security_logbook_entries แล้ว"}finally{btn.disabled=false}}
+async function loadEntries(){if(!staff)return;const date=$("filterDate").value||bangkokDate();const start=new Date(date+"T00:00:00+07:00").toISOString(),end=new Date(new Date(date+"T00:00:00+07:00").getTime()+86400000).toISOString();$("entries").innerHTML='<p class="muted">กำลังโหลดรายการ...</p>';const {data,error}=await db.from("security_logbook_entries").select("id,category,subject,details,action_taken,created_at,employee_code,full_name").gte("created_at",start).lt("created_at",end).order("created_at",{ascending:false}).limit(300);if(error){$("entries").innerHTML='<p class="muted">โหลดข้อมูลไม่สำเร็จ: '+esc(error.message)+'</p>';return}if(!data?.length){$("entries").innerHTML='<p class="muted">ยังไม่มีบันทึกในวันที่เลือก</p>';return}$("entries").innerHTML=data.map(x=>'<article class="entry"><div class="entrytop"><span class="tag">'+esc(x.category)+'</span><span class="time">'+esc(displayTime(x.created_at))+' น.</span></div><h3>'+esc(x.subject)+'</h3><p>'+esc(x.details)+'</p>'+(x.action_taken?'<p><b>การดำเนินการ:</b> '+esc(x.action_taken)+'</p>':'')+'<div class="entryfoot">'+esc(displayDate(x.created_at))+' · บันทึกโดย '+esc(x.employee_code||"")+(x.full_name?" · "+esc(x.full_name):"")+'</div></article>').join("")}
+init();
+</script></body></html>
