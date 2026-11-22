@@ -31,7 +31,7 @@ function classify(text: string) {
     return { category: "general", destination: "ignored", status: "ignored", reason: "acknowledgement" };
   }
   if (normalized.includes("แจ้งเพื่อทราบ")) {
-    return { category: "incident", destination: "security_logbook", status: "review_required", reason: "incident_keyword" };
+    return { category: "incident", destination: "security_logbook", status: "auto_saved", reason: "incident_keyword" };
   }
   if (normalized.includes("ตรวจพื้นที่")) {
     return { category: "patrol_notice", destination: "patrol_reference_only", status: "ignored", reason: "patrol_is_qr_source_of_truth" };
