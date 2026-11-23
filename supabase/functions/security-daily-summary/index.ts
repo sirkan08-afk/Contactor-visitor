@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
   };
 
   const [permitResult, pointResult, logResult] = await Promise.all([
-    admin.from("work_permits").select("id,permit_no,work_title,status,created_at").gte("created_at", start).lt("created_at", end).limit(5000),
+    admin.from("work_permits").select("id,permit_no,work_title,status,created_at,updated_at").gte("created_at", start).lt("created_at", end).limit(5000),
     admin.from("patrol_points").select("id").eq("active", true),
     admin.from("patrol_logs").select("id,point_id,guard_id,status,round_time,created_at,notes,patrol_points(point_code,area_name,point_name),profile:patrol_profiles!patrol_logs_guard_id_fkey(full_name,employee_code)").gte("created_at", start).lt("created_at", end).order("round_time",{ascending:true}).order("created_at",{ascending:true}).limit(10000),
   ]);
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
     generatedAt: new Date().toISOString(),
     generatedFor: { userId: authData.user.id, role: roleRow.role },
     contractor,
-    workPermit: { total: permits.length, statuses: statusCounts, entries: permits.map((row) => ({ permitNo: row.permit_no || "", workTitle: row.work_title || "", status: row.status || "unknown" })) },
+    workPermit: { total: permits.length, statuses: statusCounts, entries: permits.map((row) => ({ permitNo: row.permit_no || "", workTitle: row.work_title || "", status: row.status || "unknown", createdAt: row.created_at || null, updatedAt: row.updated_at || row.created_at || null })) },
     patrol,
     notes: [
       "Contractor totals are based on work_date.",
