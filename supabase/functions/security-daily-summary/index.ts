@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
     generatedAt: new Date().toISOString(),
     generatedFor: { userId: authData.user.id, role: roleRow.role },
     contractor,
-    workPermit: { total: permits.length, statuses: statusCounts, entries: permits.map((row) => ({ permitNo: row.permit_no || "", workTitle: row.work_title || "", status: row.status || "unknown", createdAt: row.created_at || null, updatedAt: row.updated_at || row.created_at || null })) },
+    workPermit: { total: permits.length, statuses: statusCounts, entries: permits.map((row) => ({ id: row.id, permitNo: row.permit_no || "", workTitle: row.work_title || "", status: row.status || "unknown", createdAt: row.created_at || null, updatedAt: row.updated_at || row.created_at || null })) },
     patrol,
     notes: [
       "Contractor totals are based on work_date.",
