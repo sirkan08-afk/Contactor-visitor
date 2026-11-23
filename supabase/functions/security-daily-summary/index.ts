@@ -14,10 +14,12 @@ const json = (body: unknown, status = 200) =>
   });
 
 function bangkokDayBounds(day: string) {
+  // Security operational day: 07:00 local time through next day 07:00 (exclusive).
   // Thailand has no daylight-saving time: UTC+07:00 year-round.
+  const start = new Date(day + "T07:00:00+07:00");
   return {
-    start: new Date(`${day}T00:00:00+07:00`).toISOString(),
-    end: new Date(new Date(`${day}T00:00:00+07:00`).getTime() + 86400000).toISOString(),
+    start: start.toISOString(),
+    end: new Date(start.getTime() + 86400000).toISOString(),
   };
 }
 
@@ -144,7 +146,7 @@ Deno.serve(async (req) => {
     patrol,
     notes: [
       "Contractor totals are based on work_date.",
-      "Work Permit totals are based on created_at in Asia/Bangkok.",
+      "Work Permit totals are based on created_at within the 07:00–07:00 Security operational day in Asia/Bangkok.",
       "Patrol recorded checks count saved logs; pending checkpoints are not inferred without applying the day's patrol schedule.",
     ],
   });
