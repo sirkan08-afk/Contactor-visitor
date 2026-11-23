@@ -27,8 +27,13 @@ async function verifyLineSignature(rawBody: string, secret: string, signature: s
 
 function classify(text: string) {
   const normalized = text.replace(/\s+/g, " ").trim();
-  if (/^(รับทราบ|ทราบแล้ว|โอเค|ok|okay|ขอบคุณ|ครับ|ค่ะ|👍|🙏)[.!\s]*$/i.test(normalized)) {
+  if (/^(รับทราบ|ทราบแล้ว|โอเค|ok|okay|ขอบคุณ|ขอบใจ|ครับ|ค่ะ|จ้า|ได้ครับ|ได้ค่ะ|👍|🙏)[.!\s]*$/i.test(normalized)) {
     return { category: "general", destination: "ignored", status: "ignored", reason: "acknowledgement" };
+  }
+  if (/^(ใคร|อะไร|ที่ไหน|เมื่อไหร่|เมื่อไร|ทำไม|อย่างไร|ยังไง|เท่าไหร่|กี่|มีใคร|ขอถาม|สอบถาม|รบกวนสอบถาม|ใช่ไหม|ได้ไหม|หรือไม่|ไหม\b)/i.test(normalized) ||
+      /^(ช่วย|รบกวน|ฝาก|กรุณา|โปรด|ขอให้|ให้ช่วย|แจ้งให้|ตรวจให้|เช็คให้|เช็กให้|ตามให้|ประสานให้|อย่าลืม|อย่าเพิ่ง|ขอความร่วมมือ)/i.test(normalized) ||
+      (/[?？]$/.test(normalized) && normalized.length < 180)) {
+    return { category: "general", destination: "ignored", status: "ignored", reason: "conversation_or_instruction" };
   }
   if (normalized.includes("แจ้งเพื่อทราบ")) {
     return { category: "incident", destination: "security_logbook", status: "auto_saved", reason: "incident_keyword" };
