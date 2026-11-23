@@ -12,7 +12,7 @@ Deno.serve(async req=>{
  const {data:profile,error:profileError}=await admin.from("patrol_profiles").select("id,role,employee_code").eq("id",userData.user.id).maybeSingle();if(profileError||!profile)return json({error:"ไม่พบโปรไฟล์เจ้าหน้าที่ใน patrol_profiles กรุณาตรวจสอบบัญชี Security Patrol"},403);
  let body:{action?:string;date?:string};try{body=await req.json()}catch{return json({error:"Invalid JSON"},400)}
  const day=String(body.date||"");if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return json({error:"Date must be YYYY-MM-DD"},400);
- const start=new Date(day+"T00:00:00+07:00"),end=new Date(start.getTime()+86400000);
+ const start=new Date(day+"T07:00:00+07:00"),end=new Date(start.getTime()+86400000);
  if(body.action!=="list")return json({error:"Unsupported action"},400);
  const {data,error}=await admin.from("line_security_messages").select("id,message_text,line_timestamp,created_at,category,destination,status,classification_reason").gte("line_timestamp",start.toISOString()).lt("line_timestamp",end.toISOString()).in("destination",["security_logbook","manual_review"]).order("line_timestamp",{ascending:true}).limit(3000);
  if(error)return json({error:"Unable to load LINE Logbook: "+error.message},502);
