@@ -314,7 +314,7 @@ function addField(parent,label,value){const d=pdfEl("div","pdf-field");const b=p
 function buildPdfPages(){
  const p=activePermit?.work_permits||{},root=pdfEl("div","pdf-root");
  const page1=pdfEl("div","pdf-page"),head=pdfEl("div","pdf-head");
- const logo1=pdfEl("img","pdf-logo");logo1.src="https://raw.githubusercontent.com/sirkan08-afk/Contactor-visitor/work-permit-online/patrol/logo.svg";logo1.alt="U Khao Chi Chan Pattaya";head.append(logo1);
+ const logo1=pdfEl("img","pdf-logo");logo1.src="https://raw.githubusercontent.com/sirkan08-afk/hotel-security-management-system/main/1795254077344.jpg";logo1.alt="U Khao Chi Chan Pattaya";head.append(logo1);
  head.append(pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","WORK PERMIT FOR SUB-CONTRACTOR · U KHAO CHI CHAN PATTAYA"));
  page1.append(head);
  const sec=(t)=>page1.append(pdfEl("div","pdf-section",t));
@@ -345,7 +345,7 @@ function buildPdfPages(){
  const sign=pdfEl("div","pdf-sign");const applicantName=p.applicant_name||p.contact_name||p.supervisor_name||"-";const applicantDate=(p.start_date||"").slice(0,10).split("-").reverse().map((v,i)=>i===2?v.slice(-2):v).join("/");const addSignBox=(text)=>{const box=pdfEl("div","sign-text",text);box.style.cssText="border:1px solid #9aaca1;min-height:18mm;padding:2mm;margin:0;white-space:pre-line;text-align:center;font-size:7pt;line-height:1.5;box-sizing:border-box;display:block";return box;};sign.append(addSignBox("ผู้ขออนุญาต / ผู้ควบคุม\n"+applicantName+"\nวันที่ "+(applicantDate||"-")));[["เจ้าของงาน (Job Owner)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"],["เจ้าของพื้นที่ (Area Owner)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"],["เจ้าหน้าที่ความปลอดภัย (Safety Officer)","ลงชื่อ __________________","วันที่ ____ / ____ / ____"]].forEach(lines=>sign.append(addSignBox(lines.join("\n"))));page1.append(sign);
  page1.append(pdfEl("div","pdf-small","หมายเหตุ: ให้ผู้รับเหมาติดใบอนุญาตไว้บริเวณพื้นที่ปฏิบัติงาน และต้องปฏิบัติตามมาตรการความปลอดภัยของโรงแรม"));
  page1.append(pdfEl("div","pdf-footer","หน้า 1 / 2"));
- const page2=pdfEl("div","pdf-page"),h2=pdfEl("div","pdf-head");const logo2=pdfEl("img","pdf-logo");logo2.src="https://raw.githubusercontent.com/sirkan08-afk/Contactor-visitor/work-permit-online/patrol/logo.svg";logo2.alt="U Khao Chi Chan Pattaya";h2.append(logo2,pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","รายการตรวจสอบความปลอดภัย (Checking Detail)"));page2.append(h2);
+ const page2=pdfEl("div","pdf-page"),h2=pdfEl("div","pdf-head");const logo2=pdfEl("img","pdf-logo");logo2.src="https://raw.githubusercontent.com/sirkan08-afk/hotel-security-management-system/main/1795254077344.jpg";logo2.alt="U Khao Chi Chan Pattaya";h2.append(logo2,pdfEl("h1","","ใบขออนุญาตปฏิบัติงานสำหรับผู้รับเหมา"),pdfEl("p","","รายการตรวจสอบความปลอดภัย (Checking Detail)"));page2.append(h2);
  const meta=pdfEl("div","pdf-grid");[["เลขที่ใบอนุญาต",p.permit_no],["บริษัท",p.company_name],["พื้นที่",p.work_location],["วันที่",p.start_date]].forEach(x=>addField(meta,x[0],x[1]));page2.append(meta);
  const table=pdfEl("table","pdf-table"),thead=pdfEl("thead"),tr=pdfEl("tr");["ลำดับ","รายการตรวจสอบ (Checking Detail)","ใช่","ไม่ใช่","ไม่เกี่ยวข้อง","ปัญหาที่พบ","ดำเนินการแก้ไข"].forEach((t,i)=>tr.append(pdfEl("th","",t)));thead.append(tr);table.append(thead);
  const tbody=pdfEl("tbody"),sels=[...$("checklist").querySelectorAll("select[data-item]")];
